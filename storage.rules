@@ -1,0 +1,15 @@
+rules_version = '2';
+
+// ══════════════════════════════════════════════════════════════
+// SGM · TRANSPOWER — Reglas Firebase Storage (Fase 4)
+// Estado: DENY-ALL. Se abrirá en Fase 9 (Gestión Documental) con
+// validación de tamaño, MIME y autenticación admin.
+// ══════════════════════════════════════════════════════════════
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -8,7 +8,7 @@ Caribe Colombiano (Bolívar, Córdoba, Sucre, Cesar y 11 municipios de Magdalena
 
 ## Estado
 
-Fase 3 cerrada · progreso global **25 %**. Ver [`CLAUDE.md`](./CLAUDE.md) para el plan completo.
+Fase 4 cerrada · progreso global **30 %**. Ver [`CLAUDE.md`](./CLAUDE.md) para el plan completo.
 
 ## Stack
 
@@ -31,6 +31,36 @@ npm run serve      # sirve el sitio en http://localhost:8080
 - `.github/workflows/ci.yml` — lint HTML en push / PR.
 - `.github/workflows/pages.yml` — deploy automático a GitHub Pages desde `main`.
 - `vercel.json` — configuración de headers, cleanUrls y redirects para Vercel.
+
+## Firebase (Fase 4)
+
+Archivos en el repo:
+
+- `firebase.json` — hosting, paths de reglas y puertos de emuladores.
+- `.firebaserc` — proyecto por defecto.
+- `firestore.rules` / `storage.rules` — en modo **DENY-ALL**.
+- `firestore.indexes.json` — vacío (se llenará en F6+).
+- `assets/js/firebase-config.js` — config pública (placeholders).
+- `assets/js/firebase-init.js` — bootstrap del SDK modular v10.
+- `pages/_firebase-test.html` — sonda de diagnóstico (oculta).
+
+Pasos manuales pendientes (consola Firebase):
+
+1. Crear proyecto `sgm-transpower` en <https://console.firebase.google.com>.
+2. Agregar Web App → copiar el `firebaseConfig` → pegar en
+   `assets/js/firebase-config.js`.
+3. Habilitar **Authentication** (Email/Password), **Firestore** y **Storage**.
+4. Desplegar reglas:
+
+   ```bash
+   npm i -g firebase-tools
+   firebase login
+   firebase use --add
+   firebase deploy --only firestore:rules,storage
+   ```
+
+5. Abrir `/pages/_firebase-test.html` en el sitio (tras ingresar el gate) para
+   confirmar que los tres servicios cargan.
 
 ## Acceso
 
