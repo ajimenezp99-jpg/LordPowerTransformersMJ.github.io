@@ -10,7 +10,7 @@
   },
   "license": "UNLICENSED",
   "scripts": {
-    "lint:html": "html-validate \"index.html\" \"home.html\" \"pages/**/*.html\"",
+    "lint:html": "html-validate \"index.html\" \"home.html\" \"pages/**/*.html\" \"admin/**/*.html\"",
     "lint": "npm run lint:html",
     "serve": "npx --yes http-server . -p 8080 -c-1",
     "test": "npm run lint"

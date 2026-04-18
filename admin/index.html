@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Panel Administrativo</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
+  <script type="module" src="../assets/js/admin/admin-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css"/>
+  <link rel="stylesheet" href="../assets/css/app.css"/>
+  <style>
+    .admin-banner {
+      background: rgba(240,165,0,.08);
+      border: 1px solid rgba(240,165,0,.3);
+      border-left: 3px solid var(--accent2);
+      border-radius: 3px;
+      padding: .9rem 1.1rem;
+      margin-bottom: 1.5rem;
+      display: flex; justify-content: space-between;
+      align-items: center; flex-wrap: wrap; gap: .8rem;
+      font-family: var(--font-mono);
+      font-size: .78rem; color: var(--accent2);
+      letter-spacing: .1em;
+    }
+    .admin-user {
+      font-size: .72rem; color: var(--text);
+      letter-spacing: .05em;
+    }
+    .admin-user strong { color: var(--accent); font-weight: 600; }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="topbar-brand">SGM · <span>TRANSPOWER</span> · ADMIN</a>
+  <nav class="main-nav">
+    <a href="index.html"        class="nav-link active">Panel</a>
+    <a href="../home.html"      class="nav-link">Zona interna</a>
+  </nav>
+  <button class="btn-logout" id="btnLogout">CERRAR SESIÓN</button>
+</header>
+
+<main class="page-container">
+
+  <div class="admin-banner">
+    <span>▸ ZONA ADMINISTRATIVA · ACCESO RESTRINGIDO</span>
+    <span class="admin-user">Sesión: <strong id="adminUser">—</strong></span>
+  </div>
+
+  <div class="page-header">
+    <div class="breadcrumb">Admin / Panel principal</div>
+    <h1 class="page-title">Panel <em>Administrativo</em></h1>
+    <p class="page-subtitle">
+      Zona de gestión completa del sistema SGM · TRANSPOWER.
+      Los módulos CRUD se habilitan progresivamente a partir de la Fase 6.
+    </p>
+  </div>
+
+  <!-- MÓDULOS ADMIN -->
+  <div class="section-head">▸ MÓDULOS ADMINISTRATIVOS</div>
+  <div class="modules-grid">
+    <div class="module-card">
+      <div class="module-icon">⚡</div>
+      <div class="module-name">Inventario de Activos</div>
+      <div class="module-desc">CRUD de transformadores, fichas técnicas y trazabilidad.</div>
+      <span class="status-badge planned">PENDIENTE · F6</span>
+    </div>
+    <div class="module-card">
+      <div class="module-icon">🔧</div>
+      <div class="module-name">Órdenes de Trabajo</div>
+      <div class="module-desc">Creación, asignación, cambio de estado y cierre.</div>
+      <span class="status-badge planned">PENDIENTE · F7</span>
+    </div>
+    <div class="module-card">
+      <div class="module-icon">📊</div>
+      <div class="module-name">KPIs &amp; Analítica</div>
+      <div class="module-desc">Indicadores RAM, gráficas, exportación.</div>
+      <span class="status-badge planned">PENDIENTE · F8</span>
+    </div>
+    <div class="module-card">
+      <div class="module-icon">📋</div>
+      <div class="module-name">Gestión Documental</div>
+      <div class="module-desc">Subida a Storage con indexación en Firestore.</div>
+      <span class="status-badge planned">PENDIENTE · F9</span>
+    </div>
+    <div class="module-card">
+      <div class="module-icon">🗺️</div>
+      <div class="module-name">Georreferenciación</div>
+      <div class="module-desc">Gestión de coordenadas y capas de mapa.</div>
+      <span class="status-badge planned">PENDIENTE · F10</span>
+    </div>
+    <div class="module-card">
+      <div class="module-icon">🔔</div>
+      <div class="module-name">Alertas &amp; Notificaciones</div>
+      <div class="module-desc">Reglas de vencimiento y canales de envío.</div>
+      <span class="status-badge planned">PENDIENTE · F11</span>
+    </div>
+    <div class="module-card">
+      <div class="module-icon">🔐</div>
+      <div class="module-name">Códigos de Acceso</div>
+      <div class="module-desc">Gate dinámico: rotación, expiración, uso único.</div>
+      <span class="status-badge planned">PENDIENTE · F12</span>
+    </div>
+    <div class="module-card">
+      <div class="module-icon">👥</div>
+      <div class="module-name">Usuarios &amp; Roles</div>
+      <div class="module-desc">Gestión de cuentas admin y permisos granulares.</div>
+      <span class="status-badge planned">PENDIENTE · F12</span>
+    </div>
+  </div>
+
+  <!-- ESTADO DEL SISTEMA -->
+  <div class="section-head">▸ ESTADO DEL SISTEMA</div>
+  <div class="info-grid">
+    <div class="content-card">
+      <h3>🔥 Firebase</h3>
+      <ul>
+        <li>Authentication · activo</li>
+        <li>Firestore · DENY-ALL hasta F6</li>
+        <li>Storage · DENY-ALL hasta F9</li>
+      </ul>
+    </div>
+    <div class="content-card">
+      <h3>🛡️ Seguridad</h3>
+      <ul>
+        <li>Gate estático · sessionStorage</li>
+        <li>Admin · Firebase Auth + allowlist UID</li>
+        <li>Sesión admin · browserSessionPersistence</li>
+      </ul>
+    </div>
+    <div class="content-card">
+      <h3>📦 Despliegue</h3>
+      <ul>
+        <li>GitHub Pages · main → auto</li>
+        <li>Vercel · Hobby (futuro)</li>
+        <li>CI · lint HTML en push/PR</li>
+      </ul>
+    </div>
+    <div class="content-card">
+      <h3>📈 Progreso</h3>
+      <p>Fase 5 cerrada · <strong style="color:var(--accent)">35 %</strong> global.
+         Próximo: Fase 6 — Módulo Inventario (CRUD transformadores).</p>
+    </div>
+  </div>
+
+</main>
+
+<footer class="page-foot">
+  <span>SGM · TRANSPOWER — Panel Administrativo</span>
+  <span>© <span id="yr">2025</span> · Zona restringida</span>
+</footer>
+
+<script type="module">
+  import { logoutAdmin, ADMIN_ROUTES } from '../assets/js/admin/admin-auth.js';
+
+  document.getElementById('yr').textContent = new Date().getFullYear();
+
+  // Al montar el guard, window.__sgmAdmin queda disponible
+  const setUser = () => {
+    const u = window.__sgmAdmin;
+    if (u) document.getElementById('adminUser').textContent = u.email || u.uid;
+  };
+  setTimeout(setUser, 200);
+  setTimeout(setUser, 800);
+
+  document.getElementById('btnLogout').addEventListener('click', async () => {
+    try { await logoutAdmin(); } catch (_) {}
+    location.replace(ADMIN_ROUTES.login);
+  });
+</script>
+
+</body>
+</html>
