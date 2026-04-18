@@ -143,7 +143,7 @@ En la **Fase 11** el gate estático se reemplaza por un mecanismo dinámico:
 | # | Microfase                                                 | Peso | Acumulado | Estado |
 |---|-----------------------------------------------------------|------|-----------|--------|
 | 0 | Documentación inicial + barrera de acceso estática        |  5%  |   5%      | ✅ completada |
-| 1 | Estructura base CSS/JS y refactor del landing             |  5%  |  10%      | ⏳ pendiente |
+| 1 | Estructura base CSS/JS y refactor del landing             |  5%  |  10%      | ✅ completada |
 | 2 | Home real + páginas estáticas internas                    | 10%  |  20%      | ⏳ pendiente |
 | 3 | Preparación de hosting (Vercel / GitHub Pages + CI)       |  5%  |  25%      | ⏳ pendiente |
 | 4 | Integración de Firebase (Auth, Firestore, Storage)        |  5%  |  30%      | ⏳ pendiente |
@@ -279,8 +279,8 @@ En la **Fase 11** el gate estático se reemplaza por un mecanismo dinámico:
 
 | Métrica                    | Valor |
 |----------------------------|-------|
-| Fase en curso              | **Fase 0 cerrada · a la espera de Fase 1** |
-| Porcentaje global           | **5 %** |
+| Fase en curso              | **Fase 1 cerrada · a la espera de Fase 2** |
+| Porcentaje global           | **10 %** |
 | Último commit              | (ver historial Git) |
 | Servicios dinámicos activos | ninguno (aún sólo estático) |
 
@@ -289,3 +289,4 @@ En la **Fase 11** el gate estático se reemplaza por un mecanismo dinámico:
 ## 8. Historial de cambios
 
 - **Fase 0** — Creación de `CLAUDE.md`, gate estático con código `97601992@`, `home.html` stub protegido, `gate.js`, `auth-guard.js`, actualización del landing al 5 %.
+- **Fase 1** — `assets/css/base.css` con variables, reset, bg, animaciones y utilidades compartidas. Refactor de `index.html` y `home.html` para usar variables CSS (`--font-*`). `assets/img/favicon.svg` con ícono del transformador. Meta tags OG/SEO en ambas páginas. Progreso actualizado al 10 %.
