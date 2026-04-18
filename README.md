@@ -8,7 +8,7 @@ Caribe Colombiano (Bolívar, Córdoba, Sucre, Cesar y 11 municipios de Magdalena
 
 ## Estado
 
-Fase 5 cerrada · progreso global **35 %**. Ver [`CLAUDE.md`](./CLAUDE.md) para el plan completo.
+Fase 6 cerrada · progreso global **45 %**. Ver [`CLAUDE.md`](./CLAUDE.md) para el plan completo.
 
 ## Stack
 
@@ -78,6 +78,20 @@ dinámico en la Fase 12.
   2. Copiar el UID al array `ADMIN_UIDS` en
      `assets/js/admin/admin-config.js`.
   3. Ingresar desde `/admin/login.html`.
+
+### Inventario (Fase 6)
+
+- Colección Firestore `transformadores` con 17 campos + timestamps.
+- Vista pública: `pages/inventario.html` (KPIs + filtros + búsqueda, solo lectura).
+- Vista admin:   `admin/inventario.html` (CRUD completo con modal).
+- Pasos adicionales tras configurar Firebase:
+  1. Desplegar reglas e índices:
+     ```bash
+     firebase deploy --only firestore:rules,firestore:indexes
+     ```
+  2. En Firebase Console → Firestore, crear un documento
+     `/admins/{TU_UID_ADMIN}` con contenido libre (p.ej. `{active: true}`).
+     Esto autoriza las escrituras en `transformadores` desde ese UID.
 
 ## Licencia
 
