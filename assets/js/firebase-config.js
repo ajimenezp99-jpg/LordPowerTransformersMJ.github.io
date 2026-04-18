@@ -1,0 +1,36 @@
+// ══════════════════════════════════════════════════════════════
+// SGM · TRANSPOWER — Configuración pública del proyecto Firebase
+// Fase 4 · Integración Firebase
+// ──────────────────────────────────────────────────────────────
+// La configuración de Web App de Firebase NO es secreta: es un
+// identificador público. La seguridad real se aplica en las reglas
+// de Firestore y Storage (archivos firestore.rules / storage.rules)
+// y en la autenticación admin (Fase 5).
+//
+// Pasos manuales (a cargo del propietario del repo):
+//   1. Crear proyecto en https://console.firebase.google.com
+//      (sugerido: "sgm-transpower").
+//   2. Agregar una Web App al proyecto.
+//   3. Copiar el objeto `firebaseConfig` generado por la consola
+//      y reemplazar los valores placeholder de abajo.
+//   4. Habilitar Authentication (Email/Password), Firestore
+//      y Storage en modo Production (las reglas ya están cerradas).
+//   5. Instalar CLI:      npm i -g firebase-tools
+//      Login:             firebase login
+//      Vincular:          firebase use --add
+//      Desplegar reglas:  firebase deploy --only firestore:rules,storage
+// ══════════════════════════════════════════════════════════════
+
+export const firebaseConfig = {
+  apiKey:            'REEMPLAZAR__FIREBASE_API_KEY',
+  authDomain:        'sgm-transpower.firebaseapp.com',
+  projectId:         'sgm-transpower',
+  storageBucket:     'sgm-transpower.appspot.com',
+  messagingSenderId: 'REEMPLAZAR__SENDER_ID',
+  appId:             'REEMPLAZAR__APP_ID'
+};
+
+// Flag de runtime: `true` cuando la configuración aún tiene placeholders.
+export const isFirebaseConfigured = !Object
+  .values(firebaseConfig)
+  .some((v) => typeof v === 'string' && v.startsWith('REEMPLAZAR__'));

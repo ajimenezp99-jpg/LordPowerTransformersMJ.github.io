@@ -1,0 +1,20 @@
+rules_version = '2';
+
+// ══════════════════════════════════════════════════════════════
+// SGM · TRANSPOWER — Reglas Firestore (Fase 4)
+// Estado: DENY-ALL. Se abrirán en fases operativas (F6–F11) bajo
+// autenticación admin (F5) y con validación granular por colección.
+// ══════════════════════════════════════════════════════════════
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Bloquea explícitamente toda lectura y escritura.
+    // Cualquier acceso debe pasar por reglas específicas que se
+    // agregarán en microfases posteriores (F6 inventario, F7 órdenes,
+    // F8 KPIs, F9 documental, F11 alertas).
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

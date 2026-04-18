@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Firebase Probe (Fase 4)</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
+  <script src="../assets/js/auth-guard-pages.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css"/>
+  <link rel="stylesheet" href="../assets/css/app.css"/>
+  <style>
+    .probe-out {
+      background: rgba(0,0,0,.45);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 3px;
+      padding: 1rem 1.2rem;
+      font-family: var(--font-mono);
+      font-size: .8rem; line-height: 1.7;
+      color: var(--text);
+      white-space: pre-wrap;
+      overflow-x: auto;
+    }
+    .probe-out.ok  { border-left-color: var(--accent3); }
+    .probe-out.err { border-left-color: #ff5577; }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../home.html" class="topbar-brand">SGM · <span>TRANSPOWER</span></a>
+  <nav class="main-nav">
+    <a href="../home.html"   class="nav-link">Inicio</a>
+    <a href="about.html"     class="nav-link">Proyecto</a>
+    <a href="cobertura.html" class="nav-link">Cobertura</a>
+    <a href="normativa.html" class="nav-link">Normativa</a>
+    <a href="contacto.html"  class="nav-link">Contacto</a>
+  </nav>
+  <button class="btn-logout" id="btnLogout">CERRAR SESIÓN</button>
+</header>
+
+<main class="page-container">
+
+  <div class="page-header">
+    <div class="breadcrumb">Inicio / Diagnóstico · Firebase</div>
+    <h1 class="page-title">Prueba de <em>Conexión Firebase</em></h1>
+    <p class="page-subtitle">
+      Página oculta (no enlazada en el menú) usada para verificar que el SDK modular
+      de Firebase se carga correctamente y que la configuración es válida. Se retira
+      al cerrar la Fase 4.
+    </p>
+  </div>
+
+  <div class="section-head">▸ ESTADO DEL SDK</div>
+  <div id="probeOut" class="probe-out">Ejecutando sonda…</div>
+
+  <div class="highlight-box" style="margin-top:1.5rem">
+    <strong>Nota:</strong> mientras <code>firebase-config.js</code> conserve los
+    placeholders <code>REEMPLAZAR__*</code>, la sonda reportará
+    <strong>&ldquo;Sin configurar&rdquo;</strong>. Una vez ingresado el config real,
+    la sonda mostrará el <code>projectId</code> y la carga de los tres servicios
+    (Auth · Firestore · Storage).
+  </div>
+
+</main>
+
+<footer class="page-foot">
+  <span>SGM · TRANSPOWER — Caribe Colombiano</span>
+  <span>© <span id="yr">2025</span> · Zona interna</span>
+</footer>
+
+<script type="module">
+  import { getApp, getAuthSafe, getDbSafe, getStorageSafe, isFirebaseConfigured }
+    from '../assets/js/firebase-init.js';
+
+  const out = document.getElementById('probeOut');
+
+  try {
+    const app = getApp();
+    if (!app) {
+      out.classList.add('err');
+      out.textContent = [
+        '⚠ Firebase NO inicializado.',
+        '',
+        'Motivo : configuración con placeholders.',
+        'Acción : editar assets/js/firebase-config.js con los valores',
+        '         reales del proyecto (Consola Firebase → Project Settings).',
+        '',
+        'Estado : isFirebaseConfigured = ' + isFirebaseConfigured
+      ].join('\n');
+    } else {
+      out.classList.add('ok');
+      const auth    = getAuthSafe();
+      const db      = getDbSafe();
+      const storage = getStorageSafe();
+      out.textContent = [
+        '✓ Firebase inicializado.',
+        '',
+        'projectId      : ' + app.options.projectId,
+        'authDomain     : ' + app.options.authDomain,
+        'storageBucket  : ' + app.options.storageBucket,
+        '',
+        'Servicios cargados:',
+        '  · Auth       : ' + (auth    ? 'OK' : 'no'),
+        '  · Firestore  : ' + (db      ? 'OK' : 'no'),
+        '  · Storage    : ' + (storage ? 'OK' : 'no'),
+        '',
+        '(Las reglas están en modo DENY-ALL · F4.)'
+      ].join('\n');
+    }
+  } catch (err) {
+    out.classList.add('err');
+    out.textContent = '✗ Error al cargar SDK:\n\n' + (err && err.message ? err.message : err);
+  }
+</script>
+
+<script>
+  document.getElementById('btnLogout').addEventListener('click', () => {
+    try { sessionStorage.removeItem('sgm.access'); } catch (_) {}
+    location.href = '../index.html';
+  });
+  document.getElementById('yr').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>

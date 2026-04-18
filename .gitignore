@@ -29,3 +29,12 @@ build/
 *.key
 *.pem
 serviceAccount*.json
+
+# Firebase (locales)
+.firebase/
+firebase-debug.log*
+firestore-debug.log*
+storage-debug.log*
+ui-debug.log*
+*-debug.log
+.runtimeconfig.json
