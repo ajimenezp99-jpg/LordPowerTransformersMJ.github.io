@@ -319,7 +319,85 @@
       animation: fillBar 2.2s cubic-bezier(.4,0,.2,1) 1s forwards;
       box-shadow: 0 0 12px rgba(0,200,255,.5);
     }
-    @keyframes fillBar { to { width: 18%; } }
+    @keyframes fillBar { to { width: 5%; } }
+
+    /* ── PANEL DE ACCESO ── */
+    .access-gate {
+      margin-top: 2.2rem;
+      padding: 1.4rem 1.3rem 1.3rem;
+      background: rgba(240,165,0,.05);
+      border: 1px solid rgba(240,165,0,.28);
+      border-left: 3px solid var(--accent2);
+      border-radius: 3px;
+    }
+    .gate-heading {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .72rem; letter-spacing: .22em;
+      color: var(--accent2);
+      margin-bottom: .7rem;
+    }
+    .gate-text {
+      font-size: .88rem; color: var(--text);
+      line-height: 1.6; margin-bottom: 1rem;
+    }
+    .gate-form {
+      display: flex; flex-wrap: wrap; gap: .6rem;
+      transition: transform .15s;
+    }
+    .gate-form.shake { animation: shake .35s ease-in-out; }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      20%     { transform: translateX(-6px); }
+      40%     { transform: translateX(6px); }
+      60%     { transform: translateX(-4px); }
+      80%     { transform: translateX(4px); }
+    }
+    .gate-form input[type="password"] {
+      flex: 1 1 220px;
+      background: rgba(0,0,0,.4);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: .7rem .9rem;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .95rem; letter-spacing: .1em;
+      border-radius: 3px;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .gate-form input[type="password"]:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent), var(--glow);
+    }
+    .gate-form input[type="password"]:disabled {
+      opacity: .5;
+    }
+    .gate-form button {
+      background: linear-gradient(135deg, var(--accent), #0098cc);
+      border: none;
+      color: #041018;
+      padding: .7rem 1.4rem;
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700; font-size: 1rem;
+      letter-spacing: .12em;
+      border-radius: 3px;
+      cursor: pointer;
+      transition: transform .15s, box-shadow .2s, filter .2s;
+    }
+    .gate-form button:hover {
+      box-shadow: var(--glow);
+      transform: translateY(-1px);
+    }
+    .gate-form button:disabled {
+      cursor: not-allowed; filter: grayscale(.5); transform: none;
+    }
+    .gate-msg {
+      min-height: 1.2rem;
+      margin-top: .7rem;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .78rem; letter-spacing: .08em;
+    }
+    .gate-msg.ok  { color: var(--accent3); }
+    .gate-msg.err { color: #ff5577; }
 
     /* ── FOOTER ── */
     .foot {
@@ -498,9 +576,31 @@
       <div class="divider"></div>
       <div class="progress-label">
         <span>▸ PROGRESO DE DESARROLLO</span>
-        <span>18%</span>
+        <span>5%</span>
       </div>
       <div class="progress-bar"><div class="progress-fill"></div></div>
+    </div>
+
+    <!-- PANEL DE ACCESO -->
+    <div class="access-gate">
+      <div class="gate-heading">▸ ACCESO RESTRINGIDO · ZONA INTERNA</div>
+      <p class="gate-text">
+        Ingrese el código de acceso para continuar al entorno operativo.
+        Esta barrera es temporal mientras el sistema está en construcción.
+      </p>
+      <form id="gateForm" class="gate-form" autocomplete="off" novalidate>
+        <input
+          type="password"
+          id="gateCode"
+          name="gateCode"
+          placeholder="Código de acceso"
+          aria-label="Código de acceso"
+          autocomplete="off"
+          required
+        >
+        <button type="submit">INGRESAR →</button>
+      </form>
+      <div class="gate-msg" id="gateMsg" role="status" aria-live="polite"></div>
     </div>
 
   </div><!-- /card -->
@@ -530,5 +630,8 @@
   };
   setTimeout(type, 800);
 </script>
+
+<!-- Gate estático (Fase 0) -->
+<script src="assets/js/gate.js"></script>
 </body>
 </html>
