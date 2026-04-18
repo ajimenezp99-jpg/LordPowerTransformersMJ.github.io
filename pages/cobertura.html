@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Cobertura Geográfica</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
+  <script src="../assets/js/auth-guard-pages.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css"/>
+  <link rel="stylesheet" href="../assets/css/app.css"/>
+  <style>
+    .municipios-list {
+      columns: 2; column-gap: 1.5rem;
+      list-style: none; padding: 0;
+      font-size: .87rem; color: var(--text); line-height: 2;
+    }
+    .municipios-list li::before { content: '📍 '; }
+    @media (max-width: 480px) { .municipios-list { columns: 1; } }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../home.html" class="topbar-brand">SGM · <span>TRANSPOWER</span></a>
+  <nav class="main-nav">
+    <a href="../home.html"   class="nav-link">Inicio</a>
+    <a href="about.html"     class="nav-link">Proyecto</a>
+    <a href="cobertura.html" class="nav-link active">Cobertura</a>
+    <a href="normativa.html" class="nav-link">Normativa</a>
+    <a href="contacto.html"  class="nav-link">Contacto</a>
+  </nav>
+  <button class="btn-logout" id="btnLogout">CERRAR SESIÓN</button>
+</header>
+
+<main class="page-container">
+
+  <div class="page-header">
+    <div class="breadcrumb">Inicio / Cobertura</div>
+    <h1 class="page-title">Cobertura <em>Geográfica</em></h1>
+    <p class="page-subtitle">
+      Zona de operación del sistema: Caribe Colombiano. Cinco departamentos con gestión
+      activa de transformadores de potencia en subestaciones y redes de distribución.
+    </p>
+  </div>
+
+  <!-- STATS DE COBERTURA -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">🗺️</div>
+      <div class="stat-value">5</div>
+      <div class="stat-label">DEPARTAMENTOS CUBIERTOS</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🏙️</div>
+      <div class="stat-value">11+</div>
+      <div class="stat-label">MUNICIPIOS EN MAGDALENA</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⚡</div>
+      <div class="stat-value">--</div>
+      <div class="stat-label">TRANSFORMADORES MAPEADOS</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📡</div>
+      <div class="stat-value">--</div>
+      <div class="stat-label">SUBESTACIONES ACTIVAS</div>
+    </div>
+  </div>
+
+  <!-- MAPA (placeholder hasta Fase 10) -->
+  <div class="section-head">▸ MAPA INTERACTIVO DE ACTIVOS</div>
+  <div class="map-placeholder">
+    <div class="map-icon">🗺️</div>
+    <p>MAPA INTERACTIVO — DISPONIBLE EN FASE 10</p>
+    <p style="opacity:.5;font-size:.7rem">Leaflet + OpenStreetMap · Clusters por departamento · Ficha por transformador</p>
+  </div>
+
+  <!-- DEPARTAMENTOS -->
+  <div class="section-head">▸ DEPARTAMENTOS DE COBERTURA</div>
+  <div class="geo-cards">
+    <div class="geo-card">
+      <div class="geo-card-name">📍 Bolívar</div>
+      <div class="geo-card-detail">
+        Capital: Cartagena de Indias. Transformadores en subestaciones urbanas,
+        industriales y de distribución rural.
+      </div>
+    </div>
+    <div class="geo-card">
+      <div class="geo-card-name">📍 Córdoba</div>
+      <div class="geo-card-detail">
+        Capital: Montería. Zonas agroindustriales y redes de distribución
+        en municipios del Sinú y San Jorge.
+      </div>
+    </div>
+    <div class="geo-card">
+      <div class="geo-card-name">📍 Sucre</div>
+      <div class="geo-card-detail">
+        Capital: Sincelejo. Activos en subestaciones de distribución regional
+        y redes eléctricas rurales del departamento.
+      </div>
+    </div>
+    <div class="geo-card">
+      <div class="geo-card-name">📍 Cesar</div>
+      <div class="geo-card-detail">
+        Capital: Valledupar. Transformadores en zonas de explotación minera,
+        agroindustriales y de distribución urbana.
+      </div>
+    </div>
+    <div class="geo-card" style="border-color:rgba(240,165,0,.3)">
+      <div class="geo-card-name" style="color:var(--accent2)">📍 Magdalena · 11 Municipios</div>
+      <div class="geo-card-detail">
+        Capital: Santa Marta. Cobertura especial en 11 municipios con gestión
+        intensiva de activos de potencia.
+      </div>
+    </div>
+  </div>
+
+  <!-- MUNICIPIOS MAGDALENA -->
+  <div class="section-head">▸ MUNICIPIOS EN MAGDALENA</div>
+  <div class="content-card">
+    <h3>🏙️ Cobertura detallada — Departamento del Magdalena</h3>
+    <p style="margin-bottom:1rem">
+      Los 11 municipios bajo gestión activa en el departamento del Magdalena incluyen
+      zonas de alta densidad de activos eléctricos con mantenimiento especializado:
+    </p>
+    <ul class="municipios-list">
+      <li>Santa Marta (capital)</li>
+      <li>Ciénaga</li>
+      <li>Fundación</li>
+      <li>El Banco</li>
+      <li>Plato</li>
+      <li>Aracataca</li>
+      <li>Pivijay</li>
+      <li>Zona Bananera</li>
+      <li>Pueblo Viejo</li>
+      <li>Salamina</li>
+      <li>Remolino</li>
+    </ul>
+  </div>
+
+  <!-- NOTA TÉCNICA -->
+  <div class="highlight-box">
+    <strong>Nota técnica:</strong> El mapa interactivo con georreferenciación precisa de
+    cada transformador (coordenadas GPS, subestación, nivel de tensión, potencia instalada)
+    estará disponible en la <strong>Fase 10</strong> del proyecto, implementado con
+    <strong>Leaflet.js + OpenStreetMap</strong> sin costo adicional.
+  </div>
+
+</main>
+
+<footer class="page-foot">
+  <span>SGM · TRANSPOWER — Caribe Colombiano</span>
+  <span>© <span id="yr">2025</span> · Zona interna</span>
+</footer>
+
+<script>
+  document.getElementById('btnLogout').addEventListener('click', () => {
+    try { sessionStorage.removeItem('sgm.access'); } catch (_) {}
+    location.href = '../index.html';
+  });
+  document.getElementById('yr').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>

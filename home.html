@@ -1,215 +1,153 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="robots" content="noindex, nofollow"/>
-  <meta name="description" content="Zona interna — SGM · TRANSPOWER. Acceso restringido."/>
-  <title>SGM · TRANSPOWER — Acceso autorizado</title>
+  <meta name="description" content="Panel principal — SGM · TRANSPOWER. Zona interna de gestión."/>
+  <title>SGM · TRANSPOWER — Panel Principal</title>
   <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg"/>
-
-  <!-- Auth guard: DEBE cargarse antes que el body para evitar flash -->
   <script src="assets/js/auth-guard.js"></script>
-
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/base.css"/>
-  <style>
-    /* ── TOPBAR HOME ── */
-    .topbar {
-      position: sticky; top: 0; z-index: 10;
-      height: 56px;
-      background: rgba(4,12,20,.92);
-      border-bottom: 1px solid var(--border);
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 1.5rem;
-      backdrop-filter: blur(8px);
-    }
-    .topbar-brand {
-      font-family: var(--font-head);
-      font-weight: 700; font-size: 1.15rem;
-      color: var(--accent); letter-spacing: .12em;
-    }
-    .topbar-brand span { color: var(--accent2); }
-    .topbar-actions { display: flex; gap: .75rem; align-items: center; }
-    .btn-logout {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--muted);
-      padding: .4rem .9rem;
-      font-family: var(--font-mono);
-      font-size: .72rem; letter-spacing: .12em;
-      cursor: pointer; border-radius: 3px;
-      transition: all .2s;
-    }
-    .btn-logout:hover { border-color: var(--accent2); color: var(--accent2); }
-
-    /* ── CONTENEDOR ── */
-    .container {
-      position: relative; z-index: 1;
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 3rem 1.5rem 4rem;
-    }
-
-    /* ── WELCOME ── */
-    .welcome {
-      font-family: var(--font-head);
-      font-size: clamp(1.8rem, 4.5vw, 2.8rem);
-      font-weight: 700;
-      color: #e8f4fb;
-      margin-bottom: .6rem;
-      letter-spacing: .04em;
-    }
-    .welcome em { font-style: normal; color: var(--accent); text-shadow: var(--glow); }
-    .subtitle {
-      font-family: var(--font-mono);
-      font-size: .82rem; color: var(--muted);
-      letter-spacing: .18em; margin-bottom: 2.5rem;
-    }
-
-    /* ── NOTICE ── */
-    .notice {
-      background: rgba(0,200,255,.05);
-      border: 1px solid rgba(0,200,255,.25);
-      border-left: 3px solid var(--accent);
-      border-radius: 3px;
-      padding: 1.2rem 1.4rem;
-      margin-bottom: 2.5rem;
-      font-size: .95rem; line-height: 1.7;
-    }
-    .notice strong { color: var(--accent2); }
-
-    /* ── ROADMAP ── */
-    .section-title {
-      font-family: var(--font-mono);
-      font-size: .78rem; letter-spacing: .22em;
-      color: var(--muted); margin-bottom: 1rem;
-    }
-    .roadmap {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 1rem;
-      margin-bottom: 2.5rem;
-    }
-    .phase-card {
-      background: rgba(0,0,0,.3);
-      border: 1px solid var(--border);
-      border-radius: 4px;
-      padding: 1.1rem 1.2rem;
-      transition: border-color .2s, background .2s;
-    }
-    .phase-card:hover {
-      border-color: rgba(0,200,255,.3);
-      background: rgba(0,200,255,.04);
-    }
-    .phase-head {
-      display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: .5rem;
-    }
-    .phase-id {
-      font-family: var(--font-mono);
-      font-size: .72rem; color: var(--muted); letter-spacing: .14em;
-    }
-    .phase-status {
-      font-family: var(--font-mono);
-      font-size: .7rem; padding: .18rem .55rem;
-      border-radius: 2px; letter-spacing: .1em;
-    }
-    .phase-status.done    { background: rgba(0,255,153,.1);  color: var(--accent3); border: 1px solid rgba(0,255,153,.3); }
-    .phase-status.pending { background: rgba(74,100,120,.1); color: var(--muted);   border: 1px solid var(--border); }
-    .phase-name {
-      font-family: var(--font-head);
-      font-weight: 600; font-size: 1.05rem;
-      color: #ddeeff; line-height: 1.3;
-    }
-
-    /* ── FOOTER ── */
-    .foot {
-      margin-top: 3rem;
-      padding-top: 2rem;
-      border-top: 1px solid var(--border);
-      font-family: var(--font-mono);
-      font-size: .72rem; color: var(--muted);
-      letter-spacing: .12em; text-align: center;
-    }
-  </style>
+  <link rel="stylesheet" href="assets/css/app.css"/>
 </head>
 <body>
 
 <header class="topbar">
-  <div class="topbar-brand">SGM · <span>TRANSPOWER</span></div>
-  <div class="topbar-actions">
-    <button class="btn-logout" id="btnLogout">CERRAR SESIÓN</button>
-  </div>
+  <a href="home.html" class="topbar-brand">SGM · <span>TRANSPOWER</span></a>
+  <nav class="main-nav">
+    <a href="home.html"               class="nav-link active">Inicio</a>
+    <a href="pages/about.html"        class="nav-link">Proyecto</a>
+    <a href="pages/cobertura.html"    class="nav-link">Cobertura</a>
+    <a href="pages/normativa.html"    class="nav-link">Normativa</a>
+    <a href="pages/contacto.html"     class="nav-link">Contacto</a>
+  </nav>
+  <button class="btn-logout" id="btnLogout">CERRAR SESIÓN</button>
 </header>
 
-<main class="container">
+<main class="page-container">
 
-  <h1 class="welcome">Acceso <em>autorizado</em></h1>
-  <div class="subtitle">// ZONA RESTRINGIDA · SISTEMA EN CONSTRUCCIÓN //</div>
-
-  <div class="notice">
-    Bienvenido al entorno interno de <strong>SGM · TRANSPOWER</strong>. Esta es la
-    estructura base del sitio real que reemplazará, en la fase final, al landing
-    público "en construcción". Los módulos operativos (inventario, órdenes,
-    KPIs, georreferenciación, alertas) se irán habilitando progresivamente
-    conforme se completen las microfases descritas en <strong>CLAUDE.md</strong>.
+  <!-- ENCABEZADO -->
+  <div class="page-header">
+    <div class="breadcrumb">// PANEL PRINCIPAL · CARIBE COLOMBIANO</div>
+    <h1 class="page-title">Sistema de Gestión del<br><em>Mantenimiento Especializado</em></h1>
+    <p class="page-subtitle">
+      Transformadores de Potencia en servicio activo — Bolívar, Córdoba, Sucre, Cesar y Magdalena.
+      Plataforma integral de trazabilidad, análisis RAM e indicadores de desempeño.
+    </p>
   </div>
 
-  <div class="section-title">▸ HOJA DE RUTA · MICROFASES</div>
-  <div class="roadmap" id="roadmap"></div>
+  <!-- KPIs OPERATIVOS -->
+  <div class="section-head">▸ INDICADORES OPERATIVOS EN TIEMPO REAL</div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">⚡</div>
+      <div class="stat-value">--</div>
+      <div class="stat-label">TRANSFORMADORES REGISTRADOS</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🔧</div>
+      <div class="stat-value">--</div>
+      <div class="stat-label">ÓRDENES ACTIVAS</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📈</div>
+      <div class="stat-value">--%</div>
+      <div class="stat-label">DISPONIBILIDAD PROMEDIO</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⏱</div>
+      <div class="stat-value">-- h</div>
+      <div class="stat-label">MTBF PROMEDIO</div>
+    </div>
+  </div>
 
-  <div class="foot">
-    <p>SGM · TRANSPOWER — Caribe Colombiano · ISO 50001:2018</p>
-    <p style="margin-top:.4rem; opacity:.6;">© 2025 · Zona interna · No indexable</p>
+  <!-- MÓDULOS -->
+  <div class="section-head">▸ MÓDULOS DEL SISTEMA</div>
+  <div class="modules-grid">
+    <div class="module-card">
+      <div class="module-icon">⚡</div>
+      <div class="module-name">Inventario de Activos</div>
+      <div class="module-desc">Registro, trazabilidad y ficha técnica de cada transformador por zona y estado operativo.</div>
+      <span class="status-badge dev">EN DESARROLLO · F6</span>
+    </div>
+    <div class="module-card">
+      <div class="module-icon">🔧</div>
+      <div class="module-name">Órdenes de Trabajo</div>
+      <div class="module-desc">Planificación, asignación y seguimiento de mantenimientos preventivos y correctivos con historial inmutable.</div>
+      <span class="status-badge dev">EN DESARROLLO · F7</span>
+    </div>
+    <div class="module-card">
+      <div class="module-icon">📊</div>
+      <div class="module-name">KPIs & Analítica RAM</div>
+      <div class="module-desc">Indicadores de confiabilidad, disponibilidad y mantenibilidad: MTBF, MTTR y disponibilidad media.</div>
+      <span class="status-badge dev">EN DESARROLLO · F8</span>
+    </div>
+    <div class="module-card">
+      <div class="module-icon">📋</div>
+      <div class="module-name">Gestión Documental</div>
+      <div class="module-desc">Protocolos, informes técnicos y registros normalizados bajo ISO 50001:2018 con almacenamiento en la nube.</div>
+      <span class="status-badge dev">EN DESARROLLO · F9</span>
+    </div>
+    <div class="module-card">
+      <div class="module-icon">🗺️</div>
+      <div class="module-name">Georreferenciación</div>
+      <div class="module-desc">Mapa interactivo con clusters por departamento. Clic en marcador abre ficha del transformador.</div>
+      <span class="status-badge dev">EN DESARROLLO · F10</span>
+    </div>
+    <div class="module-card">
+      <div class="module-icon">🔔</div>
+      <div class="module-name">Alertas & Notificaciones</div>
+      <div class="module-desc">Avisos automáticos por vencimiento de mantenimientos, anomalías detectadas y KPIs fuera de rango.</div>
+      <span class="status-badge dev">EN DESARROLLO · F11</span>
+    </div>
+  </div>
+
+  <!-- PROGRESO -->
+  <div class="section-head">▸ PROGRESO DE DESARROLLO DEL SISTEMA</div>
+  <div class="progress-wrap">
+    <div class="progress-label">
+      <span>Fases 0–2 completadas de 14</span>
+      <span>20 %</span>
+    </div>
+    <div class="progress-bar">
+      <div class="progress-fill" style="--fill-pct:20%"></div>
+    </div>
+  </div>
+  <div class="phases-row">
+    <span class="status-badge done">F0 Documentación</span>
+    <span class="status-badge done">F1 CSS Base</span>
+    <span class="status-badge done">F2 Páginas Estáticas</span>
+    <span class="status-badge planned">F3 Hosting/CI</span>
+    <span class="status-badge planned">F4 Firebase</span>
+    <span class="status-badge planned">F5 Auth Admin</span>
+    <span class="status-badge planned">F6 Inventario</span>
+    <span class="status-badge planned">F7 Órdenes</span>
+    <span class="status-badge planned">F8 KPIs</span>
+    <span class="status-badge planned">F9 Documental</span>
+    <span class="status-badge planned">F10 Georref.</span>
+    <span class="status-badge planned">F11 Alertas</span>
+    <span class="status-badge planned">F12 Gate Dinámico</span>
+    <span class="status-badge planned">F13 Pulido</span>
+    <span class="status-badge planned">F14 Lanzamiento</span>
   </div>
 
 </main>
 
-<script>
-  // Año dinámico
-  document.querySelectorAll('.foot p').forEach(p => {
-    p.innerHTML = p.innerHTML.replace('2025', new Date().getFullYear());
-  });
+<footer class="page-foot">
+  <span>SGM · TRANSPOWER — Caribe Colombiano</span>
+  <span>ISO 50001:2018 · IEEE C57.12 · IEC 60076</span>
+  <span>© <span id="yr">2025</span> · Zona interna · No indexable</span>
+</footer>
 
-  // Logout: limpia sesión y vuelve al landing
-  document.getElementById('btnLogout').addEventListener('click', function () {
+<script>
+  document.getElementById('btnLogout').addEventListener('click', () => {
     try { sessionStorage.removeItem('sgm.access'); } catch (_) {}
     location.href = 'index.html';
   });
-
-  // Hoja de ruta (sincronizada con CLAUDE.md)
-  const phases = [
-    { id: 'F0',  name: 'Documentación + gate estático',           done: true  },
-    { id: 'F1',  name: 'Estructura base CSS/JS',                  done: true  },
-    { id: 'F2',  name: 'Home real + páginas estáticas',           done: false },
-    { id: 'F3',  name: 'Hosting (Vercel / GitHub Pages)',         done: false },
-    { id: 'F4',  name: 'Integración Firebase',                    done: false },
-    { id: 'F5',  name: 'Autenticación admin',                     done: false },
-    { id: 'F6',  name: 'Módulo: Inventario de activos',           done: false },
-    { id: 'F7',  name: 'Módulo: Órdenes de trabajo',              done: false },
-    { id: 'F8',  name: 'Módulo: KPIs y analítica',                done: false },
-    { id: 'F9',  name: 'Módulo: Gestión documental',              done: false },
-    { id: 'F10', name: 'Módulo: Georreferenciación',              done: false },
-    { id: 'F11', name: 'Módulo: Alertas y notificaciones',        done: false },
-    { id: 'F12', name: 'Gate dinámico + endurecimiento',          done: false },
-    { id: 'F13', name: 'Pulido (SEO / a11y / performance)',       done: false },
-    { id: 'F14', name: 'Lanzamiento final',                       done: false }
-  ];
-
-  const root = document.getElementById('roadmap');
-  root.innerHTML = phases.map(p => `
-    <div class="phase-card">
-      <div class="phase-head">
-        <span class="phase-id">${p.id}</span>
-        <span class="phase-status ${p.done ? 'done' : 'pending'}">
-          ${p.done ? '✓ COMPLETADA' : '○ PENDIENTE'}
-        </span>
-      </div>
-      <div class="phase-name">${p.name}</div>
-    </div>
-  `).join('');
+  document.getElementById('yr').textContent = new Date().getFullYear();
 </script>
 </body>
 </html>
