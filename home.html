@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Acceso autorizado</title>
+
+  <!-- Auth guard: DEBE cargarse antes que el body para evitar flash -->
+  <script src="assets/js/auth-guard.js"></script>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg:      #040c14;
+      --panel:   #070f1a;
+      --border:  #0d2a3f;
+      --accent:  #00c8ff;
+      --accent2: #f0a500;
+      --accent3: #00ff99;
+      --text:    #c9dde8;
+      --muted:   #4a6478;
+      --glow:    0 0 18px rgba(0,200,255,.45);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Exo 2', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,200,255,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,200,255,.04) 1px, transparent 1px);
+      background-size: 44px 44px;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* Topbar */
+    .topbar {
+      position: sticky; top: 0; z-index: 10;
+      height: 56px;
+      background: rgba(4,12,20,.92);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 1.5rem;
+      backdrop-filter: blur(8px);
+    }
+    .topbar-brand {
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700; font-size: 1.15rem;
+      color: var(--accent); letter-spacing: .12em;
+    }
+    .topbar-brand span { color: var(--accent2); }
+    .topbar-actions { display: flex; gap: .75rem; align-items: center; }
+    .btn-logout {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      padding: .4rem .9rem;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .72rem; letter-spacing: .12em;
+      cursor: pointer; border-radius: 3px;
+      transition: all .2s;
+    }
+    .btn-logout:hover {
+      border-color: var(--accent2); color: var(--accent2);
+    }
+
+    /* Contenedor */
+    .container {
+      position: relative; z-index: 1;
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 4rem;
+    }
+
+    .welcome {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: clamp(1.8rem, 4.5vw, 2.8rem);
+      font-weight: 700;
+      color: #e8f4fb;
+      margin-bottom: .6rem;
+      letter-spacing: .04em;
+    }
+    .welcome em {
+      font-style: normal;
+      color: var(--accent);
+      text-shadow: var(--glow);
+    }
+    .subtitle {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .82rem; color: var(--muted);
+      letter-spacing: .18em; margin-bottom: 2.5rem;
+    }
+
+    .notice {
+      background: rgba(0,200,255,.05);
+      border: 1px solid rgba(0,200,255,.25);
+      border-left: 3px solid var(--accent);
+      border-radius: 3px;
+      padding: 1.2rem 1.4rem;
+      margin-bottom: 2.5rem;
+      font-size: .95rem; line-height: 1.7;
+    }
+    .notice strong { color: var(--accent2); }
+
+    .section-title {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .78rem; letter-spacing: .22em;
+      color: var(--muted); margin-bottom: 1rem;
+    }
+
+    .roadmap {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2.5rem;
+    }
+    .phase-card {
+      background: rgba(0,0,0,.3);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1.1rem 1.2rem;
+      transition: border-color .2s, background .2s;
+    }
+    .phase-card:hover {
+      border-color: rgba(0,200,255,.3);
+      background: rgba(0,200,255,.04);
+    }
+    .phase-head {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: .5rem;
+    }
+    .phase-id {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .72rem; color: var(--muted); letter-spacing: .14em;
+    }
+    .phase-status {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .7rem; padding: .18rem .55rem;
+      border-radius: 2px; letter-spacing: .1em;
+    }
+    .phase-status.done    { background: rgba(0,255,153,.1);  color: var(--accent3); border: 1px solid rgba(0,255,153,.3); }
+    .phase-status.pending { background: rgba(74,100,120,.1); color: var(--muted);   border: 1px solid var(--border); }
+    .phase-name {
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 600; font-size: 1.05rem;
+      color: #ddeeff; line-height: 1.3;
+    }
+
+    .foot {
+      margin-top: 3rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .72rem; color: var(--muted);
+      letter-spacing: .12em; text-align: center;
+    }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-brand">SGM · <span>TRANSPOWER</span></div>
+  <div class="topbar-actions">
+    <button class="btn-logout" id="btnLogout">CERRAR SESIÓN</button>
+  </div>
+</header>
+
+<main class="container">
+
+  <h1 class="welcome">Acceso <em>autorizado</em></h1>
+  <div class="subtitle">// ZONA RESTRINGIDA · SISTEMA EN CONSTRUCCIÓN //</div>
+
+  <div class="notice">
+    Bienvenido al entorno interno de <strong>SGM · TRANSPOWER</strong>. Esta es la
+    estructura base del sitio real que reemplazará, en la fase final, al landing
+    público "en construcción". Los módulos operativos (inventario, órdenes,
+    KPIs, georreferenciación, alertas) se irán habilitando progresivamente
+    conforme se completen las microfases descritas en <strong>CLAUDE.md</strong>.
+  </div>
+
+  <div class="section-title">▸ HOJA DE RUTA · MICROFASES</div>
+  <div class="roadmap" id="roadmap"></div>
+
+  <div class="foot">
+    <p>SGM · TRANSPOWER — Caribe Colombiano · ISO 50001:2018</p>
+    <p style="margin-top:.4rem; opacity:.6;">© 2025 · Zona interna · No indexable</p>
+  </div>
+
+</main>
+
+<script>
+  // Año dinámico
+  document.querySelectorAll('.foot p').forEach(p => {
+    p.innerHTML = p.innerHTML.replace('2025', new Date().getFullYear());
+  });
+
+  // Logout: limpia sesión y vuelve al landing
+  document.getElementById('btnLogout').addEventListener('click', function () {
+    try { sessionStorage.removeItem('sgm.access'); } catch (_) {}
+    location.href = 'index.html';
+  });
+
+  // Hoja de ruta (sincronizada con CLAUDE.md)
+  const phases = [
+    { id: 'F0',  name: 'Documentación + gate estático',           done: true  },
+    { id: 'F1',  name: 'Estructura base CSS/JS',                  done: false },
+    { id: 'F2',  name: 'Home real + páginas estáticas',           done: false },
+    { id: 'F3',  name: 'Hosting (Vercel / GitHub Pages)',         done: false },
+    { id: 'F4',  name: 'Integración Firebase',                    done: false },
+    { id: 'F5',  name: 'Autenticación admin',                     done: false },
+    { id: 'F6',  name: 'Módulo: Inventario de activos',           done: false },
+    { id: 'F7',  name: 'Módulo: Órdenes de trabajo',              done: false },
+    { id: 'F8',  name: 'Módulo: KPIs y analítica',                done: false },
+    { id: 'F9',  name: 'Módulo: Gestión documental',              done: false },
+    { id: 'F10', name: 'Módulo: Georreferenciación',              done: false },
+    { id: 'F11', name: 'Módulo: Alertas y notificaciones',        done: false },
+    { id: 'F12', name: 'Gate dinámico + endurecimiento',          done: false },
+    { id: 'F13', name: 'Pulido (SEO / a11y / performance)',       done: false },
+    { id: 'F14', name: 'Lanzamiento final',                       done: false }
+  ];
+
+  const root = document.getElementById('roadmap');
+  root.innerHTML = phases.map(p => `
+    <div class="phase-card">
+      <div class="phase-head">
+        <span class="phase-id">${p.id}</span>
+        <span class="phase-status ${p.done ? 'done' : 'pending'}">
+          ${p.done ? '✓ COMPLETADA' : '○ PENDIENTE'}
+        </span>
+      </div>
+      <div class="phase-name">${p.name}</div>
+    </div>
+  `).join('');
+</script>
+</body>
+</html>
