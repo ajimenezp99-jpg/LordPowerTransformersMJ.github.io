@@ -1,0 +1,31 @@
+# Dependencias
+node_modules/
+.pnpm-store/
+.npm/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Entornos
+.env
+.env.local
+.env.*.local
+
+# Editores
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Build / caches
+.cache/
+.parcel-cache/
+.vercel/
+dist/
+build/
+
+# Secretos / claves
+*.key
+*.pem
+serviceAccount*.json
