@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sistema de Gestión de Mantenimiento · Transformadores de Potencia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:        #040c14;
+      --panel:     #070f1a;
+      --border:    #0d2a3f;
+      --accent:    #00c8ff;
+      --accent2:   #f0a500;
+      --accent3:   #00ff99;
+      --text:      #c9dde8;
+      --muted:     #4a6478;
+      --glow:      0 0 18px rgba(0,200,255,.45);
+      --glow2:     0 0 18px rgba(240,165,0,.45);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Exo 2', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* ── GRID DE FONDO ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(rgba(0,200,255,.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,200,255,.04) 1px, transparent 1px);
+      background-size: 44px 44px;
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── PARTÍCULAS SVG DECORATIVAS ── */
+    .bg-deco {
+      position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden;
+    }
+    .bg-deco svg { position: absolute; }
+
+    /* ── SCANLINES ── */
+    body::after {
+      content: '';
+      position: fixed; inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,.08) 2px,
+        rgba(0,0,0,.08) 4px
+      );
+      pointer-events: none; z-index: 0;
+    }
+
+    /* ── LAYOUT ── */
+    .wrapper {
+      position: relative; z-index: 1;
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      padding: 2rem 1.25rem;
+    }
+
+    /* ── HEADER BAR ── */
+    .topbar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 10;
+      height: 48px;
+      background: rgba(4,12,20,.92);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 2rem;
+      backdrop-filter: blur(8px);
+    }
+    .topbar-id {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .72rem; color: var(--muted);
+      letter-spacing: .12em;
+    }
+    .topbar-status {
+      display: flex; align-items: center; gap: .55rem;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .72rem; color: var(--accent3);
+    }
+    .pulse {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--accent3);
+      box-shadow: 0 0 8px var(--accent3);
+      animation: pulseAnim 1.4s ease-in-out infinite;
+    }
+    @keyframes pulseAnim {
+      0%,100% { opacity:1; transform:scale(1); }
+      50%      { opacity:.4; transform:scale(.7); }
+    }
+
+    /* ── LOGO AREA ── */
+    .logo-block {
+      text-align: center;
+      margin-bottom: 2.5rem;
+      animation: fadeDown .8s ease both;
+    }
+    .logo-icon {
+      width: 88px; height: 88px; margin: 0 auto 1rem;
+      position: relative;
+    }
+    .logo-icon svg { width: 100%; height: 100%; }
+
+    .brand {
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: clamp(1.6rem, 4vw, 2.6rem);
+      color: var(--accent);
+      text-shadow: var(--glow);
+      letter-spacing: .08em;
+      line-height: 1.1;
+    }
+    .brand span { color: var(--accent2); text-shadow: var(--glow2); }
+    .brand-sub {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .78rem; color: var(--muted);
+      letter-spacing: .22em; margin-top: .4rem;
+    }
+
+    /* ── CARD PRINCIPAL ── */
+    .card {
+      width: 100%; max-width: 860px;
+      background: linear-gradient(135deg, rgba(7,15,26,.95) 60%, rgba(0,30,50,.8));
+      border: 1px solid var(--border);
+      border-top: 2px solid var(--accent);
+      border-radius: 4px;
+      padding: clamp(2rem, 5vw, 3.5rem);
+      position: relative;
+      overflow: hidden;
+      animation: fadeUp .9s ease .2s both;
+      box-shadow: 0 0 60px rgba(0,200,255,.07), 0 2px 40px rgba(0,0,0,.6);
+    }
+
+    /* corner decorations */
+    .card::before, .card::after {
+      content: '';
+      position: absolute; width: 18px; height: 18px;
+    }
+    .card::before {
+      bottom: 12px; right: 12px;
+      border-bottom: 2px solid var(--accent2);
+      border-right:  2px solid var(--accent2);
+      opacity: .5;
+    }
+    .card::after {
+      bottom: 12px; left: 12px;
+      border-bottom: 2px solid var(--accent);
+      border-left:   2px solid var(--accent);
+      opacity: .5;
+    }
+
+    /* ── BADGE EN CONSTRUCCIÓN ── */
+    .badge-construccion {
+      display: inline-flex; align-items: center; gap: .5rem;
+      background: rgba(240,165,0,.1);
+      border: 1px solid rgba(240,165,0,.35);
+      border-radius: 3px;
+      padding: .35rem .9rem;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .78rem; color: var(--accent2);
+      letter-spacing: .15em;
+      margin-bottom: 1.8rem;
+    }
+    .badge-construccion .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--accent2);
+      animation: pulseAnim 1s ease-in-out infinite;
+    }
+
+    /* ── TÍTULO PRINCIPAL ── */
+    h1 {
+      font-family: 'Rajdhani', sans-serif;
+      font-weight: 700;
+      font-size: clamp(1.7rem, 4.5vw, 3rem);
+      line-height: 1.15;
+      margin-bottom: 1.1rem;
+      color: #e8f4fb;
+    }
+    h1 em {
+      font-style: normal;
+      color: var(--accent);
+      text-shadow: var(--glow);
+    }
+
+    /* ── DESCRIPCIÓN ── */
+    .desc {
+      font-size: clamp(.9rem, 2vw, 1.05rem);
+      color: var(--text); line-height: 1.75;
+      margin-bottom: 2.2rem;
+      max-width: 680px;
+    }
+    .desc strong { color: var(--accent2); font-weight: 600; }
+
+    /* ── DIVIDER ── */
+    .divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), var(--accent), var(--border), transparent);
+      margin: 2rem 0;
+    }
+
+    /* ── COBERTURA GEOGRÁFICA ── */
+    .section-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .7rem; letter-spacing: .25em;
+      color: var(--muted); margin-bottom: 1rem;
+    }
+
+    .geo-grid {
+      display: flex; flex-wrap: wrap; gap: .65rem;
+      margin-bottom: 2rem;
+    }
+    .geo-tag {
+      background: rgba(0,200,255,.06);
+      border: 1px solid rgba(0,200,255,.2);
+      border-radius: 3px;
+      padding: .4rem .85rem;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: .95rem; font-weight: 600;
+      color: var(--accent);
+      letter-spacing: .06em;
+      transition: all .2s;
+      cursor: default;
+    }
+    .geo-tag:hover {
+      background: rgba(0,200,255,.14);
+      border-color: var(--accent);
+      box-shadow: var(--glow);
+    }
+    .geo-tag.special {
+      background: rgba(240,165,0,.06);
+      border-color: rgba(240,165,0,.25);
+      color: var(--accent2);
+    }
+    .geo-tag.special:hover {
+      background: rgba(240,165,0,.14);
+      border-color: var(--accent2);
+      box-shadow: var(--glow2);
+    }
+
+    /* ── MÓDULOS PLANIFICADOS ── */
+    .modules-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-bottom: 2rem;
+    }
+    .module-card {
+      background: rgba(0,0,0,.3);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1rem 1.1rem;
+      transition: border-color .2s, background .2s;
+    }
+    .module-card:hover {
+      border-color: rgba(0,200,255,.3);
+      background: rgba(0,200,255,.04);
+    }
+    .module-icon {
+      font-size: 1.4rem; margin-bottom: .5rem;
+    }
+    .module-name {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 1rem; font-weight: 600;
+      color: #ddeeff; margin-bottom: .25rem;
+    }
+    .module-desc {
+      font-size: .78rem; color: var(--muted); line-height: 1.5;
+    }
+
+    /* ── NORMAS ── */
+    .norms {
+      display: flex; flex-wrap: wrap; gap: .5rem;
+      margin-top: .8rem;
+    }
+    .norm-badge {
+      background: rgba(0,255,153,.06);
+      border: 1px solid rgba(0,255,153,.2);
+      border-radius: 3px;
+      padding: .3rem .75rem;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .72rem; color: var(--accent3);
+      letter-spacing: .1em;
+    }
+
+    /* ── PROGRESO ── */
+    .progress-wrap { margin-top: 2rem; }
+    .progress-label {
+      display: flex; justify-content: space-between;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .7rem; color: var(--muted);
+      margin-bottom: .45rem;
+    }
+    .progress-bar {
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent3));
+      border-radius: 2px;
+      width: 0;
+      animation: fillBar 2.2s cubic-bezier(.4,0,.2,1) 1s forwards;
+      box-shadow: 0 0 12px rgba(0,200,255,.5);
+    }
+    @keyframes fillBar { to { width: 18%; } }
+
+    /* ── FOOTER ── */
+    .foot {
+      margin-top: 3rem;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .7rem; color: var(--muted);
+      text-align: center; letter-spacing: .12em;
+      animation: fadeUp 1s ease .6s both;
+    }
+    .foot a { color: var(--accent); text-decoration: none; }
+    .foot a:hover { text-shadow: var(--glow); }
+
+    /* ── ANIMACIONES ── */
+    @keyframes fadeUp   { from { opacity:0; transform:translateY(28px); } to { opacity:1; transform:none; } }
+    @keyframes fadeDown { from { opacity:0; transform:translateY(-22px); } to { opacity:1; transform:none; } }
+
+    /* ── LÍNEAS DECORATIVAS ── */
+    .deco-line {
+      position: fixed;
+      pointer-events: none; z-index: 0;
+    }
+    .deco-line.left {
+      left: 2.5rem; top: 0; bottom: 0;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent 0%, var(--border) 30%, var(--border) 70%, transparent 100%);
+    }
+    .deco-line.right {
+      right: 2.5rem; top: 0; bottom: 0;
+      width: 1px;
+      background: linear-gradient(to bottom, transparent 0%, var(--border) 30%, var(--border) 70%, transparent 100%);
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 540px) {
+      .topbar { padding: 0 1rem; }
+      .deco-line { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── BARRAS DECORATIVAS ── -->
+<div class="deco-line left"></div>
+<div class="deco-line right"></div>
+
+<!-- ── TOPBAR ── -->
+<div class="topbar">
+  <span class="topbar-id">SGM-TPW · v0.1.0-alpha</span>
+  <span class="topbar-status"><span class="pulse"></span>SISTEMA EN DESARROLLO</span>
+</div>
+
+<!-- ── CONTENIDO PRINCIPAL ── -->
+<div class="wrapper">
+
+  <!-- LOGO -->
+  <div class="logo-block">
+    <div class="logo-icon">
+      <!-- Transformador SVG personalizado -->
+      <svg viewBox="0 0 88 88" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="44" cy="44" r="42" stroke="#0d2a3f" stroke-width="1.5"/>
+        <circle cx="44" cy="44" r="42" stroke="url(#ringGrad)" stroke-width="1.5" stroke-dasharray="4 6"/>
+        <!-- cuerpo transformador -->
+        <rect x="22" y="28" width="44" height="32" rx="2" fill="#070f1a" stroke="#0d2a3f" stroke-width="1"/>
+        <rect x="28" y="34" width="14" height="20" rx="2" fill="none" stroke="#00c8ff" stroke-width="1.5"/>
+        <rect x="46" y="34" width="14" height="20" rx="2" fill="none" stroke="#f0a500" stroke-width="1.5"/>
+        <!-- espiras -->
+        <path d="M31 37 Q35 37 35 41 Q35 45 31 45 Q35 45 35 49" stroke="#00c8ff" stroke-width="1" fill="none"/>
+        <path d="M49 37 Q53 37 53 41 Q53 45 49 45 Q53 45 53 49" stroke="#f0a500" stroke-width="1" fill="none"/>
+        <!-- núcleo -->
+        <rect x="40" y="30" width="8" height="28" rx="1" fill="#0d2a3f" stroke="#00c8ff" stroke-width=".8" opacity=".7"/>
+        <!-- terminales -->
+        <line x1="30" y1="28" x2="30" y2="22" stroke="#00c8ff" stroke-width="1.5"/>
+        <line x1="36" y1="28" x2="36" y2="22" stroke="#00c8ff" stroke-width="1.5"/>
+        <line x1="52" y1="28" x2="52" y2="22" stroke="#f0a500" stroke-width="1.5"/>
+        <line x1="58" y1="28" x2="58" y2="22" stroke="#f0a500" stroke-width="1.5"/>
+        <line x1="30" y1="60" x2="30" y2="66" stroke="#00c8ff" stroke-width="1.5"/>
+        <line x1="36" y1="60" x2="36" y2="66" stroke="#00c8ff" stroke-width="1.5"/>
+        <line x1="52" y1="60" x2="52" y2="66" stroke="#f0a500" stroke-width="1.5"/>
+        <line x1="58" y1="60" x2="58" y2="66" stroke="#f0a500" stroke-width="1.5"/>
+        <!-- glow puntos -->
+        <circle cx="30" cy="21" r="2" fill="#00c8ff" opacity=".9"/>
+        <circle cx="36" cy="21" r="2" fill="#00c8ff" opacity=".9"/>
+        <circle cx="52" cy="21" r="2" fill="#f0a500" opacity=".9"/>
+        <circle cx="58" cy="21" r="2" fill="#f0a500" opacity=".9"/>
+        <defs>
+          <linearGradient id="ringGrad" x1="0" y1="0" x2="88" y2="88" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#00c8ff"/>
+            <stop offset="50%" stop-color="#f0a500"/>
+            <stop offset="100%" stop-color="#00c8ff"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <div class="brand">SGM · <span>TRANSPOWER</span></div>
+    <div class="brand-sub">SISTEMA DE GESTIÓN DE MANTENIMIENTO</div>
+  </div>
+
+  <!-- CARD -->
+  <div class="card">
+
+    <div class="badge-construccion">
+      <span class="dot"></span>
+      PÁGINA EN CONSTRUCCIÓN
+    </div>
+
+    <h1>Dirección y Gestión del<br><em>Mantenimiento Especializado</em><br>en Transformadores de Potencia</h1>
+
+    <p class="desc">
+      Plataforma integral para el <strong>seguimiento, planificación y control</strong> del mantenimiento
+      especializado de transformadores de potencia en servicio activo. El sistema contempla la trazabilidad
+      completa de intervenciones, historial de fallas, indicadores de desempeño (KPIs) y gestión
+      documental alineada con los estándares <strong>ISO 50001:2018</strong> de Gestión de Energía y
+      las mejores prácticas en eficiencia energética y energías renovables.
+    </p>
+
+    <div class="divider"></div>
+
+    <!-- COBERTURA GEOGRÁFICA -->
+    <div class="section-label">▸ COBERTURA GEOGRÁFICA · CARIBE COLOMBIANO</div>
+    <div class="geo-grid">
+      <span class="geo-tag">📍 Bolívar</span>
+      <span class="geo-tag">📍 Córdoba</span>
+      <span class="geo-tag">📍 Sucre</span>
+      <span class="geo-tag">📍 Cesar</span>
+      <span class="geo-tag special">📍 Magdalena · 11 Municipios</span>
+    </div>
+
+    <!-- MÓDULOS PLANIFICADOS -->
+    <div class="section-label">▸ MÓDULOS DEL SISTEMA</div>
+    <div class="modules-grid">
+      <div class="module-card">
+        <div class="module-icon">⚡</div>
+        <div class="module-name">Inventario de Activos</div>
+        <div class="module-desc">Registro completo de transformadores por zona, capacidad y estado operativo.</div>
+      </div>
+      <div class="module-card">
+        <div class="module-icon">🔧</div>
+        <div class="module-name">Órdenes de Trabajo</div>
+        <div class="module-desc">Planificación, asignación y seguimiento de mantenimientos preventivos y correctivos.</div>
+      </div>
+      <div class="module-card">
+        <div class="module-icon">📊</div>
+        <div class="module-name">KPIs & Analítica</div>
+        <div class="module-desc">Indicadores de confiabilidad, disponibilidad y mantenibilidad (RAM) en tiempo real.</div>
+      </div>
+      <div class="module-card">
+        <div class="module-icon">📋</div>
+        <div class="module-name">Gestión Documental</div>
+        <div class="module-desc">Protocolos, informes técnicos y registros normalizados bajo ISO 50001:2018.</div>
+      </div>
+      <div class="module-card">
+        <div class="module-icon">🗺️</div>
+        <div class="module-name">Georreferenciación</div>
+        <div class="module-desc">Mapa interactivo de activos distribuidos en los departamentos atendidos.</div>
+      </div>
+      <div class="module-card">
+        <div class="module-icon">🔔</div>
+        <div class="module-name">Alertas & Notificaciones</div>
+        <div class="module-desc">Sistema de avisos automáticos por vencimiento de mantenimientos y anomalías.</div>
+      </div>
+    </div>
+
+    <!-- NORMAS -->
+    <div class="section-label">▸ MARCO NORMATIVO Y ESTÁNDARES</div>
+    <div class="norms">
+      <span class="norm-badge">ISO 50001:2018</span>
+      <span class="norm-badge">IEEE C57.12</span>
+      <span class="norm-badge">IEC 60076</span>
+      <span class="norm-badge">RETIE Colombia</span>
+      <span class="norm-badge">NTC-IEC 60364</span>
+      <span class="norm-badge">CIGRE WG A2</span>
+    </div>
+
+    <!-- PROGRESO DE DESARROLLO -->
+    <div class="progress-wrap">
+      <div class="divider"></div>
+      <div class="progress-label">
+        <span>▸ PROGRESO DE DESARROLLO</span>
+        <span>18%</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill"></div></div>
+    </div>
+
+  </div><!-- /card -->
+
+  <!-- FOOTER -->
+  <div class="foot">
+    <p>SGM · TRANSPOWER &mdash; Caribe Colombiano &nbsp;·&nbsp; Ingeniero Electricista &amp; Electrónico</p>
+    <p style="margin-top:.4rem;">Especialista en Dirección de Proyectos · Auditor ISO 50001:2018</p>
+    <p style="margin-top:.6rem; opacity:.5;">© 2025 · Todos los derechos reservados · En desarrollo activo</p>
+  </div>
+
+</div><!-- /wrapper -->
+
+<script>
+  // Actualizar año automáticamente
+  document.querySelectorAll('.foot p').forEach(p => {
+    p.innerHTML = p.innerHTML.replace('2025', new Date().getFullYear());
+  });
+
+  // Efecto typing en topbar
+  const ts = document.querySelector('.topbar-id');
+  const txt = 'SGM-TPW · v0.1.0-alpha · CARIBE COLOMBIANO';
+  let i = 0;
+  ts.textContent = '';
+  const type = () => {
+    if (i < txt.length) { ts.textContent += txt[i++]; setTimeout(type, 55); }
+  };
+  setTimeout(type, 800);
+</script>
+</body>
+</html>
