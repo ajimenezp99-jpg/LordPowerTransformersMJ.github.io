@@ -148,7 +148,7 @@ En la **Fase 11** el gate estático se reemplaza por un mecanismo dinámico:
 | 3 | Preparación de hosting (Vercel / GitHub Pages + CI)       |  5%  |  25%      | ✅ completada |
 | 4 | Integración de Firebase (Auth, Firestore, Storage)        |  5%  |  30%      | ✅ completada |
 | 5 | Autenticación admin real (login con Firebase Auth)        |  5%  |  35%      | ✅ completada |
-| 6 | Módulo: Inventario de activos (CRUD)                      | 10%  |  45%      | ⏳ pendiente |
+| 6 | Módulo: Inventario de activos (CRUD)                      | 10%  |  45%      | ✅ completada |
 | 7 | Módulo: Órdenes de trabajo                                | 10%  |  55%      | ⏳ pendiente |
 | 8 | Módulo: KPIs y analítica                                  | 10%  |  65%      | ⏳ pendiente |
 | 9 | Módulo: Gestión documental (+ Storage)                    |  8%  |  73%      | ⏳ pendiente |
@@ -221,11 +221,16 @@ En la **Fase 11** el gate estático se reemplaza por un mecanismo dinámico:
 - `assets/js/admin/admin-guard.js` — verifica gate estático + sesión Firebase + UID autorizado. Oculta el `<body>` hasta resolver. Timeout de 5 s → redirige a login.
 - Link discreto a `admin/login.html` en el footer de `home.html`.
 
-#### ⏳ Fase 6 — Módulo Inventario
+#### ✅ Fase 6 — Módulo Inventario
 
-- Colección `transformadores` en Firestore.
-- CRUD admin (crear, editar, eliminar, listar).
-- Vista pública de solo lectura para usuarios con código.
+- Colección `transformadores` en Firestore con campos: `codigo`, `nombre`, `departamento`, `municipio`, `subestacion`, `potencia_kva`, `tension_primaria_kv`, `tension_secundaria_kv`, `marca`, `modelo`, `serial`, `fecha_fabricacion`, `fecha_instalacion`, `estado` (operativo / mantenimiento / fuera_servicio / retirado), `latitud`, `longitud`, `observaciones`, timestamps y `createdBy`.
+- Reglas Firestore: lectura pública (filtrada por gate estático) + escritura restringida a admins vía colección `/admins/{uid}`. Validación server-side de campos obligatorios y enumeración de `estado`.
+- Índices compuestos en `firestore.indexes.json` (`departamento+codigo` y `estado+codigo`).
+- `assets/js/data/transformadores.js` — API: `listar`, `obtener`, `crear`, `actualizar`, `eliminar`, `contarPorEstado` + enums + helpers de formato.
+- `admin/inventario.html` + `admin-inventario.js` — tabla con filtros (depto / estado), modal CRUD completo con 16 campos, confirmación de borrado, mensajes de feedback.
+- `pages/inventario.html` + `inventario-public.js` — vista solo lectura con KPIs (total, operativo, mantenimiento, fuera de servicio), filtros y búsqueda local.
+- `assets/css/inventario.css` — tabla, toolbar, estado-pills, modal.
+- Nav ampliada con "Inventario" en `home.html` + 5 subpáginas + panel admin.
 
 #### ⏳ Fase 7 — Módulo Órdenes de trabajo
 
@@ -289,8 +294,8 @@ En la **Fase 11** el gate estático se reemplaza por un mecanismo dinámico:
 
 | Métrica                    | Valor |
 |----------------------------|-------|
-| Fase en curso              | **Fase 5 cerrada · a la espera de Fase 6** |
-| Porcentaje global           | **35 %** |
+| Fase en curso              | **Fase 6 cerrada · a la espera de Fase 7** |
+| Porcentaje global           | **45 %** |
 | Último commit              | (ver historial Git) |
 | Servicios dinámicos activos | ninguno (aún sólo estático) |
 
@@ -304,3 +309,4 @@ En la **Fase 11** el gate estático se reemplaza por un mecanismo dinámico:
 - **Fase 3** — `package.json` (scripts `lint:html`, `serve`, `test`) + `html-validate` como dev dep. `.htmlvalidate.json` con reglas tolerantes para el shell estático. `vercel.json` con headers de seguridad (`X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`), `cleanUrls` y `redirects`. `.nojekyll` y `.gitignore` (node_modules, .env, secretos). Workflows: `.github/workflows/ci.yml` (lint en push / PR) y `.github/workflows/pages.yml` (deploy automático a GitHub Pages desde `main`). `README.md` con estado, stack y comandos. Landing y home actualizados a 25 %.
 - **Fase 4** — Integración base de Firebase (sin servicios activos todavía). `firebase.json` con hosting, rules y emuladores (auth 9099, firestore 8080, storage 9199, hosting 5000). `.firebaserc` (`default: sgm-transpower`). `firestore.rules` y `storage.rules` en modo **DENY-ALL**. `firestore.indexes.json` vacío. `assets/js/firebase-config.js` con config pública placeholder + flag `isFirebaseConfigured`. `assets/js/firebase-init.js` — SDK modular v10 por CDN con `getApp` / `getAuthSafe` / `getDbSafe` / `getStorageSafe` y sonda `window.__sgmFirebaseProbe()`. `pages/_firebase-test.html` (oculta) para verificar carga del SDK. Landing y home al 30 %.
 - **Fase 5** — Autenticación admin real sobre Firebase Auth. `/admin/login.html` (Email/Password, `browserSessionPersistence`, aviso cuando faltan prerequisitos, errores humanizados). `/admin/index.html` — panel vacío con 8 módulos placeholder (F6–F12), banner con email del admin, botón logout. Módulo `assets/js/admin/` con: `admin-config.js` (allowlist `ADMIN_UIDS` + helper `isAdminUid`), `admin-auth.js` (`loginAdmin`, `logoutAdmin`, `onAdminAuthChange`, `humanizeAuthError`, `ensureReady`), `admin-guard.js` (gate estático + verificación de sesión + UID autorizado, body oculto hasta resolver, timeout 5 s → login). Link discreto a admin en el footer de `home.html`. Landing y home al 35 %.
+- **Fase 6** — Módulo Inventario CRUD. Colección `transformadores` con 17 campos (incl. timestamps y `createdBy`). `firestore.rules` con validación de campos obligatorios, enum de `estado` y control de admins vía colección `/admins/{uid}`. Índices compuestos `departamento+codigo` y `estado+codigo`. `assets/js/data/transformadores.js` (API: `listar`, `obtener`, `crear`, `actualizar`, `eliminar`, `contarPorEstado` + enums + labels). `admin/inventario.html` + `admin-inventario.js` (tabla con filtros depto/estado, modal con 16 campos, alta/edición/baja con confirmación). `pages/inventario.html` + `inventario-public.js` (KPIs por estado, filtros depto/estado, búsqueda local por texto, solo lectura). `assets/css/inventario.css` (tabla, toolbar, estado-pills, modal). Nav actualizada con "Inventario" en home + 5 subpáginas + panel admin. Landing y home al 45 %.

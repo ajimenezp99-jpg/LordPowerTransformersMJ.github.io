@@ -1,18 +1,53 @@
 rules_version = '2';
 
 // ══════════════════════════════════════════════════════════════
-// SGM · TRANSPOWER — Reglas Firestore (Fase 4)
-// Estado: DENY-ALL. Se abrirán en fases operativas (F6–F11) bajo
-// autenticación admin (F5) y con validación granular por colección.
+// SGM · TRANSPOWER — Reglas Firestore (Fase 6)
+// Primera colección activa: `transformadores` (inventario).
+// Estado admin se enforce vía colección /admins/{uid}.
 // ══════════════════════════════════════════════════════════════
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Bloquea explícitamente toda lectura y escritura.
-    // Cualquier acceso debe pasar por reglas específicas que se
-    // agregarán en microfases posteriores (F6 inventario, F7 órdenes,
-    // F8 KPIs, F9 documental, F11 alertas).
+    // ── Helpers ──
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isAdmin() {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    // ── /admins/{uid} ──
+    // Documento marcador. El contenido no se usa (puede tener {active: true}).
+    // Se crea y mantiene desde la consola Firebase por el propietario.
+    match /admins/{uid} {
+      allow read:  if isSignedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+
+    // ── /transformadores/{id} ──
+    // Lectura pública (el gate estático del sitio ya filtra visitantes).
+    // Escritura restringida a admins en la allowlist de /admins.
+    match /transformadores/{id} {
+      allow read:   if true;
+      allow create: if isAdmin()
+                    && request.resource.data.keys().hasAll([
+                        'codigo','nombre','departamento','estado'
+                       ])
+                    && request.resource.data.codigo is string
+                    && request.resource.data.codigo.size() > 0
+                    && request.resource.data.estado in [
+                        'operativo','mantenimiento','fuera_servicio','retirado'
+                       ];
+      allow update: if isAdmin()
+                    && request.resource.data.estado in [
+                        'operativo','mantenimiento','fuera_servicio','retirado'
+                       ];
+      allow delete: if isAdmin();
+    }
+
+    // ── Resto: cerrado por defecto ──
     match /{document=**} {
       allow read, write: if false;
     }
