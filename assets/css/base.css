@@ -1,0 +1,108 @@
+/* ═══════════════════════════════════════════════════════════════
+   SGM · TRANSPOWER — Base Styles (Fase 1)
+   Estilos compartidos entre landing y sitio real.
+   Cada página añade sus propios estilos específicos en <style>
+   o en su propio archivo CSS.
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Variables globales ── */
+:root {
+  --bg:      #040c14;
+  --panel:   #070f1a;
+  --border:  #0d2a3f;
+  --accent:  #00c8ff;
+  --accent2: #f0a500;
+  --accent3: #00ff99;
+  --text:    #c9dde8;
+  --muted:   #4a6478;
+  --glow:    0 0 18px rgba(0,200,255,.45);
+  --glow2:   0 0 18px rgba(240,165,0,.45);
+
+  /* Tipografía */
+  --font-ui:   'Exo 2', sans-serif;
+  --font-mono: 'Share Tech Mono', monospace;
+  --font-head: 'Rajdhani', sans-serif;
+}
+
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+/* ── Base ── */
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* Grid de fondo */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(0,200,255,.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,200,255,.04) 1px, transparent 1px);
+  background-size: 44px 44px;
+  pointer-events: none; z-index: 0;
+}
+
+/* Scanlines */
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,.08) 2px,
+    rgba(0,0,0,.08) 4px
+  );
+  pointer-events: none; z-index: 0;
+}
+
+/* ── Utilidades compartidas ── */
+
+.divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--border), var(--accent), var(--border), transparent);
+  margin: 2rem 0;
+}
+
+.section-label {
+  font-family: var(--font-mono);
+  font-size: .7rem;
+  letter-spacing: .25em;
+  color: var(--muted);
+  margin-bottom: 1rem;
+}
+
+.norm-badge {
+  background: rgba(0,255,153,.06);
+  border: 1px solid rgba(0,255,153,.2);
+  border-radius: 3px;
+  padding: .3rem .75rem;
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  color: var(--accent3);
+  letter-spacing: .1em;
+}
+
+/* ── Animaciones ── */
+@keyframes pulseAnim {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%      { opacity: .4; transform: scale(.7); }
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@keyframes fadeDown {
+  from { opacity: 0; transform: translateY(-22px); }
+  to   { opacity: 1; transform: none; }
+}
