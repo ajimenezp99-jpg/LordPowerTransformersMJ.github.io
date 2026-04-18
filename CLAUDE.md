@@ -144,7 +144,7 @@ En la **Fase 11** el gate estático se reemplaza por un mecanismo dinámico:
 |---|-----------------------------------------------------------|------|-----------|--------|
 | 0 | Documentación inicial + barrera de acceso estática        |  5%  |   5%      | ✅ completada |
 | 1 | Estructura base CSS/JS y refactor del landing             |  5%  |  10%      | ✅ completada |
-| 2 | Home real + páginas estáticas internas                    | 10%  |  20%      | ⏳ pendiente |
+| 2 | Home real + páginas estáticas internas                    | 10%  |  20%      | ✅ completada |
 | 3 | Preparación de hosting (Vercel / GitHub Pages + CI)       |  5%  |  25%      | ⏳ pendiente |
 | 4 | Integración de Firebase (Auth, Firestore, Storage)        |  5%  |  30%      | ⏳ pendiente |
 | 5 | Autenticación admin real (login con Firebase Auth)        |  5%  |  35%      | ⏳ pendiente |
@@ -183,11 +183,11 @@ En la **Fase 11** el gate estático se reemplaza por un mecanismo dinámico:
 - Añadir `favicon`, `meta` OG/SEO mínimos.
 - No hay cambios funcionales visibles más allá del refactor.
 
-#### ⏳ Fase 2 — Home real + páginas estáticas
+#### ✅ Fase 2 — Home real + páginas estáticas
 
 - `home.html` con navegación real, hero, resumen de módulos y KPIs (aún placeholder).
 - Subpáginas: `/pages/about.html`, `/pages/cobertura.html`, `/pages/normativa.html`, `/pages/contacto.html`.
-- Todas protegidas por `auth-guard.js`.
+- Todas protegidas por `auth-guard.js` / `auth-guard-pages.js`.
 - Contenido 100% estático.
 
 #### ⏳ Fase 3 — Hosting y CI
@@ -279,8 +279,8 @@ En la **Fase 11** el gate estático se reemplaza por un mecanismo dinámico:
 
 | Métrica                    | Valor |
 |----------------------------|-------|
-| Fase en curso              | **Fase 1 cerrada · a la espera de Fase 2** |
-| Porcentaje global           | **10 %** |
+| Fase en curso              | **Fase 2 cerrada · a la espera de Fase 3** |
+| Porcentaje global           | **20 %** |
 | Último commit              | (ver historial Git) |
 | Servicios dinámicos activos | ninguno (aún sólo estático) |
 
@@ -290,3 +290,4 @@ En la **Fase 11** el gate estático se reemplaza por un mecanismo dinámico:
 
 - **Fase 0** — Creación de `CLAUDE.md`, gate estático con código `97601992@`, `home.html` stub protegido, `gate.js`, `auth-guard.js`, actualización del landing al 5 %.
 - **Fase 1** — `assets/css/base.css` con variables, reset, bg, animaciones y utilidades compartidas. Refactor de `index.html` y `home.html` para usar variables CSS (`--font-*`). `assets/img/favicon.svg` con ícono del transformador. Meta tags OG/SEO en ambas páginas. Progreso actualizado al 10 %.
+- **Fase 2** — `assets/css/app.css` con shell compartido (topbar, nav, page-container, stats/modules/norm/geo cards, forms, progress, highlight-box, responsive). Reescritura de `home.html` como dashboard operativo (KPIs placeholder, 6 módulos, barra de progreso 20 %, 15 status-badges de fases). Nuevas subpáginas estáticas: `pages/about.html` (perfil + descripción), `pages/cobertura.html` (5 departamentos + 11 municipios Magdalena + placeholder de mapa), `pages/normativa.html` (ISO 50001, IEEE C57.12, IEC 60076, NTC-IEC 60364, RETIE, CIGRE WG A2), `pages/contacto.html` (formulario visual + info de canales). `assets/js/auth-guard-pages.js` para proteger rutas en `/pages/`. Landing actualizado a 20 %.

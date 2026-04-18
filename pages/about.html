@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Acerca del Proyecto</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
+  <script src="../assets/js/auth-guard-pages.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css"/>
+  <link rel="stylesheet" href="../assets/css/app.css"/>
+  <style>
+    .profile-card {
+      display: flex; gap: 1.5rem; align-items: flex-start;
+      background: rgba(0,0,0,.25);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent2);
+      border-radius: 4px; padding: 1.5rem;
+      margin-bottom: 1.5rem; flex-wrap: wrap;
+    }
+    .profile-avatar {
+      width: 72px; height: 72px; border-radius: 50%;
+      background: rgba(0,200,255,.08);
+      border: 2px solid rgba(0,200,255,.3);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 2rem; flex-shrink: 0;
+    }
+    .profile-info h3 {
+      font-family: var(--font-head); font-weight: 700;
+      font-size: 1.2rem; color: #e8f4fb; margin-bottom: .3rem;
+    }
+    .profile-info p { font-size: .88rem; color: var(--muted); line-height: 1.7; }
+    .cert-row { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .8rem; }
+    .cert-badge {
+      font-family: var(--font-mono); font-size: .68rem;
+      letter-spacing: .1em; padding: .2rem .6rem;
+      border-radius: 2px;
+      background: rgba(0,200,255,.07);
+      border: 1px solid rgba(0,200,255,.25);
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../home.html" class="topbar-brand">SGM · <span>TRANSPOWER</span></a>
+  <nav class="main-nav">
+    <a href="../home.html"      class="nav-link">Inicio</a>
+    <a href="about.html"        class="nav-link active">Proyecto</a>
+    <a href="cobertura.html"    class="nav-link">Cobertura</a>
+    <a href="normativa.html"    class="nav-link">Normativa</a>
+    <a href="contacto.html"     class="nav-link">Contacto</a>
+  </nav>
+  <button class="btn-logout" id="btnLogout">CERRAR SESIÓN</button>
+</header>
+
+<main class="page-container">
+
+  <div class="page-header">
+    <div class="breadcrumb">Inicio / Proyecto</div>
+    <h1 class="page-title">Acerca del <em>Proyecto</em></h1>
+    <p class="page-subtitle">
+      Plataforma sin ánimo de lucro para la dirección y gestión del mantenimiento
+      especializado de transformadores de potencia en el Caribe Colombiano.
+    </p>
+  </div>
+
+  <!-- PERFIL -->
+  <div class="section-head">▸ RESPONSABLE DEL SISTEMA</div>
+  <div class="profile-card">
+    <div class="profile-avatar">👷</div>
+    <div class="profile-info">
+      <h3>Ingeniero Electricista &amp; Electrónico</h3>
+      <p>
+        Especialista en Dirección de Proyectos y Auditor Líder en ISO 50001:2018 (Gestión de la Energía),
+        con amplia experiencia en el sector eléctrico del Caribe Colombiano.
+        Responsable del diseño, implementación y seguimiento del sistema de gestión de mantenimiento
+        para activos de potencia en los departamentos de Bolívar, Córdoba, Sucre, Cesar y Magdalena.
+      </p>
+      <div class="cert-row">
+        <span class="cert-badge">Ing. Electricista</span>
+        <span class="cert-badge">Ing. Electrónico</span>
+        <span class="cert-badge">Esp. Dirección de Proyectos</span>
+        <span class="cert-badge">Auditor Líder ISO 50001:2018</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DESCRIPCIÓN -->
+  <div class="section-head">▸ DESCRIPCIÓN DEL SISTEMA</div>
+  <div class="highlight-box">
+    <strong>SGM · TRANSPOWER</strong> es una plataforma web integral desarrollada para la
+    <strong>dirección y gestión del mantenimiento especializado</strong> de transformadores
+    de potencia en servicio activo. El sistema opera bajo un esquema de
+    <strong>ciclo de vida completo</strong>: desde el registro del activo hasta el cierre
+    de intervenciones y análisis de causa raíz.
+  </div>
+
+  <div class="info-grid">
+    <div class="content-card">
+      <h3>⚙️ Objetivo Principal</h3>
+      <p>
+        Garantizar la trazabilidad completa de todas las intervenciones de mantenimiento
+        preventivo y correctivo sobre transformadores de potencia, alineado con los
+        estándares internacionales IEEE C57.12, IEC 60076, la normativa colombiana
+        RETIE y el sistema de gestión de energía ISO 50001:2018.
+      </p>
+    </div>
+    <div class="content-card">
+      <h3>🎯 Enfoque Técnico</h3>
+      <ul>
+        <li>Indicadores RAM: confiabilidad, disponibilidad y mantenibilidad</li>
+        <li>Análisis de causa raíz (RCA) por falla</li>
+        <li>Historial inmutable de intervenciones</li>
+        <li>Gestión documental normativa y auditable</li>
+        <li>Alertas tempranas por vencimiento de mantenimientos</li>
+        <li>Visualización georreferenciada de activos</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- NATURALEZA -->
+  <div class="section-head">▸ NATURALEZA DEL PROYECTO</div>
+  <div class="info-grid">
+    <div class="content-card">
+      <h3>🤝 Sin Ánimo de Lucro</h3>
+      <p>
+        El sistema se diseña y opera íntegramente sobre niveles gratuitos (tier free)
+        de proveedores cloud: GitHub Pages, Vercel Hobby, Firebase Spark y Leaflet/OpenStreetMap.
+        No hay costos de operación previstos en las fases actuales.
+      </p>
+    </div>
+    <div class="content-card">
+      <h3>🔒 Acceso Controlado</h3>
+      <p>
+        La plataforma incorpora una barrera de acceso estática durante la fase de construcción,
+        que será reemplazada por autenticación Firebase Auth en la Fase 5. El panel administrativo
+        contará con credenciales independientes y mayor nivel de protección.
+      </p>
+    </div>
+    <div class="content-card">
+      <h3>📐 Stack Tecnológico</h3>
+      <ul>
+        <li>Frontend: HTML5, CSS3, JavaScript ES6+</li>
+        <li>Hosting: Vercel + GitHub Pages</li>
+        <li>Auth: Firebase Authentication</li>
+        <li>Base de datos: Cloud Firestore</li>
+        <li>Almacenamiento: Firebase Storage</li>
+        <li>Mapas: Leaflet + OpenStreetMap</li>
+      </ul>
+    </div>
+    <div class="content-card">
+      <h3>📅 Hoja de Ruta</h3>
+      <p>
+        El desarrollo sigue 15 microfases iterativas (F0–F14), cada una cerrada con commit
+        aislado. Avance actual: <strong style="color:var(--accent)">20 %</strong>.
+        Las próximas fases incluyen la integración de Firebase, los módulos operativos
+        (inventario, órdenes, KPIs, georreferenciación) y el gate dinámico.
+      </p>
+    </div>
+  </div>
+
+</main>
+
+<footer class="page-foot">
+  <span>SGM · TRANSPOWER — Caribe Colombiano</span>
+  <span>© <span id="yr">2025</span> · Zona interna</span>
+</footer>
+
+<script>
+  document.getElementById('btnLogout').addEventListener('click', () => {
+    try { sessionStorage.removeItem('sgm.access'); } catch (_) {}
+    location.href = '../index.html';
+  });
+  document.getElementById('yr').textContent = new Date().getFullYear();
+</script>
+</body>
+</html>

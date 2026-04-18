@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Contacto</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
+  <script src="../assets/js/auth-guard-pages.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css"/>
+  <link rel="stylesheet" href="../assets/css/app.css"/>
+  <style>
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    @media (max-width: 780px) { .contact-grid { grid-template-columns: 1fr; } }
+
+    .contact-info {
+      background: rgba(0,0,0,.25);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent);
+      border-radius: 4px;
+      padding: 1.5rem;
+    }
+    .contact-info h3 {
+      font-family: var(--font-head);
+      font-size: 1.15rem; color: #ddeeff;
+      margin-bottom: 1rem;
+    }
+    .contact-item {
+      display: flex; gap: .8rem;
+      padding: .7rem 0;
+      border-bottom: 1px dashed var(--border);
+      font-size: .88rem; color: var(--text);
+    }
+    .contact-item:last-child { border-bottom: none; }
+    .contact-item .ico { font-size: 1.1rem; flex-shrink: 0; }
+    .contact-item .lbl {
+      font-family: var(--font-mono);
+      font-size: .68rem; letter-spacing: .14em;
+      color: var(--muted); margin-bottom: .15rem;
+    }
+    .contact-item .val { color: var(--text); line-height: 1.5; }
+
+    .form-card {
+      background: rgba(0,0,0,.25);
+      border: 1px solid var(--border);
+      border-left: 3px solid var(--accent2);
+      border-radius: 4px;
+      padding: 1.5rem;
+    }
+    .form-card h3 {
+      font-family: var(--font-head);
+      font-size: 1.15rem; color: #ddeeff;
+      margin-bottom: 1rem;
+    }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 540px) { .form-row { grid-template-columns: 1fr; } }
+    .form-note {
+      margin-top: 1rem;
+      font-family: var(--font-mono);
+      font-size: .7rem; letter-spacing: .08em;
+      color: var(--muted); line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../home.html" class="topbar-brand">SGM · <span>TRANSPOWER</span></a>
+  <nav class="main-nav">
+    <a href="../home.html"   class="nav-link">Inicio</a>
+    <a href="about.html"     class="nav-link">Proyecto</a>
+    <a href="cobertura.html" class="nav-link">Cobertura</a>
+    <a href="normativa.html" class="nav-link">Normativa</a>
+    <a href="contacto.html"  class="nav-link active">Contacto</a>
+  </nav>
+  <button class="btn-logout" id="btnLogout">CERRAR SESIÓN</button>
+</header>
+
+<main class="page-container">
+
+  <div class="page-header">
+    <div class="breadcrumb">Inicio / Contacto</div>
+    <h1 class="page-title">Canal de <em>Contacto</em></h1>
+    <p class="page-subtitle">
+      Vía directa para consultas técnicas, solicitudes de intervención, reportes
+      de eventos y coordinación de auditorías bajo ISO 50001:2018.
+    </p>
+  </div>
+
+  <!-- AVISO BACKEND -->
+  <div class="highlight-box">
+    <strong>Aviso:</strong> el formulario de contacto está en modo visual. El procesamiento
+    de solicitudes (envío por correo y registro en Firestore) se activará en la
+    <strong>Fase 11</strong> del proyecto, junto con las alertas automáticas.
+    Para comunicación urgente, usar los canales directos del panel lateral.
+  </div>
+
+  <!-- GRID CONTACTO -->
+  <div class="contact-grid">
+
+    <!-- FORMULARIO -->
+    <div class="form-card">
+      <h3>📨 Enviar solicitud</h3>
+      <form id="contactForm" autocomplete="off" novalidate>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="c_nombre">Nombre completo</label>
+            <input class="form-input" type="text" id="c_nombre" name="nombre" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="c_email">Correo electrónico</label>
+            <input class="form-input" type="email" id="c_email" name="email" required>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="c_empresa">Empresa / Entidad</label>
+            <input class="form-input" type="text" id="c_empresa" name="empresa">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="c_dept">Departamento</label>
+            <select class="form-select" id="c_dept" name="departamento">
+              <option value="">-- Seleccione --</option>
+              <option value="bolivar">Bolívar</option>
+              <option value="cordoba">Córdoba</option>
+              <option value="sucre">Sucre</option>
+              <option value="cesar">Cesar</option>
+              <option value="magdalena">Magdalena</option>
+              <option value="otro">Otro</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="c_tipo">Tipo de solicitud</label>
+          <select class="form-select" id="c_tipo" name="tipo">
+            <option value="consulta">Consulta técnica</option>
+            <option value="intervencion">Solicitud de intervención</option>
+            <option value="reporte">Reporte de evento / falla</option>
+            <option value="auditoria">Auditoría ISO 50001</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="c_mensaje">Mensaje</label>
+          <textarea class="form-textarea" id="c_mensaje" name="mensaje"
+            placeholder="Describa la consulta, incluyendo ubicación, potencia del activo y cualquier dato técnico relevante…"
+            required></textarea>
+        </div>
+
+        <button type="submit" class="btn-primary" disabled>ENVIAR SOLICITUD →</button>
+        <p class="form-note">* Botón deshabilitado hasta activación del backend (Fase 11).</p>
+      </form>
+    </div>
+
+    <!-- INFO DE CONTACTO -->
+    <div class="contact-info">
+      <h3>📞 Canales directos</h3>
+
+      <div class="contact-item">
+        <span class="ico">🏢</span>
+        <div>
+          <div class="lbl">ORGANIZACIÓN</div>
+          <div class="val">SGM · TRANSPOWER<br>Caribe Colombiano</div>
+        </div>
+      </div>
+
+      <div class="contact-item">
+        <span class="ico">📍</span>
+        <div>
+          <div class="lbl">SEDE OPERATIVA</div>
+          <div class="val">Departamentos cubiertos:<br>Bolívar, Córdoba, Sucre, Cesar y Magdalena</div>
+        </div>
+      </div>
+
+      <div class="contact-item">
+        <span class="ico">✉️</span>
+        <div>
+          <div class="lbl">CORREO</div>
+          <div class="val">Disponible en Fase 11</div>
+        </div>
+      </div>
+
+      <div class="contact-item">
+        <span class="ico">📱</span>
+        <div>
+          <div class="lbl">TELÉFONO</div>
+          <div class="val">Disponible en Fase 11</div>
+        </div>
+      </div>
+
+      <div class="contact-item">
+        <span class="ico">🕐</span>
+        <div>
+          <div class="lbl">HORARIO DE ATENCIÓN</div>
+          <div class="val">Lun – Vie · 7:00 – 17:00 (COT)<br>Emergencias: 24 / 7</div>
+        </div>
+      </div>
+
+      <div class="contact-item">
+        <span class="ico">🔒</span>
+        <div>
+          <div class="lbl">CONFIDENCIALIDAD</div>
+          <div class="val">Toda comunicación se gestiona bajo acuerdo NDA implícito del sistema.</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- INFO COMPLEMENTARIA -->
+  <div class="section-head">▸ PROCEDIMIENTO DE ATENCIÓN</div>
+  <div class="info-grid">
+    <div class="content-card">
+      <h3>1️⃣ Recepción</h3>
+      <p>La solicitud se registra con un identificador único y se clasifica según tipo y prioridad.</p>
+    </div>
+    <div class="content-card">
+      <h3>2️⃣ Evaluación</h3>
+      <p>El equipo técnico evalúa la consulta y, de requerirse, solicita información adicional antes de 24 h.</p>
+    </div>
+    <div class="content-card">
+      <h3>3️⃣ Respuesta</h3>
+      <p>Se emite respuesta formal con análisis, recomendaciones y, si aplica, orden de trabajo asociada.</p>
+    </div>
+    <div class="content-card">
+      <h3>4️⃣ Seguimiento</h3>
+      <p>Cada solicitud queda trazable en el sistema con historial de comunicaciones y estado actualizado.</p>
+    </div>
+  </div>
+
+</main>
+
+<footer class="page-foot">
+  <span>SGM · TRANSPOWER — Caribe Colombiano</span>
+  <span>© <span id="yr">2025</span> · Zona interna</span>
+</footer>
+
+<script>
+  document.getElementById('btnLogout').addEventListener('click', () => {
+    try { sessionStorage.removeItem('sgm.access'); } catch (_) {}
+    location.href = '../index.html';
+  });
+  document.getElementById('yr').textContent = new Date().getFullYear();
+
+  // El formulario aún no tiene backend — prevenir submit.
+  document.getElementById('contactForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+  });
+</script>
+</body>
+</html>
