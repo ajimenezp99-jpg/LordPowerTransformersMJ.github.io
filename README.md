@@ -8,7 +8,7 @@ Caribe Colombiano (Bolívar, Córdoba, Sucre, Cesar y 11 municipios de Magdalena
 
 ## Estado
 
-Fase 4 cerrada · progreso global **30 %**. Ver [`CLAUDE.md`](./CLAUDE.md) para el plan completo.
+Fase 5 cerrada · progreso global **35 %**. Ver [`CLAUDE.md`](./CLAUDE.md) para el plan completo.
 
 ## Stack
 
@@ -65,8 +65,19 @@ Pasos manuales pendientes (consola Firebase):
 ## Acceso
 
 Durante la fase de construcción el sitio queda tras un **gate estático**
-(código `97601992@`, ver `assets/js/gate.js`). Se reemplazará por Firebase Auth
-en la Fase 12.
+(código `97601992@`, ver `assets/js/gate.js`). Se reemplazará por un gate
+dinámico en la Fase 12.
+
+### Panel administrativo (Fase 5)
+
+- Ruta: `/admin/login.html` (link discreto en el footer de `home.html`).
+- Autenticación: **Firebase Auth · Email/Password** + allowlist de UIDs.
+- Sesión: se cierra al salir del navegador (`browserSessionPersistence`).
+- Para habilitar:
+  1. Crear usuario en Firebase Console → Authentication → Users.
+  2. Copiar el UID al array `ADMIN_UIDS` en
+     `assets/js/admin/admin-config.js`.
+  3. Ingresar desde `/admin/login.html`.
 
 ## Licencia
 
