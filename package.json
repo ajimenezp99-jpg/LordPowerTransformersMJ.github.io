@@ -1,0 +1,24 @@
+{
+  "name": "sgm-transpower",
+  "version": "0.3.0",
+  "private": true,
+  "description": "SGM · TRANSPOWER — Sistema de Gestión de Mantenimiento Especializado de Transformadores de Potencia (Caribe Colombiano).",
+  "homepage": "https://ajimenezp99-jpg.github.io/LordPowerTransformersMJ.github.io/",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ajimenezp99-jpg/LordPowerTransformersMJ.github.io.git"
+  },
+  "license": "UNLICENSED",
+  "scripts": {
+    "lint:html": "html-validate \"index.html\" \"home.html\" \"pages/**/*.html\"",
+    "lint": "npm run lint:html",
+    "serve": "npx --yes http-server . -p 8080 -c-1",
+    "test": "npm run lint"
+  },
+  "devDependencies": {
+    "html-validate": "^8.24.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
