@@ -1,0 +1,94 @@
+/* ═══════════════════════════════════════════════════════════════
+   SGM · TRANSPOWER — Órdenes de trabajo (Fase 7)
+   Extiende inventario.css con pills de estado-orden, tipo y prioridad.
+   Requiere que inventario.css esté cargado antes.
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Pills de estado de orden ── */
+.estado-pill.planificada {
+  background: rgba(0,200,255,.08);
+  border: 1px solid rgba(0,200,255,.3);
+  color: var(--accent);
+}
+.estado-pill.en_curso {
+  background: rgba(240,165,0,.08);
+  border: 1px solid rgba(240,165,0,.3);
+  color: var(--accent2);
+}
+.estado-pill.cerrada {
+  background: rgba(0,255,153,.08);
+  border: 1px solid rgba(0,255,153,.3);
+  color: var(--accent3);
+}
+.estado-pill.cancelada {
+  background: rgba(74,100,120,.1);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+/* ── Pills de tipo ── */
+.tipo-pill {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: .65rem; letter-spacing: .08em;
+  padding: .2rem .55rem; border-radius: 2px;
+  border: 1px solid var(--border);
+  background: rgba(0,0,0,.25);
+  color: var(--text);
+}
+.tipo-pill.preventivo  { border-left: 3px solid var(--accent3);  }
+.tipo-pill.correctivo  { border-left: 3px solid var(--accent2);  }
+.tipo-pill.predictivo  { border-left: 3px solid var(--accent);   }
+.tipo-pill.emergencia  { border-left: 3px solid #ff5577; color: #ff7a99; }
+
+/* ── Pills de prioridad ── */
+.prioridad-pill {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: .65rem; letter-spacing: .08em;
+  padding: .2rem .55rem; border-radius: 2px;
+  border: 1px solid var(--border);
+}
+.prioridad-pill.baja     { color: var(--muted);   border-color: rgba(74,100,120,.5); }
+.prioridad-pill.media    { color: var(--accent);  border-color: rgba(0,200,255,.3); background: rgba(0,200,255,.05); }
+.prioridad-pill.alta     { color: var(--accent2); border-color: rgba(240,165,0,.4);  background: rgba(240,165,0,.06); }
+.prioridad-pill.critica  { color: #ff7a99; border-color: rgba(255,85,119,.4); background: rgba(255,85,119,.08); font-weight: 700; }
+
+/* ── Bloque de historial ── */
+.historial-wrap {
+  margin-top: 1rem;
+  background: rgba(0,0,0,.35);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 3px;
+  padding: 1rem 1.1rem;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.historial-wrap h4 {
+  margin: 0 0 .6rem 0;
+  font-family: var(--font-mono);
+  font-size: .72rem; letter-spacing: .12em;
+  color: var(--accent); text-transform: uppercase;
+}
+.historial-item {
+  border-top: 1px dashed var(--border);
+  padding: .5rem 0;
+  font-size: .78rem;
+  color: var(--text);
+}
+.historial-item:first-of-type { border-top: none; }
+.historial-item .meta {
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  color: var(--muted);
+  letter-spacing: .06em;
+  display: block;
+  margin-bottom: .2rem;
+}
+.historial-empty {
+  font-style: italic;
+  color: var(--muted);
+  font-size: .78rem;
+}
