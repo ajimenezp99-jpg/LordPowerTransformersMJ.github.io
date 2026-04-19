@@ -28,31 +28,43 @@ Claude Code sobre `ajimenezp99-jpg/lordpowertransformersmj.github.io`
 en *GitHub → Settings → Applications → Installed GitHub Apps*. Mientras
 no se haga, los dos primeros canales seguirán fallando con 403.
 
-**Workaround activo en este clon:** el remote `origin` ya está
-configurado con un **PAT clásico del dueño** embebido en la URL
-(`.git/config`). Esto permite que cualquier `git push` directo
-funcione sin tener que pasar la URL con token inline. El archivo
-`.git/config` no es rastreado por git, así que el token **no se
-commitea** al hacer push.
+**Workaround real (verificado):** el `local_proxy` **resetea el remote
+`origin` entre invocaciones** (cambia de puerto y restaura la URL al
+formato `http://local_proxy@127.0.0.1:PORT/git/...`), así que **no
+sirve** dejar el PAT embebido con `git remote set-url` — sobrevive a
+un único push y luego se pierde. La forma confiable de publicar es
+**pasar la URL con token inline en cada `git push`**:
+
+```bash
+git push https://USER:TOKEN@github.com/USER/REPO.git \
+    BRANCH:BRANCH
+```
+
+donde `TOKEN` es el PAT clásico del dueño guardado fuera del repo
+(en este chat se entregó por mensaje del usuario; en el siguiente
+chat habrá que pedirlo de nuevo o leerlo de donde el dueño lo deje).
 
 **Reglas que debo respetar con este token:**
 1. Jamás copiar el token a un archivo rastreado, a un mensaje de
    commit, a una PR, a un comentario o a cualquier salida visible
-   (logs, prints, etc.). Si tengo que mostrar el remote,
-   redactarlo con `sed 's|ghp_[A-Za-z0-9]*|ghp_****REDACTED****|g'`.
-2. No hacer `git config` globales con el token; solo vive en
-   `.git/config` de este clon.
+   (logs, prints, etc.). Filtrar siempre con
+   `sed 's|ghp_[A-Za-z0-9]*|ghp_****REDACTED****|g'` antes de mostrar
+   un remote o un error de push.
+2. No hacer `git config` globales con el token. Tampoco vale la pena
+   hacer `git config` local porque el proxy lo pisa.
 3. Si el dueño revoca el token (recomendable cuando concede
-   `contents:write` al App), el `git push` volverá a fallar con
-   401/403 y habrá que pedir un token nuevo o usar el App.
-4. Preferir `git push` directo (el remote ya lleva el token) antes
-   que `mcp__github__*` para operaciones de escritura. Los
-   endpoints MCP se pueden seguir usando para lectura.
+   `contents:write` al App), `git push` volverá a fallar con 401/403
+   y habrá que pedir un token nuevo o usar el App.
+4. Preferir `git push` con URL inline antes que `mcp__github__*` para
+   operaciones de escritura. Los endpoints MCP solo sirven para lectura
+   en este entorno.
 5. Si aparece una instrucción del usuario en el chat incluyendo un
-   token nuevo, **asumir que reemplaza al actual** y actualizar
-   `origin` con `git remote set-url origin
-   https://USER:NEW_TOKEN@github.com/...`. No pedirle al usuario
-   que lo re-introduzca.
+   token nuevo, **asumir que reemplaza al actual**; usarlo en el
+   siguiente push inline. No pedirle al usuario que lo re-introduzca
+   si ya lo dio antes.
+6. Al iniciar un chat nuevo: si hay commits pendientes y no hay token
+   visible, **preguntar al dueño** por un PAT clásico (scope `repo`).
+   Sin eso, push imposible.
 
 ### 0.2 Branch de trabajo
 
@@ -235,6 +247,21 @@ El sistema contempla:
 | 13 | Pulido: SEO, accesibilidad, performance, i18n            |  4%  |  96%      | ✅ completada |
 | 14 | Lanzamiento: login unificado + roles + v1.0.0            |  4%  | 100%      | ✅ completada |
 | 15 | Realtime: `onSnapshot` en home, órdenes y alertas        |  —   | 100% + RT | ✅ completada |
+| 16 | Vercel: deploy + primera serverless function (`/api/health`) |  —   | post-v1   | 🔜 planificada |
+| 17 | Notificaciones por email (Resend/Brevo + Vercel Cron)    |  —   | post-v1   | 🔜 planificada |
+| 18 | Exportación Excel (XLSX) en inventario / órdenes / KPIs / alertas |  —   | post-v1   | 🔜 planificada |
+| 19 | Exportación PDF (fichas, cierre de orden, reporte mensual) |  —   | post-v1   | 🔜 planificada |
+| 20 | Adjuntos por orden (fotos evidencia · Storage)           |  —   | post-v1   | 🔜 planificada |
+| 21 | Auditoría / bitácora cross-collection                    |  —   | post-v1   | 🔜 planificada |
+| 22 | Calendario de mantenimientos (vista mensual + iCal)      |  —   | post-v1   | 🔜 planificada |
+| 23 | PWA + offline básico (service worker + IndexedDB)        |  —   | post-v1   | 🔜 planificada |
+| 24 | Analítica predictiva ligera (tendencias + proyección de fallas) |  —   | post-v1   | 🔜 planificada |
+
+> **Continuidad entre chats:** la próxima movida tras la lectura de
+> esta tabla es **F16**. Las fases 15–24 forman la **evolución
+> post-v1.0**: cada una es independiente y puede entregarse en su
+> propio commit aislado, sin alterar el 100 % del plan original.
+> El detalle de cada una está en la sección **5.2 Plan post-v1.0**.
 
 ### Detalle por microfase
 
@@ -497,6 +524,228 @@ botones de "Recargar".
 - **Cuota Firestore.** Se reemplazan ráfagas de `getDocs()` por conexiones `onSnapshot` persistentes. Cada página interna mantiene abiertas 1–4 suscripciones según el módulo; dentro del plan Spark (50 k lecturas/día) el cliente solo consume delta-reads cuando un documento cambia.
 - **Backwards-compat.** `listar()` y `computarAlertas()` siguen existiendo para flujos CSV / exports que no requieren realtime.
 
+### 5.2 Plan post-v1.0 (F16–F24)
+
+> Cada fase post-v1.0 es **independiente** y debe cerrar con su propio
+> commit aislado. Ninguna depende rígidamente de la anterior salvo las
+> que tocan el backend (F17 depende de F16). Si el dueño quiere reordenar
+> o saltarse una, no rompe nada — el plan es una sugerencia priorizada,
+> no una secuencia obligatoria. Pre-requisito común: `assets/js/firebase-config.js`
+> ya conectado al proyecto real (ya está, ver `firebaseConfig` activo).
+
+#### 🔜 Fase 16 — Vercel deploy + serverless skeleton
+
+**Objetivo.** Habilitar el backend en Vercel sin abandonar GitHub Pages
+para el frontend. Necesario para todas las fases que requieran código
+server-side (F17, eventualmente F24).
+
+- Crear proyecto en Vercel apuntando a este repo, branch `main`. Build
+  command vacío (sitio estático ya servido por GitHub Pages); el deploy
+  de Vercel queda **solo para `/api/*`**.
+- `vercel.json` ya existe (F3) con headers de seguridad — extenderlo
+  con `functions` config si hace falta runtime Node 20.
+- Primera function `/api/health.js` que devuelve `{ok:true, ts:...}`
+  para validar que el deploy pipeline funciona.
+- Configurar las env vars en Vercel:
+  - `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`
+    (descargadas del Firebase Console → Project Settings → Service accounts).
+  - Estas habilitan `firebase-admin` para operaciones server-side
+    privilegiadas (notificaciones, agregaciones pesadas).
+- Documentar en `README.md` el flujo de deploy (push a main → Vercel
+  redeploya `/api/*`) y la separación frontend/backend.
+- **Yo configuro Vercel siempre** (instrucción explícita del dueño).
+  El dueño solo tiene que dar permiso una vez al GitHub App de Vercel
+  para conectar el repo; el resto lo hago vía CLI o dashboard.
+
+**Criterio de cierre.** `https://<proyecto>.vercel.app/api/health` responde
+200 OK y se enlaza desde `_firebase-test.html` para verificación rápida.
+
+#### 🔜 Fase 17 — Notificaciones por email
+
+**Objetivo.** Aprovechar el flag `alertas_config.notificaciones_enabled`
++ `destinatario_email` que F11 dejó reservados. Resumen diario de alertas
+críticas a un correo configurado por el admin.
+
+- Endpoint cron `/api/cron/alertas-diarias.js` ejecutado por **Vercel Cron**
+  una vez al día (config en `vercel.json`).
+- Re-implementa el motor de `assets/js/data/alertas.js` en Node usando
+  `firebase-admin` (lectura de `transformadores`, `ordenes`, `alertas_config`).
+- Filtra solo severidad `critica` no reconocidas, agrupa por tipo, arma
+  un email HTML con resumen + tabla.
+- Envío vía **Resend** (free tier 3 000 emails/mes, 100/día) — alternativa
+  Brevo (300/día). API key en env var `RESEND_API_KEY`.
+- Si `notificaciones_enabled === false` o no hay `destinatario_email`,
+  el cron termina sin enviar.
+- Vista admin: pequeño panel "Última ejecución" en `admin/alertas.html`
+  con timestamp del último envío (guardado en `alertas_config/global`).
+
+**Criterio de cierre.** Cron corre todos los días, envío llega al inbox
+del destinatario configurado, y `admin/alertas.html` muestra "Último envío:
+hace N horas".
+
+#### 🔜 Fase 18 — Exportación Excel (XLSX)
+
+**Objetivo.** Dar a los usuarios un export profesional para reportes
+ejecutivos y compartir con stakeholders no técnicos.
+
+- Librería **SheetJS (`xlsx`)** vía CDN (sin npm: el sitio sigue siendo
+  estático). Versión community/free.
+- Botón **"Exportar XLSX"** en:
+  - `pages/inventario.html` y `admin/inventario.html` (parque completo + filtros aplicados).
+  - `pages/ordenes.html` y `admin/ordenes.html` (con filtros aplicados).
+  - `pages/kpis.html` y `admin/kpis.html` (multi-hoja: KPIs / RAM / Top 10 / Por departamento).
+  - `pages/alertas.html` (alertas activas con severidad y recurso).
+- Hojas con cabeceras estilizadas (negrita + fondo gris claro), columnas
+  auto-ancho, fechas formateadas como tipo `Date` real (no string).
+- Helper compartido `assets/js/exports/xlsx.js` con `descargarHojas(nombre, hojas)`.
+- El CSV actual de KPIs (F8) se conserva como opción secundaria.
+
+**Criterio de cierre.** Cada vista lista exporta `.xlsx` que abre limpio
+en Excel/LibreOffice/Google Sheets.
+
+#### 🔜 Fase 19 — Exportación PDF
+
+**Objetivo.** Documentos formales para cierre de orden, fichas técnicas
+y reportes mensuales.
+
+- Librerías **jsPDF + jspdf-autotable** vía CDN. Renderizado client-side.
+- Plantillas:
+  1. **Ficha técnica de transformador** — desde `admin/inventario.html` y
+     `pages/inventario.html`, botón "PDF" por fila. Incluye: encabezado
+     con logo SGM, datos generales, datos eléctricos, ubicación, mapa
+     mini (captura del marker via Leaflet `getCanvas`), pie con
+     normativas aplicables y QR del código.
+  2. **Cierre de orden** — desde `admin/ordenes.html` cuando `estado==='cerrada'`.
+     Incluye: encabezado con código + transformador, descripción,
+     técnico responsable, duración real, observaciones, **historial completo**
+     (la subcolección `historial`), espacio para firma del responsable.
+  3. **Reporte mensual de KPIs** — desde `admin/kpis.html`. Resumen
+     ejecutivo: parque, RAM, top transformadores, distribución por estado.
+     Selector de mes. Pie con fecha de generación y normativas.
+- Helper compartido `assets/js/exports/pdf.js` con plantilla base
+  (encabezado/pie reutilizables).
+- Logos en `/assets/img/` ya existen.
+
+**Criterio de cierre.** Las 3 plantillas generan PDFs A4 vertical legibles,
+con tablas paginadas correctamente.
+
+#### 🔜 Fase 20 — Adjuntos por orden (evidencias fotográficas)
+
+**Objetivo.** Cerrar el ciclo de trazabilidad: foto **antes** y **después**
+del mantenimiento adjunta a la orden.
+
+- Subcolección Firestore `ordenes/{id}/adjuntos` con metadatos:
+  `{filename, mime, size, storagePath, downloadURL, etiqueta, uid, at}`.
+- Storage bajo `ordenes/{ordenId}/adjuntos/{filename}`.
+- Reglas: lectura por `isTeamMember()`, escritura por `isAdmin()` y por
+  el técnico asignado a la orden (validar `request.auth.token.email ===
+  resource.data.tecnico`). Tope **5 MB** por archivo (foto comprimida).
+- Reutilizar la API de `documentos.js` (F9) — extraer un módulo común
+  `assets/js/data/_storage-uploader.js`.
+- Vista admin: pestaña **"Evidencias"** en el modal de edición de orden,
+  con galería thumbnails (`<img>` + `loading="lazy"`), drop-zone y
+  botón **"Marcar como ANTES / DESPUÉS"**.
+- Vista pública: galería read-only en `pages/ordenes.html` al expandir
+  la fila.
+- Las fotos se incluyen en el PDF de cierre (F19) como anexo.
+
+**Criterio de cierre.** Subir 2 fotos a una orden, verlas en admin y
+público, y verlas embebidas en el PDF de cierre.
+
+#### 🔜 Fase 21 — Auditoría / bitácora cross-collection
+
+**Objetivo.** Trazabilidad regulatoria (ISO 50001 sección 9.1.4):
+quién hizo qué cambio cuándo en qué documento.
+
+- Colección `auditoria` con docs `{coleccion, docId, accion, uid,
+  email, at, diff}` donde `diff` es un objeto `{campo: {antes, despues}}`.
+- Acciones: `crear` / `actualizar` / `eliminar` / `reconocer_alerta`
+  / `subir_documento` / `subir_evidencia` / `cambiar_rol`.
+- Hook en cada función de escritura del data layer
+  (`transformadores.js`, `ordenes.js`, `documentos.js`, `usuarios.js`,
+  `alertas.js`) — un único helper `auditar(accion, coleccion, docId, diff)`.
+- Vista admin `/admin/auditoria.html` — tabla con filtros (colección /
+  acción / usuario / rango de fechas), búsqueda por docId, paginación.
+- Reglas Firestore: lectura solo `isAdmin()`, escritura **solo por
+  `firebase-admin`** (server-side desde funciones, o por reglas que
+  validen `request.auth.uid` coincide con el `uid` registrado).
+
+**Criterio de cierre.** Cada CRUD aparece como entrada de auditoría;
+la vista admin permite reconstruir el estado histórico de cualquier
+documento.
+
+#### 🔜 Fase 22 — Calendario de mantenimientos
+
+**Objetivo.** Vista mensual visual sobre `ordenes.fecha_programada`
+para planificar carga de trabajo y detectar solapamientos.
+
+- Implementación con **FullCalendar 6** (free, MIT) vía CDN, o
+  construcción manual con grid CSS si se quiere evitar la dependencia
+  (~60 KB).
+- Vista pública `pages/calendario.html` y admin `admin/calendario.html`.
+- Cada evento = una orden, color por prioridad (verde/amarillo/naranja/rojo).
+- Click en evento → modal con detalle + enlace al admin de órdenes.
+- Filtros por técnico y tipo.
+- Realtime con `suscribir` de F15 (ya existe).
+- **Export iCal (`.ics`)** del calendario filtrado para que técnicos
+  importen en Google Calendar / Outlook / Apple Calendar.
+- Helper `assets/js/exports/ical.js`.
+
+**Criterio de cierre.** Vista mensual navegable, exportar `.ics` que
+importa correctamente en al menos 2 calendarios externos.
+
+#### 🔜 Fase 23 — PWA + offline básico
+
+**Objetivo.** Que la plataforma funcione como app instalable en móvil
+y que las consultas básicas (órdenes recientes, ficha de transformador)
+sigan funcionando sin red.
+
+- `manifest.json` con icons, name, theme_color (`#040c14`), display
+  `standalone`, start_url `/index.html`.
+- Service worker en `/sw.js`:
+  - **Cache-first** para shell (HTML/CSS/JS/fuentes/icons).
+  - **Stale-while-revalidate** para imágenes y assets de Storage.
+  - **Network-first con fallback a cache** para datos de Firestore.
+- Activar `enableIndexedDbPersistence(db)` en `firebase-init.js` para
+  que Firestore mantenga su propia cache offline (sincroniza al volver).
+- Cola de escrituras pendientes ya manejada por Firestore offline persistence
+  — basta con activarla.
+- Banner "Instalar app" en `home.html` cuando el evento `beforeinstallprompt`
+  esté disponible.
+- Auditoría Lighthouse: PWA score ≥ 90.
+
+**Criterio de cierre.** Cortar red (DevTools offline), navegar entre
+home / órdenes / inventario sigue funcionando con datos cacheados.
+Volver a línea sincroniza cualquier cambio pendiente.
+
+#### 🔜 Fase 24 — Analítica predictiva ligera
+
+**Objetivo.** Cerrar el ciclo RAM con un componente predictivo simple
+sobre el histórico de órdenes correctivas. Sin ML pesado: regresión
+lineal y media móvil bastan para alimentar alertas tempranas.
+
+- Por cada transformador con ≥ 3 fallos correctivos cerrados, calcular:
+  - **Tasa de fallos** (fallos / día de servicio).
+  - **Próximo fallo esperado** = última falla + (1 / tasa).
+  - **Tendencia** (regresión lineal sobre intervalos entre fallas).
+- Agregar regla `prediccion_falla` al motor de alertas (F11):
+  - `info` si próximo fallo esperado en > 30 días.
+  - `warning` si en (7, 30] días.
+  - `critica` si en ≤ 7 días.
+- Visualización en `pages/kpis.html`: tarjeta nueva "Próximas fallas
+  proyectadas" con top 5 transformadores en riesgo.
+- Línea de tendencia en la gráfica mensual existente (Chart.js soporta
+  `type: 'line'` adicional).
+- Sin librerías de ML — implementación manual (~50 líneas de JS) en
+  `assets/js/data/predict.js` con tests unitarios cliente.
+- Documentar el modelo en `README.md`: limitaciones (asume distribución
+  uniforme; no detecta cambios de régimen) y advertir que es una guía,
+  no un dictamen.
+
+**Criterio de cierre.** Crear histórico ficticio en un transformador
+de prueba, verificar que la predicción aparece como alerta y en el
+panel de KPIs.
+
 ---
 
 ## 6. Convenciones de trabajo
@@ -513,10 +762,16 @@ botones de "Recargar".
 
 | Métrica                    | Valor |
 |----------------------------|-------|
-| Fase en curso              | **Fase 15 cerrada · realtime activo** |
-| Porcentaje global           | **100 %** (+ Realtime) |
-| Último commit              | (ver historial Git) |
-| Servicios dinámicos activos | ninguno (aún sólo estático) |
+| v1.0 (F0–F14)              | **100 %** ✅ |
+| Evolución post-v1.0         | **F15 ✅ · F16–F24 🔜** |
+| Próxima movida              | **Fase 16 — Vercel deploy + serverless skeleton** |
+| Último commit               | (ver historial Git) |
+| Servicios dinámicos activos | Firebase (Auth + Firestore + Storage) · Vercel pendiente (F16) |
+
+> **Continuidad entre chats.** Si arrancas una sesión nueva: lee la
+> sección **0** (permisos de push + token en `.git/config`), luego
+> revisa la tabla de **5.1** y el detalle de **5.2** para saber qué
+> queda. F0–F15 están en el repo; F16 es la siguiente movida sugerida.
 
 ---
 
