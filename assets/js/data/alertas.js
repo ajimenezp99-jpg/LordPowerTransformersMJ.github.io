@@ -7,7 +7,7 @@
 import {
   collection, doc,
   setDoc, deleteDoc,
-  getDoc, getDocs,
+  getDoc, getDocs, onSnapshot,
   serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
 
@@ -15,11 +15,13 @@ import { getDbSafe, isFirebaseConfigured } from '../firebase-init.js';
 
 import {
   listar as listarTransformadores,
+  suscribir as suscribirTransformadores,
   departamentoLabel, estadoLabel as estadoTransformadorLabel
 } from './transformadores.js';
 
 import {
   listar as listarOrdenes,
+  suscribir as suscribirOrdenes,
   estadoOrdenLabel, tipoLabel, prioridadLabel
 } from './ordenes.js';
 
@@ -167,7 +169,7 @@ function buildAlertId(tipo, recursoId, sello) {
 function pushAlert(out, alert) { out.push(alert); }
 
 /**
- * Computa alertas sobre el parque.
+ * Computa alertas sobre el parque (lee Firestore).
  * @param {{ hoy?: Date, config?: object }} [opts]
  * @returns {Promise<{alertas: Array, resumen: object, config: object, generatedAt: Date}>}
  */
@@ -180,6 +182,18 @@ export async function computarAlertas(opts = {}) {
     listarTransformadores({}),
     listarOrdenes({})
   ]);
+  return computarFromDatasets(transformadores, ordenes, config, recs, hoy);
+}
+
+/**
+ * Variante pura: computa alertas a partir de datasets ya cargados.
+ * Se usa desde `suscribirComputo` para recalcular sin I/O extra cada
+ * vez que llega un snapshot nuevo de alguna de las fuentes.
+ */
+export function computarFromDatasets(transformadores, ordenes, config, recs, hoy) {
+  hoy    = hoy    instanceof Date ? hoy    : new Date();
+  config = config || { ...DEFAULT_CONFIG };
+  recs   = recs   || {};
 
   const mapT = new Map();
   for (const t of transformadores) mapT.set(t.id, t);
@@ -351,4 +365,94 @@ export async function computarAlertas(opts = {}) {
   };
 
   return { alertas, resumen, config, generatedAt: hoy };
+}
+
+/**
+ * Suscripción realtime al cómputo de alertas. Escucha las 4 fuentes
+ * (transformadores, ordenes, alertas_config/global y alertas_reconocidas)
+ * y recalcula con `computarFromDatasets` cuando llega un snapshot nuevo.
+ *
+ * Debounce de 250 ms para evitar múltiples recomputaciones cuando varios
+ * snapshots llegan al mismo tiempo (p. ej. en la carga inicial).
+ *
+ * @param {(snapshot: {alertas, resumen, config, generatedAt}) => void} onData
+ * @param {(err: Error) => void} [onError]
+ * @returns {() => void} unsubscribe — cancela las 4 suscripciones.
+ */
+export function suscribirComputo(onData, onError) {
+  const state = {
+    transformadores: null,
+    ordenes:         null,
+    config:          null,
+    recs:            null
+  };
+  let timer   = null;
+  let stopped = false;
+
+  const fail = (err) => {
+    if (onError) onError(err);
+    else console.warn('[alertas.suscribirComputo]', err);
+  };
+
+  const emit = () => {
+    if (stopped) return;
+    if (!state.transformadores || !state.ordenes) return;
+    try {
+      const snap = computarFromDatasets(
+        state.transformadores,
+        state.ordenes,
+        state.config || { ...DEFAULT_CONFIG },
+        state.recs   || {},
+        new Date()
+      );
+      onData(snap);
+    } catch (err) {
+      fail(err);
+    }
+  };
+
+  const schedule = () => {
+    if (timer) clearTimeout(timer);
+    timer = setTimeout(emit, 250);
+  };
+
+  const unsubT = suscribirTransformadores(
+    {},
+    (items) => { state.transformadores = items; schedule(); },
+    fail
+  );
+  const unsubO = suscribirOrdenes(
+    {},
+    (items) => { state.ordenes = items; schedule(); },
+    fail
+  );
+  const unsubC = onSnapshot(
+    configDocRef(),
+    (s) => {
+      state.config = s.exists()
+        ? { ...DEFAULT_CONFIG, ...s.data() }
+        : { ...DEFAULT_CONFIG };
+      schedule();
+    },
+    fail
+  );
+  const unsubR = onSnapshot(
+    reconocidasCollRef(),
+    (s) => {
+      const out = {};
+      for (const d of s.docs) out[d.id] = d.data();
+      state.recs = out;
+      schedule();
+    },
+    fail
+  );
+
+  return () => {
+    stopped = true;
+    if (timer) clearTimeout(timer);
+    try { unsubT(); } catch (_) { /* noop */ }
+    try { unsubO(); } catch (_) { /* noop */ }
+    try { unsubC(); } catch (_) { /* noop */ }
+    try { unsubR(); } catch (_) { /* noop */ }
+  };
 }

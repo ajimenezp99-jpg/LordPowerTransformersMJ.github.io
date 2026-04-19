@@ -4,7 +4,7 @@
 // ══════════════════════════════════════════════════════════════
 
 import {
-  listar, obtener, crear, actualizar, eliminar,
+  suscribir, obtener, crear, actualizar, eliminar,
   listarHistorial,
   ESTADOS_ORDEN, TIPOS_ORDEN, PRIORIDADES,
   estadoOrdenLabel, tipoLabel, prioridadLabel,
@@ -195,27 +195,31 @@ async function renderHistorial(ordenId) {
   }
 }
 
-// ── Cargar ──
-async function cargar() {
+// ── Cargar (realtime, Fase 15) ──
+let unsubscribe = null;
+
+function cargar() {
   if (!isReady()) {
     showInfo('⚠ Firebase no configurado. Completa assets/js/firebase-config.js para habilitar las órdenes.', 'err');
     tbody.innerHTML = '<tr><td colspan="8" class="td-empty">Sin conexión con Firestore.</td></tr>';
     return;
   }
-  try {
-    showInfo('');
-    tbody.innerHTML = '<tr><td colspan="8" class="td-empty">Cargando…</td></tr>';
-    const rows = await listar({
+  if (unsubscribe) { try { unsubscribe(); } catch (_) {} unsubscribe = null; }
+  showInfo('');
+  tbody.innerHTML = '<tr><td colspan="8" class="td-empty">Cargando…</td></tr>';
+  unsubscribe = suscribir(
+    {
       estado:    fEstadoFilter.value    || undefined,
       tipo:      fTipoFilter.value      || undefined,
       prioridad: fPrioridadFilter.value || undefined
-    });
-    render(rows);
-  } catch (err) {
-    console.error(err);
-    showInfo('Error al listar: ' + (err.message || err), 'err');
-    tbody.innerHTML = '<tr><td colspan="8" class="td-empty">Error de carga.</td></tr>';
-  }
+    },
+    (rows) => render(rows),
+    (err) => {
+      console.error(err);
+      showInfo('Error al listar: ' + (err.message || err), 'err');
+      tbody.innerHTML = '<tr><td colspan="8" class="td-empty">Error de carga.</td></tr>';
+    }
+  );
 }
 
 // ── Eventos tabla ──
@@ -245,7 +249,7 @@ tbody.addEventListener('click', async (e) => {
     try {
       await eliminar(id);
       showInfo('✓ Orden eliminada.', 'ok');
-      await cargar();
+      // La suscripción onSnapshot refresca la tabla automáticamente.
     } catch (err) { showInfo('Error al eliminar: ' + err.message, 'err'); }
   }
 });
@@ -270,7 +274,7 @@ form.addEventListener('submit', async (e) => {
       showInfo(`✓ Orden ${data.codigo} creada.`, 'ok');
     }
     closeModal();
-    await cargar();
+    // La suscripción onSnapshot refresca la tabla automáticamente.
   } catch (err) {
     formMsg.className = 'msg err';
     formMsg.textContent = '✗ ' + (err.message || err);
@@ -299,6 +303,10 @@ $('btnLogout').addEventListener('click', async () => {
   location.replace(ADMIN_ROUTES.login);
 });
 $('yr').textContent = new Date().getFullYear();
+
+window.addEventListener('beforeunload', () => {
+  if (unsubscribe) { try { unsubscribe(); } catch (_) {} }
+});
 
 // ── Init ──
 fillSelects();
