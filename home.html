@@ -22,6 +22,7 @@
     <a href="pages/about.html"        class="nav-link">Proyecto</a>
     <a href="pages/inventario.html"   class="nav-link">Inventario</a>
     <a href="pages/ordenes.html"      class="nav-link">Órdenes</a>
+    <a href="pages/kpis.html"         class="nav-link">KPIs</a>
     <a href="pages/cobertura.html"    class="nav-link">Cobertura</a>
     <a href="pages/normativa.html"    class="nav-link">Normativa</a>
     <a href="pages/contacto.html"     class="nav-link">Contacto</a>
@@ -46,22 +47,22 @@
   <div class="stats-grid">
     <div class="stat-card">
       <div class="stat-icon">⚡</div>
-      <div class="stat-value">--</div>
+      <div class="stat-value" id="hkTrafos">--</div>
       <div class="stat-label">TRANSFORMADORES REGISTRADOS</div>
     </div>
     <div class="stat-card">
       <div class="stat-icon">🔧</div>
-      <div class="stat-value">--</div>
+      <div class="stat-value" id="hkActivas">--</div>
       <div class="stat-label">ÓRDENES ACTIVAS</div>
     </div>
     <div class="stat-card">
       <div class="stat-icon">📈</div>
-      <div class="stat-value">--%</div>
+      <div class="stat-value" id="hkDisp">--%</div>
       <div class="stat-label">DISPONIBILIDAD PROMEDIO</div>
     </div>
     <div class="stat-card">
       <div class="stat-icon">⏱</div>
-      <div class="stat-value">-- h</div>
+      <div class="stat-value" id="hkMtbf">-- d</div>
       <div class="stat-label">MTBF PROMEDIO</div>
     </div>
   </div>
@@ -81,12 +82,12 @@
       <div class="module-desc">Planificación, asignación y seguimiento de mantenimientos preventivos y correctivos con historial inmutable.</div>
       <span class="status-badge done">ACTIVO · F7</span>
     </a>
-    <div class="module-card">
+    <a href="pages/kpis.html" class="module-card" style="text-decoration:none">
       <div class="module-icon">📊</div>
       <div class="module-name">KPIs &amp; Analítica RAM</div>
       <div class="module-desc">Indicadores de confiabilidad, disponibilidad y mantenibilidad: MTBF, MTTR y disponibilidad media.</div>
-      <span class="status-badge dev">EN DESARROLLO · F8</span>
-    </div>
+      <span class="status-badge done">ACTIVO · F8</span>
+    </a>
     <div class="module-card">
       <div class="module-icon">📋</div>
       <div class="module-name">Gestión Documental</div>
@@ -111,11 +112,11 @@
   <div class="section-head">▸ PROGRESO DE DESARROLLO DEL SISTEMA</div>
   <div class="progress-wrap">
     <div class="progress-label">
-      <span>Fases 0–7 completadas de 14</span>
-      <span>55 %</span>
+      <span>Fases 0–8 completadas de 14</span>
+      <span>65 %</span>
     </div>
     <div class="progress-bar">
-      <div class="progress-fill" style="--fill-pct:55%"></div>
+      <div class="progress-fill" style="--fill-pct:65%"></div>
     </div>
   </div>
   <div class="phases-row">
@@ -127,7 +128,7 @@
     <span class="status-badge done">F5 Auth Admin</span>
     <span class="status-badge done">F6 Inventario</span>
     <span class="status-badge done">F7 Órdenes</span>
-    <span class="status-badge planned">F8 KPIs</span>
+    <span class="status-badge done">F8 KPIs</span>
     <span class="status-badge planned">F9 Documental</span>
     <span class="status-badge planned">F10 Georref.</span>
     <span class="status-badge planned">F11 Alertas</span>
@@ -153,6 +154,28 @@
     location.href = 'index.html';
   });
   document.getElementById('yr').textContent = new Date().getFullYear();
+</script>
+
+<!-- KPIs del parque en tiempo real (Fase 8) -->
+<script type="module">
+  import { computeDashboard, isReady } from './assets/js/data/kpis.js';
+
+  if (!isReady()) {
+    // Firebase no configurado: dejar placeholders.
+  } else {
+    try {
+      const snap = await computeDashboard();
+      const $ = (id) => document.getElementById(id);
+      $('hkTrafos').textContent  = snap.totales.transformadores;
+      $('hkActivas').textContent = snap.totales.ordenes_planificadas + snap.totales.ordenes_en_curso;
+      $('hkDisp').textContent    = snap.ram.disponibilidad_pct == null
+        ? '—' : snap.ram.disponibilidad_pct.toFixed(1) + ' %';
+      $('hkMtbf').textContent    = snap.ram.mtbf_dias
+        ? snap.ram.mtbf_dias.toFixed(0) + ' d' : '— d';
+    } catch (err) {
+      console.warn('KPIs no disponibles:', err);
+    }
+  }
 </script>
 </body>
 </html>

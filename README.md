@@ -8,7 +8,7 @@ Caribe Colombiano (Bolívar, Córdoba, Sucre, Cesar y 11 municipios de Magdalena
 
 ## Estado
 
-Fase 7 cerrada · progreso global **55 %**. Ver [`CLAUDE.md`](./CLAUDE.md) para el plan completo.
+Fase 8 cerrada · progreso global **65 %**. Ver [`CLAUDE.md`](./CLAUDE.md) para el plan completo.
 
 ## Stack
 
@@ -92,6 +92,23 @@ dinámico en la Fase 12.
   2. En Firebase Console → Firestore, crear un documento
      `/admins/{TU_UID_ADMIN}` con contenido libre (p.ej. `{active: true}`).
      Esto autoriza las escrituras en `transformadores` desde ese UID.
+
+### KPIs &amp; Analítica RAM (Fase 8)
+
+- Dashboard basado en **Chart.js 4.4.1** (vía CDN).
+- Agregador cliente-side `assets/js/data/kpis.js`:
+  - Totales de parque + actividad de órdenes.
+  - Distribuciones por estado / tipo / prioridad / departamento.
+  - Serie mensual de los últimos 12 meses (campo `fecha_programada`).
+  - Top-10 transformadores con más intervenciones.
+  - Indicadores **RAM**:
+    - MTTR = media de `duracion_horas` en correctivos cerrados.
+    - MTBF = días-equipo en servicio ÷ número de fallos.
+    - A    = MTBF / (MTBF + MTTR).
+- Vista pública: `pages/kpis.html`.
+- Vista admin:   `admin/kpis.html` (con botón **Exportar CSV**).
+- `home.html` consume el snapshot en tiempo real y llena las 4 tarjetas KPI
+  superiores (Transformadores · Órdenes activas · Disponibilidad · MTBF).
 
 ### Órdenes de trabajo (Fase 7)
 
