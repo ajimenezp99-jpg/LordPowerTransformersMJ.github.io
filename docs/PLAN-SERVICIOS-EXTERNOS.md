@@ -236,10 +236,47 @@ hacia `main`, revisarlo y hacer merge.
 
 ## Bitácora de estado
 
-Anote aquí el avance de cada sesión (fecha + nota breve):
-
-- [ ] Sesión 1 — Firebase Web App + servicios · _fecha_ · _nota_
-- [ ] Sesión 2 — Node.js + Firebase CLI · _fecha_ · _nota_
-- [ ] Sesión 3 — Primer admin + entrada · _fecha_ · _nota_
-- [ ] Sesión 4 — GitHub Pages · _fecha_ · _nota_
-- [ ] Sesión 5 — Vercel · _fecha_ · _nota_ (postergable)
+- [x] **Sesión 1 — Firebase Web App + servicios** · 2026-04-19 ·
+  Web App registrada; `firebaseConfig` real pegado en
+  `assets/js/firebase-config.js` (commit `b59af84`).
+  Authentication con Email/Password habilitado.
+  Firestore en `southamerica-east1` (producción).
+  Storage en `US-EAST1` (free-tier) para ahorrar costo mensual;
+  latencia adicional ~50–100 ms es tolerable para descarga de
+  documentos.
+- [x] **Sesión 2 — Node.js + Firebase CLI** · 2026-04-19 ·
+  Node v24.15.0 + npm 11.12.1 instalados en MacBook Pro M4 via
+  instalador universal `.pkg` de nodejs.org (LTS).
+  `firebase-tools` 15.15.0 instalado con `sudo npm install -g`.
+  `firebase login` OK con cuenta del proyecto.
+  `.firebaserc` corregido: alias `default` ahora apunta a
+  `lordpowertransformersmj` (antes `sgm-transpower`).
+  `firebase deploy --only firestore:rules,firestore:indexes,storage`
+  terminó con `Deploy complete!`. Se aceptó el prompt de IAM
+  cross-service (Storage rules leen `/admins/{uid}` en Firestore).
+- [x] **Sesión 3 — Primer admin + entrada** · 2026-04-19 ·
+  Usuario creado en Authentication (`ajimenezp99@gmail.com`,
+  UID `BDYzInX88rhaPt87vIKkAi1cUyz2`).
+  Doc `/admins/{uid}` creado manualmente via Firestore Console con
+  `active: true` (bootstrap legacy aceptado por `session-guard.js`).
+  Login probado en local (`python3 -m http.server 8000` — el
+  puerto 5000 colisiona con AirPlay Receiver en macOS).
+  Perfil formal creado en `/admin/usuarios.html` con nombre "Ing.
+  Miguel Jimenez" y rol `admin`.
+- [x] **Sesión 4 — GitHub Pages** · 2026-04-19 ·
+  Pages activado desde rama `main` / carpeta `root`.
+  URL pública: `https://ajimenezp99-jpg.github.io/LordPowerTransformersMJ.github.io/`
+  (project page, NO user page — el repo no se llama
+  `ajimenezp99-jpg.github.io`).
+  **Fix aplicado (commit `28aa1c4`, PR #18):** rutas absolutas
+  `/index.html` y `/home.html` rotas en project page. Ahora se
+  calculan dinámicamente desde `import.meta.url` en
+  `session-guard.js` y `admin-auth.js`; `index.html` usa la ruta
+  relativa `home.html`. Funciona igual en root y subpath.
+  Dominio `ajimenezp99-jpg.github.io` autorizado en Firebase Auth
+  → Settings (recomendado para recuperación de contraseña y
+  compatibilidad con providers futuros).
+- [ ] **Sesión 5 — Vercel** · _postergada_ · Se activará cuando
+  haya necesidad real de backend Node (correos automáticos,
+  importación masiva de CSV, reportes PDF, webhooks). No
+  bloqueante para v1.0.0.
