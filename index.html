@@ -361,13 +361,13 @@
       try {
         const snap = await getDoc(doc(db, 'usuarios', user.uid));
         if (snap.exists() && snap.data().activo !== false) {
-          location.replace('/home.html');
+          location.replace('home.html');
           return;
         }
         // Fallback legacy: admins colección
         const adminSnap = await getDoc(doc(db, 'admins', user.uid));
         if (adminSnap.exists()) {
-          location.replace('/home.html');
+          location.replace('home.html');
           return;
         }
       } catch (_) {}
@@ -419,7 +419,7 @@
       }
 
       setMsg('✓ Acceso concedido. Redirigiendo…', 'ok');
-      setTimeout(() => location.replace('/home.html'), 400);
+      setTimeout(() => location.replace('home.html'), 400);
     } catch (err) {
       setMsg(humanize(err), 'err');
       btn.disabled = false;

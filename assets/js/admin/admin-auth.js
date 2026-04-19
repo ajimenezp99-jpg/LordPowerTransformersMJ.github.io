@@ -11,10 +11,13 @@
 import { logout as sessionLogout, getSession }
   from '../auth/session-guard.js';
 
+// Raíz del sitio calculada desde la URL de este módulo. Funciona
+// tanto en root (`user.github.io/`) como en subpath (project pages).
+const _base = new URL('../../../', import.meta.url).href;
 export const ADMIN_ROUTES = {
-  login:    '/index.html',
-  home:     '/admin/index.html',
-  fallback: '/home.html'
+  login:    _base + 'index.html',
+  home:     _base + 'admin/index.html',
+  fallback: _base + 'home.html'
 };
 
 export async function logoutAdmin() {

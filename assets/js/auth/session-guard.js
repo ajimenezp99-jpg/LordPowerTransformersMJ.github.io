@@ -37,8 +37,12 @@ import {
 
 import { getAuthSafe, getDbSafe, isFirebaseConfigured } from '../firebase-init.js';
 
-const LOGIN_URL = '/index.html';
-const HOME_URL  = '/home.html';
+// Raíz del sitio calculada desde la URL de este módulo. Esto funciona
+// tanto si el sitio se sirve en la raíz (`user.github.io/`) como en
+// un subpath (`user.github.io/repo/`, project pages).
+const BASE_URL  = new URL('../../../', import.meta.url).href;
+const LOGIN_URL = BASE_URL + 'index.html';
+const HOME_URL  = BASE_URL + 'home.html';
 const TIMEOUT_MS = 6000;
 
 // ── Ocultar body al arrancar (evita flash de contenido) ──
