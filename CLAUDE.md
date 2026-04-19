@@ -247,21 +247,43 @@ El sistema contempla:
 | 13 | Pulido: SEO, accesibilidad, performance, i18n            |  4%  |  96%      | ✅ completada |
 | 14 | Lanzamiento: login unificado + roles + v1.0.0            |  4%  | 100%      | ✅ completada |
 | 15 | Realtime: `onSnapshot` en home, órdenes y alertas        |  —   | 100% + RT | ✅ completada |
-| 16 | Vercel: deploy + primera serverless function (`/api/health`) |  —   | post-v1   | 🔜 planificada |
-| 17 | Notificaciones por email (Resend/Brevo + Vercel Cron)    |  —   | post-v1   | 🔜 planificada |
-| 18 | Exportación Excel (XLSX) en inventario / órdenes / KPIs / alertas |  —   | post-v1   | 🔜 planificada |
-| 19 | Exportación PDF (fichas, cierre de orden, reporte mensual) |  —   | post-v1   | 🔜 planificada |
-| 20 | Adjuntos por orden (fotos evidencia · Storage)           |  —   | post-v1   | 🔜 planificada |
-| 21 | Auditoría / bitácora cross-collection                    |  —   | post-v1   | 🔜 planificada |
-| 22 | Calendario de mantenimientos (vista mensual + iCal)      |  —   | post-v1   | 🔜 planificada |
-| 23 | PWA + offline básico (service worker + IndexedDB)        |  —   | post-v1   | 🔜 planificada |
-| 24 | Analítica predictiva ligera (tendencias + proyección de fallas) |  —   | post-v1   | 🔜 planificada |
 
-> **Continuidad entre chats:** la próxima movida tras la lectura de
-> esta tabla es **F16**. Las fases 15–24 forman la **evolución
-> post-v1.0**: cada una es independiente y puede entregarse en su
-> propio commit aislado, sin alterar el 100 % del plan original.
-> El detalle de cada una está en la sección **5.2 Plan post-v1.0**.
+### Evolución v2.0 · MO.00418.DE-GAC-AX.01 Ed. 02 (F16–F37)
+
+La tabla post-v1 original (F16–F24) fue reemplazada por el plan v2.2
+derivado del documento interno **MO.00418.DE-GAC-AX.01 Ed. 02**
+(CARIBEMAR DE LA COSTA S.A.S E.S.P · Afinia · Grupo EPM). 22 microfases
+independientes, cada una con commit aislado:
+
+| #  | Microfase                                                  | Estado |
+|----|------------------------------------------------------------|--------|
+| 16 | Refactor modelo de datos v2 (secciones, salud_actual, subestaciones) | ✅ completada |
+| 17 | Importador Excel → Firestore con recálculo HI              | 🔜 planificada |
+| 18 | Motor de Salud (HI ponderado Tabla 10 + overrides §A5/A9)  | 🔜 planificada |
+| 19 | Muestras de Laboratorio (DGA / ADFQ / FUR) time-series     | 🔜 planificada |
+| 20 | Subestaciones (UI dedicada)                                | 🔜 planificada |
+| 21 | Contratos (8 contratos macro · presupuesto)                | 🔜 planificada |
+| 22 | Catálogos (subactividades / macroactividades / causantes)  | 🔜 planificada |
+| 23 | Refactor Órdenes v2 (FKs catálogo)                         | 🔜 planificada |
+| 24 | TPT / Respaldo (calculadora sobrecarga IEEE C57.91)        | 🔜 planificada |
+| 25 | Fallados + RCA (5 porqués, Ishikawa, FMEA)                 | 🔜 planificada |
+| 26 | Contramuestras + Monitoreo Intensivo C₂H₂ + Juicio experto FUR | 🔜 planificada |
+| 27 | Dashboards ejecutivos por rol                              | 🔜 planificada |
+| 28 | RBAC granular con ámbito geográfico (5 roles + admin)      | 🔜 planificada |
+| 29 | Workflow aprobaciones + Estados especiales (OTC §A9.3)     | 🔜 planificada |
+| 30 | Plan de Inversión (scoring multicriterio)                  | 🔜 planificada |
+| 31 | Reportes PDF / Excel oficiales                             | 🔜 planificada |
+| 32 | Cloud Functions + notificaciones por email                 | 🔜 planificada |
+| 33 | Desempeño de aliados / contratistas                        | 🔜 planificada |
+| 34 | PWA + offline para brigadistas                             | 🔜 planificada |
+| 35 | Audit log global + bitácora                                | 🔜 planificada |
+| 36 | Matriz de Riesgo Criticidad × Salud                        | 🔜 planificada |
+| 37 | Motor de Estrategias por Condición (catálogo §A7)          | 🔜 planificada |
+
+> **Continuidad entre chats:** al reabrir una sesión, lee sección 0
+> (permisos push + token inline), luego la tabla arriba. La próxima
+> movida tras F16 es **F17 — Importador Excel**. El prompt maestro
+> v2.2 (con addendum §A1–A9) es el contrato funcional de referencia.
 
 ### Detalle por microfase
 
@@ -524,14 +546,190 @@ botones de "Recargar".
 - **Cuota Firestore.** Se reemplazan ráfagas de `getDocs()` por conexiones `onSnapshot` persistentes. Cada página interna mantiene abiertas 1–4 suscripciones según el módulo; dentro del plan Spark (50 k lecturas/día) el cliente solo consume delta-reads cuando un documento cambia.
 - **Backwards-compat.** `listar()` y `computarAlertas()` siguen existiendo para flujos CSV / exports que no requieren realtime.
 
-### 5.2 Plan post-v1.0 (F16–F24)
+#### ✅ Fase 16 — Refactor del modelo de datos v2 (MO.00418 Ed. 02)
 
-> Cada fase post-v1.0 es **independiente** y debe cerrar con su propio
-> commit aislado. Ninguna depende rígidamente de la anterior salvo las
-> que tocan el backend (F17 depende de F16). Si el dueño quiere reordenar
-> o saltarse una, no rompe nada — el plan es una sugerencia priorizada,
-> no una secuencia obligatoria. Pre-requisito común: `assets/js/firebase-config.js`
-> ya conectado al proyecto real (ya está, ver `firebaseConfig` activo).
+Primera microfase de la **evolución v2.0** derivada del prompt maestro
+v2.2 + documento interno **MO.00418.DE-GAC-AX.01 Ed. 02** (CARIBEMAR
+DE LA COSTA S.A.S E.S.P · Afinia · Grupo EPM). El shape plano de v1
+(introducido en F6 como "17 campos aplanados") se reemplaza por un
+documento estructurado en secciones que acomoda la metodología
+oficial de Salud de Activos. **Esta F16 sustituye el F16 anterior
+("Vercel deploy + serverless skeleton")**, que pasa a ser parte de
+F32 cuando se aborde en v2.
+
+- **Dominio puro (`assets/js/domain/`).** Tres módulos sin dependencia
+  de Firebase (importables desde Node para tests):
+  - `schema.js` — fuente canónica de enumeraciones: `TIPOS_ACTIVO`
+    (POTENCIA/TPT/RESPALDO), `ZONAS` (BOLIVAR/ORIENTE/OCCIDENTE),
+    `GRUPOS` (G1/G2/G3), `DEPARTAMENTOS` mapeados a su zona,
+    `ESTADOS_SERVICIO` ampliado con `fallado`, `ESTADOS_ESPECIALES`
+    (§A9.3: `monitoreo_intensivo_c2h2`, `propuesta_fur_pendiente`,
+    `operacion_temporal_controlada`, `pendiente_reemplazo`,
+    `reemplazado`, `fin_vida_util_papel`), `CONDICIONES` con nombres
+    oficiales §A9.7 (Muy Bueno/Bueno/Medio/Pobre/Muy Pobre, sin
+    "regular" ni "malo"), `BUCKETS_HI` con bordes [1.5, 2.5, 3.5,
+    4.5], `NIVELES_CRITICIDAD` (Mínima…Máxima), `UBICACIONES_FUGA`
+    (por ubicación dominante, §A3.6), `ROLES` F28 (admin,
+    director_proyectos, analista_tx, gestor_contractual,
+    brigadista, auditor_campo), `NORMATIVAS` (30 referencias A8),
+    `PESOS_HI` **Tabla 10 del MO.00418 §A9.8 como fuente canónica**
+    (DGA 0.35 · EDAD 0.30 · ADFQ 0.15 · FUR 0.05 · CRG 0.05 ·
+    PYT 0.05 · HER 0.05) con verificación de suma=1.0 en tiempo de
+    carga que lanza si alguien altera los pesos. Catálogo UUCC
+    CREG 085/2018: `esUUCCValida` acepta N3T1–N3T25 + N4T1–N4T19 +
+    N5T1–N5T25; `esUUCCRegulada` restringe a N4T1–N4T19 y N5T1–N5T25
+    (las únicas que gozan de vida útil reconocida de 30 años).
+    Helper `bucketDesdeHI(hi)` clampea a [1, 5] y devuelve la key.
+  - `transformador_schema.js` — sanitizador por secciones
+    (`identificacion`, `placa`, `ubicacion`, `electrico`, `mecanico`,
+    `refrigeracion`, `protecciones`, `fabricacion`, `servicio`) +
+    sub-objetos derivados (`salud_actual` con las 12 calificaciones
+    parciales + HI bruto/final + bucket + overrides_aplicados[] +
+    bandera `fin_vida_util_papel`; `criticidad` con usuarios aguas
+    abajo y nivel; `restricciones_operativas` reservado para OTC
+    §A9.3). Acepta input plano (v1) o estructurado (v2) y mapea a
+    shape canónico. `validarTransformador` devuelve array de
+    errores (latitud/longitud en rango, enums, campos obligatorios).
+    `proyeccionV1(docV2)` aplana a los 17 campos v1 de nivel raíz
+    para retrocompat con vistas legacy.
+  - `subestacion_schema.js` — nueva entidad FK con sanitizador y
+    validador (codigo único, depto catalogado, zona opcional,
+    coordenadas en rango).
+
+- **Data layer (`assets/js/data/`).**
+  - `transformadores.js` — API v2 manteniendo las firmas v1 (`listar`,
+    `suscribir`, `obtener`, `crear`, `actualizar`, `eliminar`,
+    `contarPorEstado`) para que Inventario UI, KPIs, Mapa y Alertas
+    sigan funcionando sin tocarse. Cada write normaliza con el
+    sanitizador v2 y escribe AMBOS niveles (secciones + proyección
+    v1 aplanada al raíz) para convivencia v1/v2. Nuevos: `listarV2`
+    con filtros por sección (`zona`, `tipo_activo`, `grupo`,
+    `bucket`, `subestacionId`), `actualizarParcial(id, parches)` y
+    re-exports del dominio (`sanitizarTransformador`,
+    `validarTransformador`, `proyeccionV1`).
+  - `subestaciones.js` — CRUD Firebase con `listar`, `suscribir`,
+    `obtener`, `crear`, `actualizar`, `eliminar`.
+  - `transformadores_subcolecciones.js` — dos subcolecciones
+    append-only: `placas_historicas` (retrofits de potencia /
+    tensión / refrigeración / tap / otro con `tipo_cambio`, `campo`,
+    `valor_anterior`, `valor_nuevo`, `razon`, `orden_ref`,
+    `autorizado_por`) e `historial_hi` (snapshots del motor con
+    `trigger` ∈ {`muestra_nueva`, `parametros_actualizados`,
+    `migracion_v2`, `manual`, `override_experto`, `recalculo_masivo`},
+    calificaciones por variable, `hi_bruto`/`hi_final`, `bucket`,
+    `overrides_aplicados[]`, `muestra_origen_ref`).
+
+- **Migración (`scripts/migrate/v1-to-v2-transformadores.js`).**
+  Función pura `migrarDocV1aV2(docV1)` idempotente (si el input ya
+  es v2 sólo lo re-sanitiza). Infiere `ubicacion.zona` desde
+  `departamento`, extrae `fabricacion.ano_fabricacion` desde ISO, y
+  marca `salud_actual.overrides_aplicados = ['_migracion_v2']`
+  para trazabilidad (el motor F18 retira la marca al primer
+  recálculo real). Runner defensivo `ejecutarMigracion({list,
+  write, log, dryRun, limite})` acepta adaptadores de I/O
+  arbitrarios (web SDK, admin SDK, mock de tests), retorna reporte
+  `{escaneados, migrados, yaV2, errores, lista}`, respeta `limite`
+  para corrida parcial. Reutilizable como sub-rutina por F17
+  (importador Excel).
+
+- **Firestore rules v2 (`firestore.rules`).** Helpers
+  `isTipoActivoValido`, `isEstadoServicioValido`, `isZonaValida`,
+  `isDeptoValido`, `isGrupoValido`. Match `/transformadores/{id}`
+  valida `schema_version==2`, las claves de `identificacion`, enum
+  de `tipo_activo`, enum de `grupo`, enum de `departamento` en
+  `ubicacion`, enum de `zona` si está presente, y coherencia entre
+  nivel raíz v1 y secciones v2 (`root.codigo ==
+  identificacion.codigo`, `root.estado == estado_servicio` con la
+  excepción `fallado → retirado` para proyección v1). Subcolecciones
+  `placas_historicas` e `historial_hi` append-only (update/delete
+  bloqueados) con validación de enum `tipo_cambio` / `trigger`.
+  Nueva sección `/subestaciones/{id}` con lectura team, escritura
+  admin, validación de depto/zona. `/usuarios/{uid}` acepta roles
+  F28 (`admin`, `tecnico`, `director_proyectos`, `analista_tx`,
+  `gestor_contractual`, `brigadista`, `auditor_campo`) en create y
+  update.
+
+- **Índices (`firestore.indexes.json`).** +8 compuestos nuevos:
+  - `transformadores`: `ubicacion.zona+codigo`,
+    `identificacion.grupo+codigo`,
+    `identificacion.tipo_activo+salud_actual.hi_final DESC`,
+    `ubicacion.subestacionId+codigo`,
+    `salud_actual.bucket+ubicacion.zona`,
+    `estado_servicio+codigo`.
+  - `subestaciones`: `zona+codigo`, `departamento+codigo`.
+  - Collection group `historial_hi`: `trigger+ts_calculo DESC`.
+  Los índices v1 (`departamento+codigo`, `estado+codigo`, etc.) se
+  conservan para las vistas legacy mientras dure la convivencia.
+
+- **Suite de tests.** `package.json` declara `"type": "module"`,
+  `engines.node >= 20`, scripts `test:unit` (`node --test
+  tests/*.test.js`) y `test` (lint + tests). 4 archivos, 63 tests:
+  - `tests/schema.test.js` — pesos HI suman 1.0 y son inmutables,
+    nombres oficiales §A9.7, 5 departamentos con zona correcta,
+    patrón UUCC, catálogo regulado vs general, bordes de
+    `bucketDesdeHI` (§4.2), roles F28 + compat legacy, identidad
+    institucional.
+  - `tests/transformador_schema.test.js` — sanitizador mapea plano
+    v1 a secciones v2 y vice-versa, rechaza UUCC inválida, cae a
+    defaults ante enums desconocidos, filtra `estados_especiales`
+    fuera de catálogo, clampea `calif_*` a [1,5], valida lat/lng,
+    `proyeccionV1` mapea `fallado → retirado` para vistas v1.
+  - `tests/subestacion_schema.test.js` — normalización de codigo,
+    zona inválida descartada, validador flagea depto fuera de
+    catálogo y coords fuera de rango.
+  - `tests/migracion_v1_v2.test.js` — detectores `esV1`/`esV2`
+    (cuidado con `&&` que en JS devuelve el último operando no
+    falsy), 5 deptos mapean a su zona correcta, idempotencia v2,
+    runner: colección vacía no-op, `dryRun=false` salta `esV2`,
+    respeta `limite`, un error no aborta los demás, exige adaptador
+    `write` cuando `dryRun=false`.
+
+- **Documentación.** `docs/MODELO-DATOS-v2.md` con diagrama ER,
+  diccionario completo por sección con referencia a MO.00418 por
+  campo, catálogo de rules/índices, política de migración y plan
+  de convivencia v1↔v2. `README.md` actualizado con estado v2.0 y
+  sección "Modelo de datos v2". `CLAUDE.md` reemplaza la tabla
+  post-v1 (F16–F24 Vercel+Email+PDF…) por la tabla de 22 microfases
+  v2.0 (F16–F37) derivadas del prompt maestro v2.2.
+
+- **Tag:** `v2.0.0-f16`. **Próxima movida:** F17 (importador Excel).
+
+### 5.2 Plan post-v1.0 (F16–F24) · SUPERSEDED por v2.2
+
+> ⚠️ **NOTA (abril 2026).** La tabla y detalles de F16–F24 que siguen
+> a continuación describen el plan post-v1.0 ORIGINAL (Vercel,
+> notificaciones email, exports XLSX/PDF, adjuntos, auditoría,
+> calendario, PWA, analítica predictiva). Ese plan fue
+> **reemplazado** por el plan v2.0 derivado del documento interno
+> **MO.00418.DE-GAC-AX.01 Ed. 02** (prompt maestro v2.2). La
+> correspondencia es:
+>
+> - F16 (original: Vercel deploy) → rescatado en F32 v2 (Cloud
+>   Functions + notificaciones email).
+> - F17 (original: notificaciones email) → también absorbido en
+>   F32 v2 + F17 v2 (importador Excel).
+> - F18 (original: export Excel) → F31 v2 (reportes).
+> - F19 (original: export PDF) → F31 v2.
+> - F20 (original: adjuntos por orden) → parte del refactor de
+>   órdenes en F23 v2 y documental F9 (ya cerrada).
+> - F21 (original: auditoría) → F35 v2 (audit log global).
+> - F22 (original: calendario mantenimientos) → mantenido como
+>   feature opcional post-v2.
+> - F23 (original: PWA offline) → F34 v2 (PWA brigadistas).
+> - F24 (original: analítica predictiva) → feature opcional
+>   post-v2; el Plan de Inversión F30 v2 cubre el caso de uso
+>   principal.
+>
+> La tabla canónica ahora es la **sección 5.1 Evolución v2.0**
+> (F16–F37). La tabla y detalles abajo quedan por referencia
+> histórica.
+
+Cada fase post-v1.0 era **independiente** y debía cerrar con su propio
+commit aislado. Ninguna dependía rígidamente de la anterior salvo las
+que tocaban el backend (F17 dependía de F16). Si el dueño hubiese
+querido reordenar o saltarse una, no se rompía nada — el plan era una
+sugerencia priorizada, no una secuencia obligatoria. Pre-requisito
+común: `assets/js/firebase-config.js` ya conectado al proyecto real.
 
 #### 🔜 Fase 16 — Vercel deploy + serverless skeleton
 
@@ -763,15 +961,19 @@ panel de KPIs.
 | Métrica                    | Valor |
 |----------------------------|-------|
 | v1.0 (F0–F14)              | **100 %** ✅ |
-| Evolución post-v1.0         | **F15 ✅ · F16–F24 🔜** |
-| Próxima movida              | **Fase 16 — Vercel deploy + serverless skeleton** |
-| Último commit               | (ver historial Git) |
-| Servicios dinámicos activos | Firebase (Auth + Firestore + Storage) · Vercel pendiente (F16) |
+| v1.0 + Realtime (F15)      | ✅ |
+| Evolución v2.0 (F16–F37)    | **F16 ✅ · F17–F37 🔜** |
+| Próxima movida              | **Fase 17 — Importador Excel → Firestore (recálculo HI MO.00418)** |
+| Referencia normativa activa | MO.00418.DE-GAC-AX.01 Ed. 02 (14/10/2025) |
+| Último tag                  | `v2.0.0-f16` |
+| Servicios dinámicos activos | Firebase (Auth + Firestore + Storage) · Vercel post-v2 |
 
 > **Continuidad entre chats.** Si arrancas una sesión nueva: lee la
-> sección **0** (permisos de push + token en `.git/config`), luego
-> revisa la tabla de **5.1** y el detalle de **5.2** para saber qué
-> queda. F0–F15 están en el repo; F16 es la siguiente movida sugerida.
+> sección **0** (permisos de push + token inline), luego revisa la
+> tabla v2.0 en la sección **5.1** para saber qué queda. El prompt
+> maestro v2.2 con el addendum normativo A1–A9 es el contrato
+> funcional de referencia. F16 cerró con schema v2; F17 es la
+> siguiente movida.
 
 ---
 
@@ -793,3 +995,4 @@ panel de KPIs.
 - **Fase 13** — Pulido SEO + accesibilidad. Nuevos `robots.txt` (permite landing + `/assets/`, bloquea `/admin/`, `/home.html`, `/pages/`) y `sitemap.xml` (solo landing, resto bajo gate). `index.html` amplía el `<head>` con Open Graph completo (incluye `og:locale=es_CO`, `og:image`), Twitter Card, `<link rel="canonical">`, `theme-color #040c14`, `color-scheme dark`, `preconnect` a `fonts.gstatic.com` y bloque **JSON-LD Organization** al final del `<body>` con `areaServed` (5 departamentos como `AdministrativeArea`) y `knowsAbout` (ISO 50001, IEEE C57.12, IEC 60076, RETIE, NTC-IEC 60364, CIGRE WG A2, Transformadores, RAM). `home.html` recibe `theme-color`, `color-scheme`, `canonical` y `preconnect`. Accesibilidad: `.skip-link` en landing y home apuntando a `<main id="main">` (el `<div class="wrapper">` del landing se promueve a `<main>`); `:focus-visible` con `outline` + `box-shadow` para botones/inputs/links en `base.css`; `@media (prefers-reduced-motion: reduce)` desactiva `scroll-behavior: smooth` y colapsa animaciones a `.01ms`; clase utilitaria `.sr-only`; `aria-hidden="true"` en decorativos (`.deco-line`, `.pulse`); el `.topbar` del landing pasa de `<div>` a `<header>` (elemento nativo con rol `banner` implícito). Barra de progreso y `phases-row` actualizadas: `F13 Pulido` `planned → done`, `--fill-pct 92% → 96%`, leyenda "Fases 0–13 completadas de 14". Landing y home al 96 %.
 - **Fase 14** — Lanzamiento + refactor de acceso "login-first". `index.html` se reescribe por completo como portal de autenticación SaaS-style (form email+password centrado, recuperación de contraseña vía `sendPasswordResetEmail`, persistencia configurable). Nueva colección `/usuarios/{uid}` con campos `{email, nombre, rol, activo, createdAt, createdBy}` y enums `rol ∈ {admin, tecnico}`. Nuevo guard unificado `assets/js/auth/session-guard.js` + wrappers `page-guard.js` / `admin-guard.js` que reemplazan a `gate.js`, `auth-guard.js`, `auth-guard-pages.js` y `admin/admin-guard.js`. Firestore rules refactorizadas: lecturas por `isTeamMember()` (perfil activo o fallback a `/admins/{uid}`), escrituras por `isAdmin()` (rol admin o fallback legacy). Panel `/admin/usuarios.html` + `admin-usuarios.js` + `assets/css/usuarios.css` con CRUD de perfiles, filtros por rol/estado/texto y protecciones de auto-baja. Panel admin ahora integrado a la plataforma: enlace "Admin ▾" en nav del home visible solo con `rol=admin`, y `user-chip` (nombre + rol) en la topbar. `admin-auth.js` reducido a shim que mantiene la superficie `logoutAdmin` / `onAdminAuthChange` / `ADMIN_ROUTES` sobre el nuevo `session-guard`. Eliminados `admin/login.html`, `admin/codigos.html`, `assets/js/gate.js`, `assets/js/auth-guard.js`, `assets/js/auth-guard-pages.js`, `assets/js/admin/admin-guard.js`, `assets/js/admin/admin-config.js`, `assets/js/admin/admin-codigos.js`, `assets/js/data/codigos-acceso.js` y `assets/css/codigos.css`. `robots.txt` actualizado a "plataforma privada". Barra de progreso al 100 %. Tag **v1.0.0**.
 - **Fase 15** — Realtime con `onSnapshot`. Data layer: `transformadores.js` y `ordenes.js` exponen ahora `suscribir(filtros, onData, onError)` además de `listar`; `kpis.js` factoriza `computeFromDatasets(trafos, ords)` como función pura; `alertas.js` factoriza `computarFromDatasets(...)` y añade `suscribirComputo(onData, onError)` que combina **4 suscripciones** (`transformadores`, `ordenes`, `alertas_config/global`, `alertas_reconocidas`) con debounce de 250 ms y devuelve un único `unsubscribe()`. Vistas migradas: `home.html` alimenta sus 4 KPIs vía dos `suscribir()` paralelos + recompute debounced; `ordenes-public.js` y `admin-ordenes.js` reemplazan `await listar(...)` por `suscribir(...)` con gestión de ciclo de vida (cancelación al cambiar filtros y en `beforeunload`); `alertas-public.js` y `admin-alertas.js` usan `suscribirComputo`. Los `await cargar()` tras crear/editar/eliminar/reconocer desaparecen: el snapshot refresca la UI solo. `listar()` y `computarAlertas()` se mantienen para flujos CSV / exports. Primera evolución post-v1; no mueve el 100 % del plan original, añade una capa realtime encima.
+- **Fase 16** — Refactor del modelo de datos v2 · MO.00418.DE-GAC-AX.01 Ed. 02. Primera microfase de la evolución v2.0 (CARIBEMAR DE LA COSTA S.A.S E.S.P · Afinia · Grupo EPM). Nuevo paquete de dominio puro `assets/js/domain/` con `schema.js` (enums canónicos: `TIPOS_ACTIVO`, `ZONAS`, `GRUPOS`, `DEPARTAMENTOS`+zona, `ESTADOS_SERVICIO` ampliado con `fallado`, `ESTADOS_ESPECIALES` §A9.3, `CONDICIONES` 1–5 con nombres oficiales §A9.7, `BUCKETS_HI`, `NIVELES_CRITICIDAD`, `UBICACIONES_FUGA`, `ROLES` F28, `NORMATIVAS`, `PESOS_HI` con verificación de suma=1.0 en tiempo de carga conforme Tabla 10 §A9.8), `transformador_schema.js` (sanitizador por secciones `identificacion`/`placa`/`ubicacion`/`electrico`/`mecanico`/`refrigeracion`/`protecciones`/`fabricacion`/`servicio` + sub-objetos derivados `salud_actual`/`criticidad`/`restricciones_operativas` reservados para F18/F29/F36 + `validarTransformador` + `proyeccionV1` para retrocompat con vistas legacy), `subestacion_schema.js` (entidad FK nueva). Data layer `assets/js/data/` reescrito: `transformadores.js` acepta shape v1 (plano) o shape v2 (secciones) y escribe AMBOS para que las vistas sin migrar sigan leyendo del nivel raíz; `subestaciones.js` nueva; `transformadores_subcolecciones.js` con `placas_historicas` e `historial_hi` append-only. `scripts/migrate/v1-to-v2-transformadores.js` con función pura `migrarDocV1aV2` + runner defensivo `ejecutarMigracion({list, write, dryRun, limite})` reutilizable por F17. `firestore.rules` v2: helpers `isTipoActivoValido`/`isEstadoServicioValido`/`isZonaValida`/`isDeptoValido`/`isGrupoValido`, validación por sección, coherencia root(v1) ↔ secciones(v2), subcolecciones append-only, nueva colección `/subestaciones`, roles F28 aceptados en `/usuarios/{uid}` (`admin`, `tecnico`, `director_proyectos`, `analista_tx`, `gestor_contractual`, `brigadista`, `auditor_campo`). `firestore.indexes.json` +8 índices compuestos (`ubicacion.zona+codigo`, `identificacion.grupo+codigo`, `identificacion.tipo_activo+salud_actual.hi_final`, `ubicacion.subestacionId+codigo`, `salud_actual.bucket+ubicacion.zona`, `estado_servicio+codigo`, 2 de subestaciones, 1 de `historial_hi` como collection-group). Runner de tests: Node native `node --test` + `"type": "module"` en `package.json`, scripts `npm run test:unit` y `npm test` (lint + tests). 63 tests unitarios (4 files) cubriendo pesos HI/enums/UUCC CREG 085 (N4T1–N4T19 + N5T1–N5T25 reguladas, rango general N3T1–N5T25)/buckets/roles/sanitizadores/validadores/proyección v1/migración v1→v2 idempotente/runner defensivo. `docs/MODELO-DATOS-v2.md` con diagrama ER, diccionario completo de campos, catálogo de rules/índices, referencia normativa por sección y plan de migración. README.md y CLAUDE.md actualizados con estado v2 y tabla F16–F37. Tag `v2.0.0-f16`.
