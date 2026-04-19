@@ -8,7 +8,7 @@ Caribe Colombiano (Bolívar, Córdoba, Sucre, Cesar y 11 municipios de Magdalena
 
 ## Estado
 
-Fase 6 cerrada · progreso global **45 %**. Ver [`CLAUDE.md`](./CLAUDE.md) para el plan completo.
+Fase 7 cerrada · progreso global **55 %**. Ver [`CLAUDE.md`](./CLAUDE.md) para el plan completo.
 
 ## Stack
 
@@ -92,6 +92,21 @@ dinámico en la Fase 12.
   2. En Firebase Console → Firestore, crear un documento
      `/admins/{TU_UID_ADMIN}` con contenido libre (p.ej. `{active: true}`).
      Esto autoriza las escrituras en `transformadores` desde ese UID.
+
+### Órdenes de trabajo (Fase 7)
+
+- Colección Firestore `ordenes` con 14 campos funcionales + timestamps + `createdBy`.
+- Subcolección **`ordenes/{id}/historial`** append-only (reglas prohíben `update` y
+  `delete`). La API registra automáticamente eventos en los cambios de estado.
+- Enumeraciones con validación server-side:
+  - `estado`    → `planificada` · `en_curso` · `cerrada` · `cancelada`
+  - `tipo`      → `preventivo` · `correctivo` · `predictivo` · `emergencia`
+  - `prioridad` → `baja` · `media` · `alta` · `critica`
+- Vista pública: `pages/ordenes.html` (KPIs + filtros + búsqueda, solo lectura).
+- Vista admin:   `admin/ordenes.html` (CRUD completo con modal + historial visible).
+- Índices compuestos adicionales en `firestore.indexes.json`
+  (`estado`, `tipo`, `prioridad`, `transformadorId`, cada uno combinado con
+  `codigo DESC`).
 
 ## Licencia
 

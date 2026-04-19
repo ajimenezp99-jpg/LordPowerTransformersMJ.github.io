@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="robots" content="noindex, nofollow"/>
-  <title>SGM · TRANSPOWER — Inventario de Activos</title>
+  <title>SGM · TRANSPOWER — Órdenes de Trabajo</title>
   <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
   <script src="../assets/js/auth-guard-pages.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="../assets/css/base.css"/>
   <link rel="stylesheet" href="../assets/css/app.css"/>
   <link rel="stylesheet" href="../assets/css/inventario.css"/>
+  <link rel="stylesheet" href="../assets/css/ordenes.css"/>
 </head>
 <body>
 
@@ -20,8 +21,8 @@
   <nav class="main-nav">
     <a href="../home.html"    class="nav-link">Inicio</a>
     <a href="about.html"      class="nav-link">Proyecto</a>
-    <a href="inventario.html" class="nav-link active">Inventario</a>
-    <a href="ordenes.html"    class="nav-link">Órdenes</a>
+    <a href="inventario.html" class="nav-link">Inventario</a>
+    <a href="ordenes.html"    class="nav-link active">Órdenes</a>
     <a href="cobertura.html"  class="nav-link">Cobertura</a>
     <a href="normativa.html"  class="nav-link">Normativa</a>
     <a href="contacto.html"   class="nav-link">Contacto</a>
@@ -32,49 +33,54 @@
 <main class="page-container">
 
   <div class="page-header">
-    <div class="breadcrumb">Inicio / Inventario</div>
-    <h1 class="page-title">Inventario de <em>Activos</em></h1>
+    <div class="breadcrumb">Inicio / Órdenes de Trabajo</div>
+    <h1 class="page-title">Órdenes de <em>Trabajo</em></h1>
     <p class="page-subtitle">
-      Vista de solo lectura de los transformadores de potencia gestionados por
-      el sistema. Los datos se consultan en tiempo real desde Firestore.
-      La gestión (alta, edición, baja) es exclusiva del panel administrativo.
+      Vista de solo lectura de las intervenciones planificadas, en curso y cerradas.
+      Los datos se consultan en tiempo real desde Firestore (colección
+      <code>ordenes</code>). La gestión es exclusiva del panel administrativo.
     </p>
   </div>
 
   <!-- KPIs -->
   <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-icon">⚡</div>
+      <div class="stat-icon">📋</div>
       <div class="stat-value" id="kTotal">—</div>
-      <div class="stat-label">TRANSFORMADORES REGISTRADOS</div>
+      <div class="stat-label">ÓRDENES REGISTRADAS</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🗓</div>
+      <div class="stat-value" id="kPlan" style="color:var(--accent)">—</div>
+      <div class="stat-label">PLANIFICADAS</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⚙</div>
+      <div class="stat-value" id="kCurso" style="color:var(--accent2)">—</div>
+      <div class="stat-label">EN CURSO</div>
     </div>
     <div class="stat-card">
       <div class="stat-icon">✅</div>
-      <div class="stat-value" id="kOp" style="color:var(--accent3)">—</div>
-      <div class="stat-label">EN OPERACIÓN</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">🔧</div>
-      <div class="stat-value" id="kMan" style="color:var(--accent2)">—</div>
-      <div class="stat-label">EN MANTENIMIENTO</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">⛔</div>
-      <div class="stat-value" id="kFs" style="color:#ff7a99">—</div>
-      <div class="stat-label">FUERA DE SERVICIO</div>
+      <div class="stat-value" id="kCerr" style="color:var(--accent3)">—</div>
+      <div class="stat-label">CERRADAS</div>
     </div>
   </div>
 
   <!-- FILTROS -->
   <div class="inv-toolbar">
     <div class="inv-filters">
-      <select class="form-select" id="fDept">
-        <option value="">Todos los departamentos</option>
-      </select>
       <select class="form-select" id="fEstado">
         <option value="">Todos los estados</option>
       </select>
-      <input class="form-input" type="search" id="fSearch" placeholder="Buscar por código o nombre…" style="min-width:260px">
+      <select class="form-select" id="fTipo">
+        <option value="">Todos los tipos</option>
+      </select>
+      <select class="form-select" id="fPrioridad">
+        <option value="">Todas las prioridades</option>
+      </select>
+      <input class="form-input" type="search" id="fSearch"
+             placeholder="Buscar por código, título o transformador…"
+             style="min-width:260px">
     </div>
     <span id="counter" style="font-family:var(--font-mono); font-size:.72rem; color:var(--muted); letter-spacing:.1em">—</span>
   </div>
@@ -82,17 +88,17 @@
   <div id="infoBox" class="info-msg" style="display:none"></div>
 
   <!-- TABLA -->
-  <div class="section-head">▸ LISTADO DE TRANSFORMADORES</div>
+  <div class="section-head">▸ LISTADO DE ÓRDENES</div>
   <div class="table-wrap">
     <table class="data-table">
       <thead>
         <tr>
           <th scope="col">Código</th>
-          <th scope="col">Nombre / Subestación</th>
-          <th scope="col">Departamento</th>
-          <th scope="col">Municipio</th>
-          <th scope="col">Potencia</th>
-          <th scope="col">Tensión</th>
+          <th scope="col">Título / Transformador</th>
+          <th scope="col">Tipo</th>
+          <th scope="col">Prioridad</th>
+          <th scope="col">Programada</th>
+          <th scope="col">Técnico</th>
           <th scope="col">Estado</th>
         </tr>
       </thead>
@@ -103,10 +109,10 @@
   </div>
 
   <div class="highlight-box">
-    <strong>Nota:</strong> esta vista consume la colección <code>transformadores</code>
-    de Firestore. Si el inventario aparece vacío, el panel administrativo aún no
-    ha registrado activos. La georreferenciación de cada transformador se
-    visualizará en el <strong>mapa interactivo (Fase 10)</strong>.
+    <strong>Nota:</strong> esta vista consume la colección <code>ordenes</code>
+    de Firestore. Cada orden mantiene un <strong>historial inmutable</strong>
+    en su subcolección <code>historial</code> (append-only), donde quedan
+    registrados todos los cambios de estado con marca de tiempo y UID del admin.
   </div>
 
 </main>
@@ -116,7 +122,7 @@
   <span>© <span id="yr">2025</span> · Zona interna</span>
 </footer>
 
-<script type="module" src="../assets/js/inventario-public.js"></script>
+<script type="module" src="../assets/js/ordenes-public.js"></script>
 
 </body>
 </html>

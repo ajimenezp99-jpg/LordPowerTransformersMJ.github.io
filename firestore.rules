@@ -1,8 +1,8 @@
 rules_version = '2';
 
 // ══════════════════════════════════════════════════════════════
-// SGM · TRANSPOWER — Reglas Firestore (Fase 6)
-// Primera colección activa: `transformadores` (inventario).
+// SGM · TRANSPOWER — Reglas Firestore (Fase 7)
+// Colecciones activas: `transformadores` (F6) y `ordenes` (F7).
 // Estado admin se enforce vía colección /admins/{uid}.
 // ══════════════════════════════════════════════════════════════
 
@@ -45,6 +45,49 @@ service cloud.firestore {
                         'operativo','mantenimiento','fuera_servicio','retirado'
                        ];
       allow delete: if isAdmin();
+    }
+
+    // ── /ordenes/{id} ──
+    // Órdenes de trabajo vinculadas a un transformador.
+    // Lectura pública (filtrada por gate estático).
+    // Escritura restringida a admins en la allowlist.
+    match /ordenes/{id} {
+      allow read:   if true;
+      allow create: if isAdmin()
+                    && request.resource.data.keys().hasAll([
+                        'codigo','titulo','transformadorId',
+                        'estado','tipo','prioridad'
+                       ])
+                    && request.resource.data.codigo is string
+                    && request.resource.data.codigo.size() > 0
+                    && request.resource.data.estado in [
+                        'planificada','en_curso','cerrada','cancelada'
+                       ]
+                    && request.resource.data.tipo in [
+                        'preventivo','correctivo','predictivo','emergencia'
+                       ]
+                    && request.resource.data.prioridad in [
+                        'baja','media','alta','critica'
+                       ];
+      allow update: if isAdmin()
+                    && request.resource.data.estado in [
+                        'planificada','en_curso','cerrada','cancelada'
+                       ]
+                    && request.resource.data.tipo in [
+                        'preventivo','correctivo','predictivo','emergencia'
+                       ]
+                    && request.resource.data.prioridad in [
+                        'baja','media','alta','critica'
+                       ];
+      allow delete: if isAdmin();
+
+      // Historial inmutable — sólo escribir (append-only).
+      match /historial/{evt} {
+        allow read:   if true;
+        allow create: if isAdmin();
+        allow update: if false;
+        allow delete: if false;
+      }
     }
 
     // ── Resto: cerrado por defecto ──
