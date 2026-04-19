@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Admin · Mapa</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
+  <script type="module" src="../assets/js/admin/admin-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css"/>
+  <link rel="stylesheet" href="../assets/css/app.css"/>
+  <link rel="stylesheet" href="../assets/css/inventario.css"/>
+  <link rel="stylesheet" href="../assets/css/mapa.css"/>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="topbar-brand">SGM · <span>TRANSPOWER</span> · ADMIN</a>
+  <nav class="main-nav">
+    <a href="index.html"       class="nav-link">Panel</a>
+    <a href="inventario.html"  class="nav-link">Inventario</a>
+    <a href="ordenes.html"     class="nav-link">Órdenes</a>
+    <a href="kpis.html"        class="nav-link">KPIs</a>
+    <a href="documentos.html"  class="nav-link">Documentos</a>
+    <a href="mapa.html"        class="nav-link active">Mapa</a>
+    <a href="../home.html"     class="nav-link">Zona interna</a>
+  </nav>
+  <button class="btn-logout" id="btnLogout">CERRAR SESIÓN</button>
+</header>
+
+<main class="page-container">
+
+  <div class="page-header">
+    <div class="breadcrumb">Admin / Mapa de cobertura</div>
+    <h1 class="page-title">Mapa <em>Administrativo</em></h1>
+    <p class="page-subtitle">
+      Vista geográfica del parque. Los marcadores muestran un enlace directo al
+      formulario de inventario para corregir coordenadas o actualizar la ficha
+      del activo. Los transformadores sin coordenadas no aparecen en el mapa.
+    </p>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="inv-toolbar">
+    <div class="inv-filters">
+      <select class="form-select" id="fDept">
+        <option value="">Todos los departamentos</option>
+      </select>
+      <select class="form-select" id="fEstado">
+        <option value="">Todos los estados</option>
+      </select>
+      <button class="btn-secondary" id="btnReload">↻ Recargar</button>
+      <button class="btn-secondary" id="btnReset">⌖ Vista general</button>
+    </div>
+    <a href="inventario.html" class="btn-primary" style="text-decoration:none">+ EDITAR EN INVENTARIO</a>
+  </div>
+
+  <div id="infoBox" class="info-msg" style="display:none"></div>
+
+  <div class="map-wrap">
+    <div id="sgmMap" role="application" aria-label="Mapa administrativo"></div>
+    <div class="map-status" id="mapStatus">Inicializando mapa…</div>
+    <div id="legend"></div>
+  </div>
+
+</main>
+
+<footer class="page-foot">
+  <span>SGM · TRANSPOWER — Admin · Mapa</span>
+  <span>© <span id="yr">2025</span> · Zona restringida</span>
+</footer>
+
+<script type="module" src="../assets/js/admin/admin-mapa.js"></script>
+
+</body>
+</html>
