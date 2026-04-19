@@ -264,7 +264,7 @@ independientes, cada una con commit aislado:
 | 20 | Subestaciones (UI dedicada)                                | ✅ completada |
 | 21 | Contratos (8 contratos macro · presupuesto)                | ✅ completada |
 | 22 | Catálogos (subactividades / macroactividades / causantes)  | ✅ completada |
-| 23 | Refactor Órdenes v2 (FKs catálogo)                         | 🔜 planificada |
+| 23 | Refactor Órdenes v2 (FKs catálogo)                         | ✅ completada |
 | 24 | TPT / Respaldo (calculadora sobrecarga IEEE C57.91)        | 🔜 planificada |
 | 25 | Fallados + RCA (5 porqués, Ishikawa, FMEA)                 | 🔜 planificada |
 | 26 | Contramuestras + Monitoreo Intensivo C₂H₂ + Juicio experto FUR | 🔜 planificada |

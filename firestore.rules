@@ -245,7 +245,8 @@ service cloud.firestore {
                         'planificada','en_curso','cerrada','cancelada'
                        ]
                     && request.resource.data.tipo in [
-                        'preventivo','correctivo','predictivo','emergencia'
+                        'preventivo','correctivo','predictivo','emergencia',
+                        'etu','reemplazo','retiro'
                        ]
                     && request.resource.data.prioridad in [
                         'baja','media','alta','critica'
@@ -255,7 +256,8 @@ service cloud.firestore {
                         'planificada','en_curso','cerrada','cancelada'
                        ]
                     && request.resource.data.tipo in [
-                        'preventivo','correctivo','predictivo','emergencia'
+                        'preventivo','correctivo','predictivo','emergencia',
+                        'etu','reemplazo','retiro'
                        ]
                     && request.resource.data.prioridad in [
                         'baja','media','alta','critica'
