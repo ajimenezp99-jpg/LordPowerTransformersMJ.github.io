@@ -261,9 +261,9 @@ independientes, cada una con commit aislado:
 | 17 | Importador Excel → Firestore con recálculo HI              | ✅ completada |
 | 18 | Motor de Salud (HI ponderado Tabla 10 + overrides §A5/A9)  | ✅ completada |
 | 19 | Muestras de Laboratorio (DGA / ADFQ / FUR) time-series     | ✅ completada |
-| 20 | Subestaciones (UI dedicada)                                | 🔜 planificada |
-| 21 | Contratos (8 contratos macro · presupuesto)                | 🔜 planificada |
-| 22 | Catálogos (subactividades / macroactividades / causantes)  | 🔜 planificada |
+| 20 | Subestaciones (UI dedicada)                                | ✅ completada |
+| 21 | Contratos (8 contratos macro · presupuesto)                | ✅ completada |
+| 22 | Catálogos (subactividades / macroactividades / causantes)  | ✅ completada |
 | 23 | Refactor Órdenes v2 (FKs catálogo)                         | 🔜 planificada |
 | 24 | TPT / Respaldo (calculadora sobrecarga IEEE C57.91)        | 🔜 planificada |
 | 25 | Fallados + RCA (5 porqués, Ishikawa, FMEA)                 | 🔜 planificada |

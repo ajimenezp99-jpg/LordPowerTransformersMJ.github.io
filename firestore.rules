@@ -326,6 +326,34 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ── /contratos/{id} (F21) ──
+    match /contratos/{id} {
+      allow read:   if isTeamMember();
+      allow create: if isAdmin()
+                    && request.resource.data.codigo is string
+                    && request.resource.data.codigo.size() > 0
+                    && request.resource.data.estado in
+                       ['vigente','suspendido','finalizado','en_liquidacion'];
+      allow update: if isAdmin()
+                    && request.resource.data.estado in
+                       ['vigente','suspendido','finalizado','en_liquidacion'];
+      allow delete: if isAdmin();
+    }
+
+    // ── /subactividades, /macroactividades, /causantes (F22) ──
+    match /subactividades/{id} {
+      allow read:   if isTeamMember();
+      allow write:  if isAdmin();
+    }
+    match /macroactividades/{id} {
+      allow read:   if isTeamMember();
+      allow write:  if isAdmin();
+    }
+    match /causantes/{id} {
+      allow read:   if isTeamMember();
+      allow write:  if isAdmin();
+    }
+
     // ── /muestras/{id} (Fase 19) ──
     // Time-series DGA/ADFQ/FUR. Read team, Create/Update admin
     // con validación de enum tipo. Delete solo admin.
