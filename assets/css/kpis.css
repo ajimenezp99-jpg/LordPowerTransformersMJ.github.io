@@ -1,0 +1,128 @@
+/* ═══════════════════════════════════════════════════════════════
+   SGM · TRANSPOWER — Dashboard KPIs (Fase 8)
+   Estilos del panel RAM + gráficas Chart.js.
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Tarjeta RAM destacada ── */
+.ram-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+@media (max-width: 780px) { .ram-grid { grid-template-columns: 1fr; } }
+
+.ram-card {
+  background: linear-gradient(135deg, rgba(0,30,55,.55), rgba(7,15,26,.92));
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+  padding: 1.1rem 1.2rem;
+  position: relative;
+}
+.ram-card.warn  { border-left-color: var(--accent2); }
+.ram-card.good  { border-left-color: var(--accent3); }
+
+.ram-head {
+  font-family: var(--font-mono);
+  font-size: .7rem; letter-spacing: .14em;
+  color: var(--muted); text-transform: uppercase;
+  margin-bottom: .3rem;
+}
+.ram-value {
+  font-family: var(--font-head);
+  font-size: 2.2rem; font-weight: 700;
+  color: var(--accent);
+  line-height: 1.1;
+}
+.ram-card.warn .ram-value { color: var(--accent2); }
+.ram-card.good .ram-value { color: var(--accent3); }
+.ram-unit {
+  font-family: var(--font-mono);
+  font-size: .78rem; color: var(--muted);
+  margin-left: .3rem; letter-spacing: .06em;
+}
+.ram-desc {
+  font-size: .75rem; color: var(--text);
+  opacity: .75;
+  margin-top: .5rem;
+  line-height: 1.4;
+}
+
+/* ── Malla de gráficas ── */
+.charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.1rem;
+  margin-bottom: 2rem;
+}
+@media (max-width: 900px) { .charts-grid { grid-template-columns: 1fr; } }
+
+.chart-card {
+  background: rgba(0,0,0,.3);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--accent);
+  border-radius: 4px;
+  padding: 1rem 1.1rem 1.2rem;
+  display: flex; flex-direction: column;
+  min-height: 300px;
+}
+.chart-title {
+  font-family: var(--font-mono);
+  font-size: .72rem; letter-spacing: .12em;
+  color: var(--muted); text-transform: uppercase;
+  margin-bottom: .8rem;
+  padding-bottom: .5rem;
+  border-bottom: 1px solid var(--border);
+}
+.chart-wrap {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 230px;
+}
+.chart-empty {
+  text-align: center;
+  font-size: .78rem;
+  color: var(--muted);
+  font-style: italic;
+  padding: 2rem 1rem;
+}
+.chart-full { grid-column: 1 / -1; }
+
+/* ── Tabla de top transformadores ── */
+.top-wrap {
+  background: rgba(0,0,0,.25);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 2rem;
+}
+.top-wrap table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.top-wrap th, .top-wrap td {
+  padding: .7rem 1rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.top-wrap th {
+  font-family: var(--font-mono);
+  font-size: .68rem; letter-spacing: .12em;
+  color: var(--muted); font-weight: 600;
+  background: rgba(0,0,0,.35);
+}
+.top-wrap td { color: var(--text); }
+.top-wrap td.num {
+  text-align: right;
+  font-family: var(--font-mono);
+  color: var(--accent);
+}
+.top-wrap tr:hover td { background: rgba(0,200,255,.03); }
+
+/* ── Info bar (timestamp + export) ── */
+.dash-info {
+  display: flex; justify-content: space-between;
+  align-items: center; gap: 1rem; flex-wrap: wrap;
+  font-family: var(--font-mono);
+  font-size: .72rem; color: var(--muted);
+  letter-spacing: .1em;
+  margin-bottom: 1rem;
+}

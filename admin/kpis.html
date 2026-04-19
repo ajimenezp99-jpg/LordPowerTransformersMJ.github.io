@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Admin · KPIs</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
+  <script type="module" src="../assets/js/admin/admin-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css"/>
+  <link rel="stylesheet" href="../assets/css/app.css"/>
+  <link rel="stylesheet" href="../assets/css/inventario.css"/>
+  <link rel="stylesheet" href="../assets/css/kpis.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="topbar-brand">SGM · <span>TRANSPOWER</span> · ADMIN</a>
+  <nav class="main-nav">
+    <a href="index.html"       class="nav-link">Panel</a>
+    <a href="inventario.html"  class="nav-link">Inventario</a>
+    <a href="ordenes.html"     class="nav-link">Órdenes</a>
+    <a href="kpis.html"        class="nav-link active">KPIs</a>
+    <a href="../home.html"     class="nav-link">Zona interna</a>
+  </nav>
+  <button class="btn-logout" id="btnLogout">CERRAR SESIÓN</button>
+</header>
+
+<main class="page-container">
+
+  <div class="page-header">
+    <div class="breadcrumb">Admin / KPIs &amp; Analítica</div>
+    <h1 class="page-title">KPIs &amp; <em>Analítica RAM</em></h1>
+    <p class="page-subtitle">
+      Vista de analítica para el administrador. Añade exportación CSV del
+      universo de órdenes (cálculos en cliente, útil para auditoría o carga en
+      hojas de cálculo).
+    </p>
+  </div>
+
+  <div class="dash-info">
+    <span id="dashTs">Actualizado: —</span>
+    <span style="display:flex; gap:.6rem; flex-wrap:wrap">
+      <button class="btn-secondary" id="btnReload">↻ Recalcular</button>
+      <button class="btn-primary"  id="btnExport">EXPORTAR CSV ↓</button>
+    </span>
+  </div>
+
+  <div id="infoBox" class="info-msg" style="display:none"></div>
+
+  <div class="section-head">▸ PARQUE Y ACTIVIDAD</div>
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon">⚡</div>
+      <div class="stat-value" id="tTrafos">—</div>
+      <div class="stat-label">TRANSFORMADORES</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">✅</div>
+      <div class="stat-value" id="tOps" style="color:var(--accent3)">—</div>
+      <div class="stat-label">EN OPERACIÓN</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">📋</div>
+      <div class="stat-value" id="tOrds">—</div>
+      <div class="stat-label">ÓRDENES TOTALES</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">⚙</div>
+      <div class="stat-value" id="tCurso" style="color:var(--accent2)">—</div>
+      <div class="stat-label">ÓRDENES EN CURSO</div>
+    </div>
+  </div>
+
+  <div class="section-head">▸ INDICADORES RAM</div>
+  <div class="ram-grid">
+    <div class="ram-card">
+      <div class="ram-head">MTBF · Mean Time Between Failures</div>
+      <div><span class="ram-value" id="ramMtbf">—</span><span class="ram-unit">días</span></div>
+      <div class="ram-desc" id="ramMtbfMeta">—</div>
+    </div>
+    <div class="ram-card warn">
+      <div class="ram-head">MTTR · Mean Time To Repair</div>
+      <div><span class="ram-value" id="ramMttr">—</span><span class="ram-unit">horas</span></div>
+      <div class="ram-desc" id="ramMttrMeta">—</div>
+    </div>
+    <div class="ram-card" id="ramDispCard">
+      <div class="ram-head">Disponibilidad (A)</div>
+      <div><span class="ram-value" id="ramDisp">—</span><span class="ram-unit">%</span></div>
+      <div class="ram-desc">A = MTBF / (MTBF + MTTR). Objetivo sugerido ≥ 95 %.</div>
+    </div>
+  </div>
+
+  <div class="section-head">▸ DISTRIBUCIÓN DE ÓRDENES</div>
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-title">Órdenes por estado</div>
+      <div class="chart-wrap"><canvas id="chEstado"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Órdenes por tipo</div>
+      <div class="chart-wrap"><canvas id="chTipo"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Órdenes por prioridad</div>
+      <div class="chart-wrap"><canvas id="chPrioridad"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">Órdenes por departamento</div>
+      <div class="chart-wrap"><canvas id="chDepto"></canvas></div>
+    </div>
+    <div class="chart-card chart-full">
+      <div class="chart-title">Órdenes programadas — últimos 12 meses</div>
+      <div class="chart-wrap"><canvas id="chMes"></canvas></div>
+    </div>
+  </div>
+
+  <div class="section-head">▸ TOP 10 TRANSFORMADORES</div>
+  <div class="top-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">Código</th>
+          <th scope="col">Nombre</th>
+          <th scope="col">Departamento</th>
+          <th scope="col" style="text-align:right">Órdenes</th>
+        </tr>
+      </thead>
+      <tbody id="topTbody">
+        <tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--muted);font-style:italic">Cargando…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</main>
+
+<footer class="page-foot">
+  <span>SGM · TRANSPOWER — Admin · KPIs</span>
+  <span>© <span id="yr">2025</span> · Zona restringida</span>
+</footer>
+
+<script type="module" src="../assets/js/admin/admin-kpis.js"></script>
+
+</body>
+</html>
