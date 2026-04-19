@@ -268,15 +268,15 @@ independientes, cada una con commit aislado:
 | 24 | TPT / Respaldo (calculadora sobrecarga IEEE C57.91)        | ✅ completada |
 | 25 | Fallados + RCA (5 porqués, Ishikawa, FMEA)                 | ✅ completada |
 | 26 | Contramuestras + Monitoreo Intensivo C₂H₂ + Juicio experto FUR | ✅ completada |
-| 27 | Dashboards ejecutivos por rol                              | 🔜 planificada |
+| 27 | Dashboards ejecutivos por rol                              | ✅ completada |
 | 28 | RBAC granular con ámbito geográfico (5 roles + admin)      | ✅ completada |
 | 29 | Workflow aprobaciones + Estados especiales (OTC §A9.3)     | ✅ completada |
 | 30 | Plan de Inversión (scoring multicriterio)                  | ✅ completada |
-| 31 | Reportes PDF / Excel oficiales                             | 🔜 planificada |
-| 32 | Cloud Functions + notificaciones por email                 | 🔜 planificada |
-| 33 | Desempeño de aliados / contratistas                        | 🔜 planificada |
-| 34 | PWA + offline para brigadistas                             | 🔜 planificada |
-| 35 | Audit log global + bitácora                                | 🔜 planificada |
+| 31 | Reportes PDF / Excel oficiales                             | ✅ completada |
+| 32 | Cloud Functions + notificaciones por email                 | ✅ completada |
+| 33 | Desempeño de aliados / contratistas                        | ✅ completada |
+| 34 | PWA + offline para brigadistas                             | ✅ completada |
+| 35 | Audit log global + bitácora                                | ✅ completada |
 | 36 | Matriz de Riesgo Criticidad × Salud                        | ✅ completada |
 | 37 | Motor de Estrategias por Condición (catálogo §A7)          | ✅ completada |
 
@@ -963,9 +963,9 @@ panel de KPIs.
 | v1.0 (F0–F14)              | **100 %** ✅ |
 | v1.0 + Realtime (F15)      | ✅ |
 | Evolución v2.0 (F16–F37)    | **F16 ✅ · F17–F37 🔜** |
-| Próxima movida              | **Fase 19 — Muestras DGA/ADFQ/FUR time-series** |
+| Próxima movida              | **Evolución v2.0.0 CERRADA. Post-v2: nuevos features según demanda del director.** |
 | Referencia normativa activa | MO.00418.DE-GAC-AX.01 Ed. 02 (14/10/2025) |
-| Último tag                  | `v2.0.0-f17` |
+| Último tag                  | `v2.0.0` |
 | Servicios dinámicos activos | Firebase (Auth + Firestore + Storage) · Vercel post-v2 |
 
 > **Continuidad entre chats.** Si arrancas una sesión nueva: lee la

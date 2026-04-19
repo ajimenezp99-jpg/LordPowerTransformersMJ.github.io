@@ -336,6 +336,15 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ── /auditoria/{id} (F35) ──
+    match /auditoria/{id} {
+      allow read:   if isAdmin() || (hasProfile() && profile().rol == 'auditor_campo');
+      allow create: if isSignedIn()
+                    && request.resource.data.accion is string;
+      allow update: if false;
+      allow delete: if false;
+    }
+
     // ── /fallados/{id} (F25) ──
     match /fallados/{id} {
       allow read:   if isTeamMember();

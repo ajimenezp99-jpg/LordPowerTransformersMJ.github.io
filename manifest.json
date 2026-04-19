@@ -1,0 +1,19 @@
+{
+  "name": "SGM · TRANSPOWER",
+  "short_name": "SGM-TX",
+  "description": "Sistema de Gestión del Mantenimiento Especializado de Transformadores de Potencia — CARIBEMAR DE LA COSTA S.A.S E.S.P · Afinia · Grupo EPM.",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#040c14",
+  "background_color": "#040c14",
+  "lang": "es-CO",
+  "icons": [
+    {
+      "src": "/assets/img/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
