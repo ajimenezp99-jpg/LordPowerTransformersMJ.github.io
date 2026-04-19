@@ -1,0 +1,205 @@
+/* ═══════════════════════════════════════════════════════════════
+   SGM · TRANSPOWER — Alertas & Notificaciones (Fase 11)
+   Extiende inventario.css con pills de severidad, tipo de alerta,
+   badge de fila reconocida y banner resumen.
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Banner resumen ── */
+.alertas-resumen {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.2rem;
+}
+.alertas-resumen .resumen-card {
+  background: rgba(0,0,0,.3);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: 3px;
+  padding: .9rem 1rem;
+  text-align: center;
+}
+.alertas-resumen .resumen-value {
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 1.7rem;
+  color: var(--text);
+  line-height: 1;
+}
+.alertas-resumen .resumen-label {
+  font-family: var(--font-mono);
+  font-size: .65rem;
+  letter-spacing: .14em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-top: .35rem;
+}
+.alertas-resumen .resumen-card.critica { border-left-color: #ff5577; }
+.alertas-resumen .resumen-card.critica .resumen-value { color: #ff7a99; }
+.alertas-resumen .resumen-card.warning { border-left-color: var(--accent2); }
+.alertas-resumen .resumen-card.warning .resumen-value { color: var(--accent2); }
+.alertas-resumen .resumen-card.info    { border-left-color: var(--accent); }
+.alertas-resumen .resumen-card.info    .resumen-value { color: var(--accent); }
+.alertas-resumen .resumen-card.recon   { border-left-color: var(--accent3); }
+.alertas-resumen .resumen-card.recon   .resumen-value { color: var(--accent3); }
+
+/* ── Pills de severidad ── */
+.sev-pill {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: .65rem; letter-spacing: .08em;
+  padding: .2rem .55rem; border-radius: 2px;
+  border: 1px solid var(--border);
+  background: rgba(0,0,0,.25);
+  color: var(--text);
+  text-transform: uppercase;
+}
+.sev-pill.critica {
+  background: rgba(255,85,119,.1);
+  border: 1px solid rgba(255,85,119,.4);
+  color: #ff7a99;
+  font-weight: 700;
+}
+.sev-pill.warning {
+  background: rgba(240,165,0,.08);
+  border: 1px solid rgba(240,165,0,.35);
+  color: var(--accent2);
+}
+.sev-pill.info {
+  background: rgba(0,200,255,.08);
+  border: 1px solid rgba(0,200,255,.3);
+  color: var(--accent);
+}
+
+/* ── Pills de tipo de alerta ── */
+.alerta-tipo-pill {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: .65rem; letter-spacing: .08em;
+  padding: .2rem .55rem; border-radius: 2px;
+  border: 1px solid var(--border);
+  background: rgba(0,0,0,.2);
+  color: var(--muted);
+}
+
+/* ── Fila reconocida ── */
+.alert-row.reconocida {
+  opacity: .55;
+}
+.alert-row.reconocida .alert-title {
+  text-decoration: line-through;
+}
+.alert-row .alert-title {
+  font-weight: 600;
+  color: var(--text);
+}
+.alert-row .alert-detail {
+  font-size: .78rem;
+  color: var(--muted);
+  margin-top: .15rem;
+  display: block;
+}
+.alert-row .alert-ack-meta {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: .65rem;
+  letter-spacing: .06em;
+  color: var(--accent3);
+  margin-top: .25rem;
+}
+
+/* ── Toggle para mostrar reconocidas ── */
+.alert-filters-row {
+  display: flex;
+  align-items: center;
+  gap: .8rem;
+  flex-wrap: wrap;
+}
+.alert-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  letter-spacing: .08em;
+  color: var(--muted);
+  cursor: pointer;
+  user-select: none;
+}
+.alert-toggle input { accent-color: var(--accent); }
+
+/* ── Acciones por fila ── */
+.alert-actions {
+  display: inline-flex;
+  gap: .4rem;
+  flex-wrap: wrap;
+}
+.alert-actions .btn-ack,
+.alert-actions .btn-unack,
+.alert-actions .btn-goto {
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  letter-spacing: .08em;
+  padding: .3rem .65rem;
+  border-radius: 2px;
+  border: 1px solid var(--border);
+  background: rgba(0,0,0,.3);
+  color: var(--text);
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+.alert-actions .btn-ack   { border-color: rgba(0,255,153,.35); color: var(--accent3); }
+.alert-actions .btn-unack { border-color: rgba(240,165,0,.4);  color: var(--accent2); }
+.alert-actions .btn-goto  { border-color: rgba(0,200,255,.3);  color: var(--accent); }
+.alert-actions .btn-ack:hover   { background: rgba(0,255,153,.08); }
+.alert-actions .btn-unack:hover { background: rgba(240,165,0,.08); }
+.alert-actions .btn-goto:hover  { background: rgba(0,200,255,.08); }
+
+/* ── Panel de configuración (admin) ── */
+.config-panel {
+  background: rgba(0,0,0,.3);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent2);
+  border-radius: 3px;
+  padding: 1.1rem 1.2rem;
+  margin-bottom: 1.2rem;
+}
+.config-panel h3 {
+  margin: 0 0 .6rem 0;
+  font-family: var(--font-mono);
+  font-size: .78rem;
+  letter-spacing: .14em;
+  color: var(--accent2);
+  text-transform: uppercase;
+}
+.config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: .9rem;
+  margin-top: .5rem;
+}
+.config-grid label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  letter-spacing: .1em;
+  color: var(--muted);
+  margin-bottom: .25rem;
+  text-transform: uppercase;
+}
+.config-actions {
+  display: flex;
+  gap: .6rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.generated-at {
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  letter-spacing: .1em;
+  color: var(--muted);
+  margin-left: auto;
+  text-transform: uppercase;
+}

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Admin · Alertas</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
+  <script type="module" src="../assets/js/admin/admin-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css"/>
+  <link rel="stylesheet" href="../assets/css/app.css"/>
+  <link rel="stylesheet" href="../assets/css/inventario.css"/>
+  <link rel="stylesheet" href="../assets/css/alertas.css"/>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="topbar-brand">SGM · <span>TRANSPOWER</span> · ADMIN</a>
+  <nav class="main-nav">
+    <a href="index.html"       class="nav-link">Panel</a>
+    <a href="inventario.html"  class="nav-link">Inventario</a>
+    <a href="ordenes.html"     class="nav-link">Órdenes</a>
+    <a href="kpis.html"        class="nav-link">KPIs</a>
+    <a href="documentos.html"  class="nav-link">Documentos</a>
+    <a href="mapa.html"        class="nav-link">Mapa</a>
+    <a href="alertas.html"     class="nav-link active">Alertas</a>
+    <a href="../home.html"     class="nav-link">Zona interna</a>
+  </nav>
+  <button class="btn-logout" id="btnLogout">CERRAR SESIÓN</button>
+</header>
+
+<main class="page-container">
+
+  <div class="page-header">
+    <div class="breadcrumb">Admin / Alertas &amp; Notificaciones</div>
+    <h1 class="page-title">Alertas <em>Administrativas</em></h1>
+    <p class="page-subtitle">
+      Reconocimiento de alertas y ajuste de umbrales del motor de reglas. Los
+      reconocimientos persisten en <code>alertas_reconocidas</code> con el UID
+      del administrador que los emite; la configuración global se guarda en
+      <code>alertas_config/global</code>.
+    </p>
+  </div>
+
+  <!-- CONFIG -->
+  <div class="config-panel">
+    <h3>⚙ Umbrales del motor de reglas</h3>
+    <div class="config-grid">
+      <div>
+        <label for="cProx">Próxima a vencer (días)</label>
+        <input class="form-input" id="cProx" type="number" min="1" max="365" step="1" value="15"/>
+      </div>
+      <div>
+        <label for="cProl">Orden prolongada (días)</label>
+        <input class="form-input" id="cProl" type="number" min="1" max="365" step="1" value="30"/>
+      </div>
+      <div>
+        <label for="cMant">Mantenimiento prolongado (días)</label>
+        <input class="form-input" id="cMant" type="number" min="1" max="365" step="1" value="14"/>
+      </div>
+      <div>
+        <label for="cEmail">Destinatario correo (F12)</label>
+        <input class="form-input" id="cEmail" type="email" placeholder="admin@ejemplo.com"/>
+      </div>
+      <div>
+        <label for="cEnabled">Notificaciones email</label>
+        <select class="form-select" id="cEnabled">
+          <option value="false">Deshabilitadas</option>
+          <option value="true">Habilitadas (preparación F12)</option>
+        </select>
+      </div>
+    </div>
+    <div class="config-actions">
+      <button class="btn-primary"   id="btnConfigSave">Guardar config</button>
+      <button class="btn-secondary" id="btnConfigReload">Restaurar</button>
+      <span id="configMsg" style="font-family:var(--font-mono);font-size:.72rem;color:var(--muted)"></span>
+    </div>
+  </div>
+
+  <!-- RESUMEN -->
+  <div class="alertas-resumen">
+    <div class="resumen-card critica">
+      <div class="resumen-value" id="rCrit">—</div>
+      <div class="resumen-label">Críticas</div>
+    </div>
+    <div class="resumen-card warning">
+      <div class="resumen-value" id="rWarn">—</div>
+      <div class="resumen-label">Atención</div>
+    </div>
+    <div class="resumen-card info">
+      <div class="resumen-value" id="rInfo">—</div>
+      <div class="resumen-label">Informativas</div>
+    </div>
+    <div class="resumen-card">
+      <div class="resumen-value" id="rAct">—</div>
+      <div class="resumen-label">Total activas</div>
+    </div>
+    <div class="resumen-card recon">
+      <div class="resumen-value" id="rRecon">—</div>
+      <div class="resumen-label">Reconocidas</div>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="inv-toolbar">
+    <div class="inv-filters alert-filters-row">
+      <select class="form-select" id="fSeveridad">
+        <option value="">Toda severidad</option>
+      </select>
+      <select class="form-select" id="fTipo">
+        <option value="">Todos los tipos</option>
+      </select>
+      <input class="form-input" type="search" id="fSearch"
+             placeholder="Buscar por código, título o recurso…"
+             style="min-width:240px">
+      <label class="alert-toggle">
+        <input type="checkbox" id="fShowRecon"/> Mostrar reconocidas
+      </label>
+      <button class="btn-secondary" id="btnReload">↻ Recalcular</button>
+    </div>
+    <span class="generated-at" id="generatedAt">—</span>
+  </div>
+
+  <div id="infoBox" class="info-msg" style="display:none"></div>
+
+  <!-- TABLA -->
+  <div class="section-head">▸ LISTADO DE ALERTAS</div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th scope="col">Severidad</th>
+          <th scope="col">Tipo</th>
+          <th scope="col">Alerta</th>
+          <th scope="col">Fecha ref.</th>
+          <th scope="col">Recurso</th>
+          <th scope="col">Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr><td colspan="6" class="td-empty">Cargando…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Envío por correo:</strong> la configuración de destinatario y el
+    flag de notificaciones son <em>solo de preparación</em>. El envío real
+    requiere una función serverless programada (Vercel Cron + Resend/Brevo)
+    que se implementa en la <strong>Fase 12</strong>.
+  </div>
+
+</main>
+
+<footer class="page-foot">
+  <span>SGM · TRANSPOWER — Admin · Alertas</span>
+  <span>© <span id="yr">2025</span> · Zona restringida</span>
+</footer>
+
+<script type="module" src="../assets/js/admin/admin-alertas.js"></script>
+
+</body>
+</html>

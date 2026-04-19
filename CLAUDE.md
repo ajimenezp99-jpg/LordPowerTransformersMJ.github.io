@@ -153,7 +153,7 @@ En la **Fase 11** el gate estático se reemplaza por un mecanismo dinámico:
 | 8 | Módulo: KPIs y analítica                                  | 10%  |  65%      | ✅ completada |
 | 9 | Módulo: Gestión documental (+ Storage)                    |  8%  |  73%      | ✅ completada |
 | 10 | Módulo: Georreferenciación (Leaflet)                     |  7%  |  80%      | ✅ completada |
-| 11 | Módulo: Alertas y notificaciones                         |  7%  |  87%      | ⏳ pendiente |
+| 11 | Módulo: Alertas y notificaciones                         |  7%  |  87%      | ✅ completada |
 | 12 | Gate dinámico + endurecimiento admin                     |  5%  |  92%      | ⏳ pendiente |
 | 13 | Pulido: SEO, accesibilidad, performance, i18n            |  4%  |  96%      | ⏳ pendiente |
 | 14 | Lanzamiento: reemplazo del landing y despliegue final    |  4%  | 100%      | ⏳ pendiente |
@@ -284,10 +284,25 @@ En la **Fase 11** el gate estático se reemplaza por un mecanismo dinámico:
 - `assets/css/mapa.css` — contenedor `#sgmMap { height: 560px; }` (460px ≤ 768px), **tema oscuro** aplicado a controles y popups Leaflet (`.leaflet-container`, `.leaflet-control-attribution`, `.leaflet-control-zoom a`, `.leaflet-popup-content-wrapper`, `.marker-cluster` + `.marker-cluster div`), estilos de toolbar, contador, leyenda, barra de estado y pill `.sgm-pop-edit`.
 - Nav ampliada con "Mapa" en home + 9 subpáginas (incluye `_firebase-test`) + 5 paneles admin.
 
-#### ⏳ Fase 11 — Alertas y notificaciones
+#### ✅ Fase 11 — Alertas y notificaciones
 
-- Jobs programados (Vercel Cron) que revisan vencimientos.
-- Notificaciones por email vía servicio gratuito (Resend / Brevo tier free).
+- `assets/js/data/alertas.js` — motor de reglas cliente-side sobre `transformadores` + `ordenes` + `alertas_config` + `alertas_reconocidas`. Función principal `computarAlertas()` devuelve `{alertas[], resumen, config, generatedAt}`. Cada alerta lleva un **id sintético determinista** (`tipo:recursoId:sello`) que permite persistir reconocimientos aun cuando la alerta se recalcule.
+- **Reglas activas:**
+  - `orden_vencida` — órdenes `planificada|en_curso` con `fecha_programada < hoy` (severidad `critica` si hay más de 7 días o si la prioridad es `critica`, `warning` en otro caso).
+  - `orden_proxima` — planificadas que vencen dentro de `config.proxima_dias` (severidad `info`).
+  - `orden_prolongada` — `en_curso` con `fecha_inicio` anterior a `config.prolongada_dias` días (severidad `warning`).
+  - `orden_critica_abierta` — prioridad `critica` todavía no cerrada (severidad `critica`).
+  - `mantenimiento_largo` — transformadores `estado=mantenimiento` cuyo último `en_curso` supera `config.mantenimiento_dias` (severidad `critica` cuando duplica el umbral).
+  - `sin_coordenadas` — activos sin lat/lng válido (bloquea vista de mapa).
+  - `sin_fecha_instalacion` — activos sin fecha de instalación (impacta cálculo de MTBF).
+- **Colecciones nuevas en Firestore:**
+  - `alertas_config/global` — umbrales (`proxima_dias=15`, `prolongada_dias=30`, `mantenimiento_dias=14`) + `destinatario_email` + flag `notificaciones_enabled` (reservado para F12).
+  - `alertas_reconocidas/{alertId}` — un doc por alerta reconocida (`{alertId, nota, uid, at}`).
+  - Reglas Firestore: lectura pública, escritura admin (`allow write: if isAdmin()`), validación de `alertId` no vacío.
+- Vista pública: `pages/alertas.html` + `alertas-public.js` — resumen con 5 tarjetas (críticas / atención / informativas / activas / reconocidas), filtros (severidad / tipo / texto / toggle reconocidas), tabla con severidad-pill, tipo-pill y enlaces al recurso (Inventario / Órdenes).
+- Vista admin: `admin/alertas.html` + `admin-alertas.js` — mismo dashboard + **panel de configuración** (5 campos con guardar/restaurar) + botones **Reconocer** / **Desreconocer** por fila. Al reconocer solicita una nota opcional y guarda el UID del admin. Enlaces del recurso llevan a `inventario.html#edit:{id}` o `ordenes.html#edit:{id}`.
+- `assets/css/alertas.css` — banner resumen, `sev-pill.{critica|warning|info}`, `alerta-tipo-pill`, filas `.alert-row.reconocida` con tachado, panel `.config-panel` con grid de inputs, botones `btn-ack` / `btn-unack` / `btn-goto`.
+- Nav "Alertas" en home + 10 subpáginas (incluye `_firebase-test` y `mapa`) + 6 paneles admin.
 
 #### ⏳ Fase 12 — Gate dinámico + endurecimiento
 
@@ -323,8 +338,8 @@ En la **Fase 11** el gate estático se reemplaza por un mecanismo dinámico:
 
 | Métrica                    | Valor |
 |----------------------------|-------|
-| Fase en curso              | **Fase 10 cerrada · a la espera de Fase 11** |
-| Porcentaje global           | **80 %** |
+| Fase en curso              | **Fase 11 cerrada · a la espera de Fase 12** |
+| Porcentaje global           | **87 %** |
 | Último commit              | (ver historial Git) |
 | Servicios dinámicos activos | ninguno (aún sólo estático) |
 
@@ -343,3 +358,4 @@ En la **Fase 11** el gate estático se reemplaza por un mecanismo dinámico:
 - **Fase 8** — Módulo KPIs &amp; Analítica RAM. `assets/js/data/kpis.js` agrega en cliente sobre `transformadores` + `ordenes` y entrega un snapshot con totales, distribuciones (estado/tipo/prioridad/departamento), serie mensual de últimos 12 meses, top-10 transformadores y bloque RAM (MTBF en días, MTTR en horas, Disponibilidad = MTBF/(MTBF+MTTR)). Además `exportarOrdenesCSV()` genera CSV enriquecido. Chart.js 4.4.1 por CDN. `pages/kpis.html` + `kpis-public.js` = dashboard público con 4 KPIs + 3 tarjetas RAM + 5 gráficas (doughnut + 3 barras + línea) + tabla top-10. `admin/kpis.html` + `admin-kpis.js` = mismo dashboard con botón "Exportar CSV". Renderer compartido en `assets/js/kpis-render.js`. `assets/css/kpis.css` para grids RAM / charts / tabla top. `home.html` alimenta en tiempo real sus 4 tarjetas placeholder (Transformadores / Órdenes activas / Disponibilidad / MTBF). Nav "KPIs" en home + 7 subpáginas + 3 paneles admin. Landing y home al 65 %.
 - **Fase 9** — Gestión Documental con Firebase Storage. Colección `documentos` con metadatos (codigo, titulo, descripcion, categoria, norma_aplicable, transformadorId/Codigo, autor, fecha_emision, filename, mime, size, storagePath, downloadURL, status) + timestamps y `createdBy`. Binarios en `documentos/{docId}/{filename}` con tope de **20 MB**. `firestore.rules` valida enums (6 categorías × 7 normas) y limita escritura a admins. `storage.rules` abre `documentos/**` con lectura pública y escritura admin vía `firestore.exists(/admins/{uid})`. Índices `categoria+codigo`, `norma_aplicable+codigo`, `transformadorId+codigo`. `assets/js/data/documentos.js` (API `listar`/`obtener`/`subir`/`actualizarMetadata`/`eliminar` + `uploadBytesResumable` con progreso + limpieza de Storage al borrar). `admin/documentos.html` + `admin-documentos.js` (tabla + modal con drop-zone + barra de progreso). `pages/documentos.html` + `documentos-public.js` (4 KPIs, filtros cat/norma, búsqueda local, enlaces de descarga). `assets/css/documentos.css` (pills por categoría y estado, drop-zone). Nav "Documentos" en home + 8 subpáginas + 4 paneles admin. Landing y home al 73 %.
 - **Fase 10** — Georreferenciación con **Leaflet 1.9.4** + **Leaflet.markercluster 1.5.3** (CDN unpkg con SRI). Renderer compartido `assets/js/mapa-render.js` expone `initMap`, `loadMarkers`, `resetMap` y `legendHtml`. Tile layer OpenStreetMap, centro Caribe Colombiano `[9.4,-74.8]` zoom 7, `fitBounds` automático con padding al cargar. Paleta por estado (operativo/mantenimiento/fuera_servicio/retirado) aplicada a `divIcon` vía CSS var `--dot-color`. Filtro de coordenadas válidas (descarta `null`, `0,0` y valores fuera de rango). `pages/mapa.html` + `mapa-public.js` (filtros depto/estado, contador `X visible de Y`, status-bar, popups solo-lectura). `admin/mapa.html` + `admin-mapa.js` (mismos filtros + popup con enlace `inventario.html#edit:{id}` para corregir coordenadas). `assets/css/mapa.css` (contenedor `#sgmMap` 560px/460px, tema oscuro para controles Leaflet y popups, leyenda con dots coloreados). Nav "Mapa" en home + 9 subpáginas + 5 paneles admin. Landing y home al 80 %.
+- **Fase 11** — Alertas &amp; Notificaciones. `assets/js/data/alertas.js` implementa un motor de reglas cliente-side sobre `transformadores` + `ordenes` con 7 reglas (`orden_vencida`, `orden_proxima`, `orden_prolongada`, `orden_critica_abierta`, `mantenimiento_largo`, `sin_coordenadas`, `sin_fecha_instalacion`) y tres severidades (crítica · atención · informativa). IDs sintéticos deterministas `tipo:recursoId:sello` permiten persistir reconocimientos en `alertas_reconocidas/{alertId}` (`{alertId, nota, uid, at}`). Configuración global en `alertas_config/global` con umbrales (`proxima_dias=15`, `prolongada_dias=30`, `mantenimiento_dias=14`) + placeholders de notificación por correo (`destinatario_email`, `notificaciones_enabled`, reservados para F12). `firestore.rules` extendidas: lectura pública + escritura admin en las dos colecciones. Vista pública `pages/alertas.html` + `alertas-public.js` (5 tarjetas resumen, 4 filtros, tabla con severidad-pill / tipo-pill / enlaces al recurso). Vista admin `admin/alertas.html` + `admin-alertas.js` (mismo dashboard + panel de configuración con 5 campos + botones reconocer/desreconocer por fila que solicitan nota y guardan UID). `assets/css/alertas.css` (banner resumen, pills de severidad, `.alert-row.reconocida`, `.config-panel`, `.btn-ack` / `.btn-unack`). Nav "Alertas" en home + 10 subpáginas + 6 paneles admin. Landing y home al 87 %.

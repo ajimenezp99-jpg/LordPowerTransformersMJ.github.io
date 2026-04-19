@@ -8,7 +8,7 @@ Caribe Colombiano (Bolívar, Córdoba, Sucre, Cesar y 11 municipios de Magdalena
 
 ## Estado
 
-Fase 10 cerrada · progreso global **80 %**. Ver [`CLAUDE.md`](./CLAUDE.md) para el plan completo.
+Fase 11 cerrada · progreso global **87 %**. Ver [`CLAUDE.md`](./CLAUDE.md) para el plan completo.
 
 ## Stack
 
@@ -141,6 +141,31 @@ dinámico en la Fase 12.
   a `inventario.html#edit:{id}` para corregir coordenadas).
 - CSS con **tema oscuro** para controles y popups Leaflet en
   `assets/css/mapa.css`.
+
+### Alertas &amp; Notificaciones (Fase 11)
+
+- Motor de reglas cliente-side en `assets/js/data/alertas.js` que computa
+  alertas a partir de `transformadores` + `ordenes` sin requerir Cloud
+  Functions (Spark plan).
+- 7 tipos de alerta: `orden_vencida`, `orden_proxima`, `orden_prolongada`,
+  `orden_critica_abierta`, `mantenimiento_largo`, `sin_coordenadas`,
+  `sin_fecha_instalacion`.
+- 3 severidades: `critica` · `warning` · `info` (ranking determinista para
+  orden de listado).
+- Colecciones Firestore nuevas:
+  - `alertas_config/global` — umbrales configurables (`proxima_dias`,
+    `prolongada_dias`, `mantenimiento_dias`), `destinatario_email` y
+    `notificaciones_enabled` (preparación para F12).
+  - `alertas_reconocidas/{alertId}` — registro de reconocimientos admin con
+    `uid`, `nota` y `at`. IDs deterministas
+    `${tipo}:${recursoId}:${sello}` → los reconocimientos persisten entre
+    recálculos.
+- Vista pública: `pages/alertas.html` (resumen por severidad, filtros,
+  toggle mostrar reconocidas, enlaces a órdenes / inventario).
+- Vista admin:   `admin/alertas.html` (mismo tablero + panel de
+  configuración + acciones **Reconocer** / **Quitar reconocimiento**).
+- Envío efectivo por email queda diferido a **Fase 12** (Vercel Cron +
+  Resend/Brevo). Los campos ya están en la colección de config.
 
 ### Órdenes de trabajo (Fase 7)
 

@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Alertas</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
+  <script src="../assets/js/auth-guard-pages.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css"/>
+  <link rel="stylesheet" href="../assets/css/app.css"/>
+  <link rel="stylesheet" href="../assets/css/inventario.css"/>
+  <link rel="stylesheet" href="../assets/css/alertas.css"/>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../home.html" class="topbar-brand">SGM · <span>TRANSPOWER</span></a>
+  <nav class="main-nav">
+    <a href="../home.html"    class="nav-link">Inicio</a>
+    <a href="about.html"      class="nav-link">Proyecto</a>
+    <a href="inventario.html" class="nav-link">Inventario</a>
+    <a href="ordenes.html"    class="nav-link">Órdenes</a>
+    <a href="kpis.html"       class="nav-link">KPIs</a>
+    <a href="documentos.html" class="nav-link">Documentos</a>
+    <a href="mapa.html"       class="nav-link">Mapa</a>
+    <a href="alertas.html"    class="nav-link active">Alertas</a>
+    <a href="cobertura.html"  class="nav-link">Cobertura</a>
+    <a href="normativa.html"  class="nav-link">Normativa</a>
+    <a href="contacto.html"   class="nav-link">Contacto</a>
+  </nav>
+  <button class="btn-logout" id="btnLogout">CERRAR SESIÓN</button>
+</header>
+
+<main class="page-container">
+
+  <div class="page-header">
+    <div class="breadcrumb">Inicio / Alertas</div>
+    <h1 class="page-title">Alertas &amp; <em>Notificaciones</em></h1>
+    <p class="page-subtitle">
+      Motor de reglas sobre el parque: órdenes vencidas o próximas, intervenciones
+      prolongadas, transformadores en mantenimiento por largos periodos y activos
+      sin coordenadas. Las reglas se aplican cliente-side sobre los datos ya
+      visibles en los módulos de inventario y órdenes.
+    </p>
+  </div>
+
+  <!-- RESUMEN -->
+  <div class="alertas-resumen">
+    <div class="resumen-card critica">
+      <div class="resumen-value" id="rCrit">—</div>
+      <div class="resumen-label">Críticas</div>
+    </div>
+    <div class="resumen-card warning">
+      <div class="resumen-value" id="rWarn">—</div>
+      <div class="resumen-label">Atención</div>
+    </div>
+    <div class="resumen-card info">
+      <div class="resumen-value" id="rInfo">—</div>
+      <div class="resumen-label">Informativas</div>
+    </div>
+    <div class="resumen-card">
+      <div class="resumen-value" id="rAct">—</div>
+      <div class="resumen-label">Total activas</div>
+    </div>
+    <div class="resumen-card recon">
+      <div class="resumen-value" id="rRecon">—</div>
+      <div class="resumen-label">Reconocidas</div>
+    </div>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="inv-toolbar">
+    <div class="inv-filters alert-filters-row">
+      <select class="form-select" id="fSeveridad">
+        <option value="">Toda severidad</option>
+      </select>
+      <select class="form-select" id="fTipo">
+        <option value="">Todos los tipos</option>
+      </select>
+      <input class="form-input" type="search" id="fSearch"
+             placeholder="Buscar por código, título o recurso…"
+             style="min-width:260px">
+      <label class="alert-toggle">
+        <input type="checkbox" id="fShowRecon"/> Mostrar reconocidas
+      </label>
+      <button class="btn-secondary" id="btnReload">↻ Recalcular</button>
+    </div>
+    <span class="generated-at" id="generatedAt">—</span>
+  </div>
+
+  <div id="infoBox" class="info-msg" style="display:none"></div>
+
+  <!-- TABLA -->
+  <div class="section-head">▸ LISTADO DE ALERTAS</div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th scope="col">Severidad</th>
+          <th scope="col">Tipo</th>
+          <th scope="col">Alerta</th>
+          <th scope="col">Fecha ref.</th>
+          <th scope="col">Recurso</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr><td colspan="5" class="td-empty">Cargando…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Notificaciones por correo:</strong> el envío automático (Vercel Cron
+    + Resend / Brevo tier free) se implementa en la <strong>Fase 12</strong>.
+    Esta vista publica el estado calculado en tiempo real al abrir la página;
+    el reconocimiento de alertas se realiza desde el panel administrativo.
+  </div>
+
+</main>
+
+<footer class="page-foot">
+  <span>SGM · TRANSPOWER — Caribe Colombiano</span>
+  <span>© <span id="yr">2025</span> · Zona interna</span>
+</footer>
+
+<script type="module" src="../assets/js/alertas-public.js"></script>
+
+</body>
+</html>
