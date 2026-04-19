@@ -22,12 +22,13 @@
 // ══════════════════════════════════════════════════════════════
 
 export const firebaseConfig = {
-  apiKey:            'REEMPLAZAR__FIREBASE_API_KEY',
-  authDomain:        'sgm-transpower.firebaseapp.com',
-  projectId:         'sgm-transpower',
-  storageBucket:     'sgm-transpower.appspot.com',
-  messagingSenderId: 'REEMPLAZAR__SENDER_ID',
-  appId:             'REEMPLAZAR__APP_ID'
+  apiKey:            'AIzaSyA4K6tPbuZ70eWIB7s9LwrrTkwU-HKDuy4',
+  authDomain:        'lordpowertransformersmj.firebaseapp.com',
+  projectId:         'lordpowertransformersmj',
+  storageBucket:     'lordpowertransformersmj.firebasestorage.app',
+  messagingSenderId: '365008989842',
+  appId:             '1:365008989842:web:bbfafd26ac55af2aba804b',
+  measurementId:     'G-4FGHLWJYGQ'
 };
 
 // Flag de runtime: `true` cuando la configuración aún tiene placeholders.
