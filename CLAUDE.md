@@ -269,9 +269,9 @@ independientes, cada una con commit aislado:
 | 25 | Fallados + RCA (5 porqués, Ishikawa, FMEA)                 | ✅ completada |
 | 26 | Contramuestras + Monitoreo Intensivo C₂H₂ + Juicio experto FUR | ✅ completada |
 | 27 | Dashboards ejecutivos por rol                              | 🔜 planificada |
-| 28 | RBAC granular con ámbito geográfico (5 roles + admin)      | 🔜 planificada |
-| 29 | Workflow aprobaciones + Estados especiales (OTC §A9.3)     | 🔜 planificada |
-| 30 | Plan de Inversión (scoring multicriterio)                  | 🔜 planificada |
+| 28 | RBAC granular con ámbito geográfico (5 roles + admin)      | ✅ completada |
+| 29 | Workflow aprobaciones + Estados especiales (OTC §A9.3)     | ✅ completada |
+| 30 | Plan de Inversión (scoring multicriterio)                  | ✅ completada |
 | 31 | Reportes PDF / Excel oficiales                             | 🔜 planificada |
 | 32 | Cloud Functions + notificaciones por email                 | 🔜 planificada |
 | 33 | Desempeño de aliados / contratistas                        | 🔜 planificada |
