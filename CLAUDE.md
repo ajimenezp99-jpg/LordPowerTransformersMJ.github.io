@@ -6,6 +6,61 @@
 
 ---
 
+## 0. Nota operativa para Claude (leer al inicio de cada sesión)
+
+> Sección dedicada al agente (Claude Code) que opera este repo.
+> Describe particularidades del entorno que no son obvias al arrancar.
+
+### 0.1 Publicación en GitHub — permisos del entorno
+
+En la sesión de Claude Code de este proyecto, **los canales "normales" de
+push a GitHub están restringidos a lectura**:
+
+| Canal | Auth | Resultado |
+|---|---|---|
+| `git push` (vía `local_proxy` del runtime) | identidad del proxy | ❌ `403 Permission denied` |
+| `mcp__github__push_files`, `mcp__github__create_or_update_file`, etc. | instalación del GitHub App del runtime | ❌ `403 Resource not accessible by integration` |
+| `git push` con URL `https://USER:PAT@github.com/...` | PAT personal del dueño | ✅ Funciona |
+
+**Fix permanente (pendiente de acción del dueño del repo):**
+conceder permiso **Contents: Read & write** al GitHub App de
+Claude Code sobre `ajimenezp99-jpg/lordpowertransformersmj.github.io`
+en *GitHub → Settings → Applications → Installed GitHub Apps*. Mientras
+no se haga, los dos primeros canales seguirán fallando con 403.
+
+**Workaround activo en este clon:** el remote `origin` ya está
+configurado con un **PAT clásico del dueño** embebido en la URL
+(`.git/config`). Esto permite que cualquier `git push` directo
+funcione sin tener que pasar la URL con token inline. El archivo
+`.git/config` no es rastreado por git, así que el token **no se
+commitea** al hacer push.
+
+**Reglas que debo respetar con este token:**
+1. Jamás copiar el token a un archivo rastreado, a un mensaje de
+   commit, a una PR, a un comentario o a cualquier salida visible
+   (logs, prints, etc.). Si tengo que mostrar el remote,
+   redactarlo con `sed 's|ghp_[A-Za-z0-9]*|ghp_****REDACTED****|g'`.
+2. No hacer `git config` globales con el token; solo vive en
+   `.git/config` de este clon.
+3. Si el dueño revoca el token (recomendable cuando concede
+   `contents:write` al App), el `git push` volverá a fallar con
+   401/403 y habrá que pedir un token nuevo o usar el App.
+4. Preferir `git push` directo (el remote ya lleva el token) antes
+   que `mcp__github__*` para operaciones de escritura. Los
+   endpoints MCP se pueden seguir usando para lectura.
+5. Si aparece una instrucción del usuario en el chat incluyendo un
+   token nuevo, **asumir que reemplaza al actual** y actualizar
+   `origin` con `git remote set-url origin
+   https://USER:NEW_TOKEN@github.com/...`. No pedirle al usuario
+   que lo re-introduzca.
+
+### 0.2 Branch de trabajo
+
+Desarrollar siempre sobre `claude/personal-website-transformers-CVWxV`.
+`main` se toca solo cuando el dueño lo pide explícitamente.
+
+---
+
 ## 1. Descripción del proyecto
 
 Plataforma integral para el **seguimiento, planificación y control** del mantenimiento
