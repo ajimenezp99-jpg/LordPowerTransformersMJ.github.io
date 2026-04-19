@@ -1,0 +1,14 @@
+# SGM · TRANSPOWER — robots.txt
+# Sitio en construcción. Solo se indexa el landing público;
+# la zona interna y el panel admin están protegidos por gate y
+# se excluyen explícitamente de los crawlers.
+
+User-agent: *
+Allow: /$
+Allow: /index.html
+Allow: /assets/
+Disallow: /admin/
+Disallow: /home.html
+Disallow: /pages/
+
+Sitemap: https://lordpowertransformersmj.github.io/sitemap.xml

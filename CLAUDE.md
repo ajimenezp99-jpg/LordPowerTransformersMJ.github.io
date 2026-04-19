@@ -163,7 +163,7 @@ El sistema contempla:
 | 10 | Módulo: Georreferenciación (Leaflet)                     |  7%  |  80%      | ✅ completada |
 | 11 | Módulo: Alertas y notificaciones                         |  7%  |  87%      | ✅ completada |
 | 12 | Gate dinámico + endurecimiento admin                     |  5%  |  92%      | ✅ completada |
-| 13 | Pulido: SEO, accesibilidad, performance, i18n            |  4%  |  96%      | ⏳ pendiente |
+| 13 | Pulido: SEO, accesibilidad, performance, i18n            |  4%  |  96%      | ✅ completada |
 | 14 | Lanzamiento: reemplazo del landing y despliegue final    |  4%  | 100%      | ⏳ pendiente |
 
 ### Detalle por microfase
@@ -325,11 +325,26 @@ El sistema contempla:
 - `assets/css/codigos.css` — `.cod-pill.{activo|inactivo|vencido}`, `.cod-hash`, `.codigo-row` para fila input+generar, `.revelar-code` (caja destacada con borde dashed y glow), `.btn-mini` y `.btn-mini.danger`.
 - Nav "Códigos" en 7 paneles admin. Se activa la tarjeta F12 del panel principal (`admin/index.html`), se mueve F13 la tarjeta "Usuarios & Roles" y se actualiza el resumen "Fase 12 cerrada · 92 %".
 
-#### ⏳ Fase 13 — Pulido
+#### ✅ Fase 13 — Pulido (SEO + accesibilidad)
 
-- Lighthouse ≥ 90 en Performance, Accessibility, Best Practices, SEO.
-- Meta tags OG, Twitter Cards, sitemap, robots.txt.
-- Revisión WCAG AA.
+- **SEO.**
+  - `robots.txt` con `Allow: /`, `Allow: /index.html`, `Allow: /assets/` y `Disallow: /admin/`, `/home.html`, `/pages/` (zona interna/admin), más línea `Sitemap:` apuntando a `https://lordpowertransformersmj.github.io/sitemap.xml`.
+  - `sitemap.xml` con una única URL (la landing pública); el resto del sitio queda detrás del gate y se marca `noindex` en sus páginas.
+  - `index.html` con bloque completo de **Open Graph** (`og:type=website`, `og:site_name`, `og:locale=es_CO`, `og:url`, `og:title`, `og:description`, `og:image`) + **Twitter Card** (`summary`) + `<link rel="canonical">` + `<meta name="theme-color" content="#040c14">` + `<meta name="color-scheme" content="dark">` + `<meta name="robots" content="index, follow">`.
+  - **JSON-LD Organization schema** embebido al final de `index.html` con `name`, `url`, `logo`, `areaServed` (Bolívar, Córdoba, Sucre, Cesar, Magdalena como `AdministrativeArea`) y `knowsAbout` (ISO 50001, IEEE C57.12, IEC 60076, RETIE, NTC-IEC 60364, CIGRE WG A2, Transformadores de potencia, Análisis RAM).
+  - `home.html` con `theme-color`, `color-scheme=dark`, `canonical` y `preconnect` a `fonts.gstatic.com` (sigue en `noindex` por ser zona interna).
+- **Accesibilidad (WCAG AA).**
+  - `.skip-link` ("Saltar al contenido principal") en `index.html` + `home.html`, posicionada fuera de pantalla y visible al recibir foco. Apunta al landmark `<main id="main">` (se promueve el `<div class="wrapper">` del landing a `<main>` con el mismo ID).
+  - Reglas globales en `assets/css/base.css`:
+    - `@media (prefers-reduced-motion: reduce)` desactiva `scroll-behavior: smooth` y acorta animaciones/transiciones a `.01ms`.
+    - `:focus-visible` con `outline` azul + `outline-offset` para todos los elementos; `button|a|input|select|textarea:focus-visible` refuerzan con `box-shadow` de 2 px en el color de acento.
+    - Clase utilitaria `.sr-only` (contenido solo para lectores de pantalla).
+  - `aria-hidden="true"` en los elementos decorativos (`.deco-line`, `.pulse`) del landing.
+  - Se promueve el `<div class="topbar">` del landing a `<header class="topbar">` (el `role=banner` implícito ahora viene del elemento nativo, sin redundancia).
+- **Performance.**
+  - `preconnect` a `fonts.gstatic.com` (además del ya existente a `fonts.googleapis.com`) para adelantar el handshake TLS del CDN de fuentes.
+  - Se mantiene el uso de `display=swap` en la URL de Google Fonts (evita FOIT).
+- Barra de progreso y `phases-row` actualizadas en `index.html` y `home.html`: `F13 Pulido` pasa de `planned → done`, `--fill-pct` y etiqueta suben de **92 % → 96 %**, leyenda "Fases 0–13 completadas de 14".
 
 #### ⏳ Fase 14 — Lanzamiento
 
@@ -353,8 +368,8 @@ El sistema contempla:
 
 | Métrica                    | Valor |
 |----------------------------|-------|
-| Fase en curso              | **Fase 12 cerrada · a la espera de Fase 13** |
-| Porcentaje global           | **92 %** |
+| Fase en curso              | **Fase 13 cerrada · a la espera de Fase 14** |
+| Porcentaje global           | **96 %** |
 | Último commit              | (ver historial Git) |
 | Servicios dinámicos activos | ninguno (aún sólo estático) |
 
@@ -375,3 +390,4 @@ El sistema contempla:
 - **Fase 10** — Georreferenciación con **Leaflet 1.9.4** + **Leaflet.markercluster 1.5.3** (CDN unpkg con SRI). Renderer compartido `assets/js/mapa-render.js` expone `initMap`, `loadMarkers`, `resetMap` y `legendHtml`. Tile layer OpenStreetMap, centro Caribe Colombiano `[9.4,-74.8]` zoom 7, `fitBounds` automático con padding al cargar. Paleta por estado (operativo/mantenimiento/fuera_servicio/retirado) aplicada a `divIcon` vía CSS var `--dot-color`. Filtro de coordenadas válidas (descarta `null`, `0,0` y valores fuera de rango). `pages/mapa.html` + `mapa-public.js` (filtros depto/estado, contador `X visible de Y`, status-bar, popups solo-lectura). `admin/mapa.html` + `admin-mapa.js` (mismos filtros + popup con enlace `inventario.html#edit:{id}` para corregir coordenadas). `assets/css/mapa.css` (contenedor `#sgmMap` 560px/460px, tema oscuro para controles Leaflet y popups, leyenda con dots coloreados). Nav "Mapa" en home + 9 subpáginas + 5 paneles admin. Landing y home al 80 %.
 - **Fase 11** — Alertas &amp; Notificaciones. `assets/js/data/alertas.js` implementa un motor de reglas cliente-side sobre `transformadores` + `ordenes` con 7 reglas (`orden_vencida`, `orden_proxima`, `orden_prolongada`, `orden_critica_abierta`, `mantenimiento_largo`, `sin_coordenadas`, `sin_fecha_instalacion`) y tres severidades (crítica · atención · informativa). IDs sintéticos deterministas `tipo:recursoId:sello` permiten persistir reconocimientos en `alertas_reconocidas/{alertId}` (`{alertId, nota, uid, at}`). Configuración global en `alertas_config/global` con umbrales (`proxima_dias=15`, `prolongada_dias=30`, `mantenimiento_dias=14`) + placeholders de notificación por correo (`destinatario_email`, `notificaciones_enabled`, reservados para F12). `firestore.rules` extendidas: lectura pública + escritura admin en las dos colecciones. Vista pública `pages/alertas.html` + `alertas-public.js` (5 tarjetas resumen, 4 filtros, tabla con severidad-pill / tipo-pill / enlaces al recurso). Vista admin `admin/alertas.html` + `admin-alertas.js` (mismo dashboard + panel de configuración con 5 campos + botones reconocer/desreconocer por fila que solicitan nota y guardan UID). `assets/css/alertas.css` (banner resumen, pills de severidad, `.alert-row.reconocida`, `.config-panel`, `.btn-ack` / `.btn-unack`). Nav "Alertas" en home + 10 subpáginas + 6 paneles admin. Landing y home al 87 %.
 - **Fase 12** — Gate dinámico + endurecimiento admin. `assets/js/data/codigos-acceso.js` implementa el nuevo gate sobre la colección `gate_codes/{sha256(hex)}` donde el docId es el hash SHA-256 del código en texto plano (calculado con `crypto.subtle.digest`). El plaintext nunca se persiste. Reglas Firestore endurecidas: `get: if true` (conocer el hash equivale a conocer el código), `list: if isAdmin()` (no hay enumeración), `create`/`update`/`delete` restringidos a admins con validación de longitud de hash y tipo de `label`/`active`. `assets/js/gate.js` reescrito como módulo ESM que consulta Firestore, respeta `active` + `expires_at` y cae al bootstrap estático (`97601992@`) para recuperación permanente. Panel admin `/admin/codigos.html` + `admin-codigos.js` con tabla, filtros (estado/texto), modal **Nuevo** con botón **Generar** aleatorio (alfabeto sin caracteres confundibles), modal **Editar** metadata (no el plaintext) y modal **Revelar** que muestra el código plano una sola vez con botón **Copiar** (clipboard API). `assets/css/codigos.css` con `.cod-pill.{activo|inactivo|vencido}`, `.cod-hash`, `.revelar-code`, `.btn-mini` y `.btn-mini.danger`. Nav "Códigos" en 7 paneles admin. Módulo F12 activado en el panel principal; la tarjeta "Usuarios &amp; Roles" se mueve a F13. Landing y home al 92 %.
+- **Fase 13** — Pulido SEO + accesibilidad. Nuevos `robots.txt` (permite landing + `/assets/`, bloquea `/admin/`, `/home.html`, `/pages/`) y `sitemap.xml` (solo landing, resto bajo gate). `index.html` amplía el `<head>` con Open Graph completo (incluye `og:locale=es_CO`, `og:image`), Twitter Card, `<link rel="canonical">`, `theme-color #040c14`, `color-scheme dark`, `preconnect` a `fonts.gstatic.com` y bloque **JSON-LD Organization** al final del `<body>` con `areaServed` (5 departamentos como `AdministrativeArea`) y `knowsAbout` (ISO 50001, IEEE C57.12, IEC 60076, RETIE, NTC-IEC 60364, CIGRE WG A2, Transformadores, RAM). `home.html` recibe `theme-color`, `color-scheme`, `canonical` y `preconnect`. Accesibilidad: `.skip-link` en landing y home apuntando a `<main id="main">` (el `<div class="wrapper">` del landing se promueve a `<main>`); `:focus-visible` con `outline` + `box-shadow` para botones/inputs/links en `base.css`; `@media (prefers-reduced-motion: reduce)` desactiva `scroll-behavior: smooth` y colapsa animaciones a `.01ms`; clase utilitaria `.sr-only`; `aria-hidden="true"` en decorativos (`.deco-line`, `.pulse`); el `.topbar` del landing pasa de `<div>` a `<header>` (elemento nativo con rol `banner` implícito). Barra de progreso y `phases-row` actualizadas: `F13 Pulido` `planned → done`, `--fill-pct 92% → 96%`, leyenda "Fases 0–13 completadas de 14". Landing y home al 96 %.
