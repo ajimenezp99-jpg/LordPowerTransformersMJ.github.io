@@ -8,7 +8,7 @@ Caribe Colombiano (Bolívar, Córdoba, Sucre, Cesar y 11 municipios de Magdalena
 
 ## Estado
 
-Fase 13 cerrada · progreso global **96 %**. Ver [`CLAUDE.md`](./CLAUDE.md) para el plan completo.
+Plataforma lista · versión **v1.0.0** · 14 / 14 fases completadas. Ver [`CLAUDE.md`](./CLAUDE.md) para el plan completo.
 
 ## Stack
 
@@ -62,34 +62,52 @@ Pasos manuales pendientes (consola Firebase):
 5. Abrir `/pages/_firebase-test.html` en el sitio (tras ingresar el gate) para
    confirmar que los tres servicios cargan.
 
-## Acceso
+## Acceso (Fase 14 — Login-first)
 
-Durante la fase de construcción el sitio queda tras un **gate dinámico**
-sobre Firestore (Fase 12):
+La plataforma es privada. La raíz `/` muestra un **portal de login**
+SaaS-style y ninguna otra ruta es accesible sin sesión activa.
 
-- Los códigos se guardan hasheados en `gate_codes/{sha256(código)}`. El
-  plaintext nunca se persiste.
-- Reglas Firestore: `get` público (requiere conocer el hash = conocer el
-  código), `list` y escritura solo para admins. Esto permite validar sin
-  exponer los códigos ni permitir enumeración.
-- Se respeta el flag `active` y `expires_at` en cada doc.
-- El código maestro de bootstrap **`97601992@`** sigue aceptado como
-  mecanismo de recuperación, por si se revocan todos los códigos en
-  Firestore.
-- El panel admin `/admin/codigos.html` permite crear, generar aleatorios,
-  rotar, expirar y eliminar códigos. Al crear se muestra el plaintext una
-  sola vez.
+- **Autenticación:** Firebase Auth · Email/Password.
+- **Portal único:** `index.html` es el login para todo el equipo. El
+  antiguo `/admin/login.html` fue retirado.
+- **Persistencia:** el checkbox "Mantener sesión" alterna entre
+  `browserLocalPersistence` (queda abierto hasta logout) y
+  `browserSessionPersistence` (cierra al salir del navegador).
+- **Recuperación de contraseña:** `sendPasswordResetEmail` integrado
+  en el portal.
+- **Roles (`/usuarios/{uid}`):**
+  - `admin` — acceso completo, incluye el panel `/admin/*`.
+  - `tecnico` — acceso operativo a los módulos.
+- **Guard unificado:** `assets/js/auth/session-guard.js` con dos
+  wrappers auto-ejecutables:
+  - `auth/page-guard.js` — cualquier página con sesión activa.
+  - `auth/admin-guard.js` — requiere `rol=admin`.
+- **Panel admin integrado:** ya no es un sitio aparte. La topbar de
+  `home.html` muestra el chip del usuario (nombre + rol) y, cuando el
+  rol es `admin`, un enlace "Admin ▾" que lleva a `/admin/index.html`.
+- **Bootstrap:** la colección heredada `/admins/{uid}` (F5) sigue
+  aceptada como admin legacy. Basta con crear el doc desde Firebase
+  Console para que el propietario entre la primera vez; después puede
+  crear los demás perfiles desde `/admin/usuarios.html`.
+- **Gate de códigos retirado:** las colecciones / archivos de F12
+  (`gate_codes`, `/admin/codigos.html`, `gate.js`,
+  `codigos-acceso.js`) fueron eliminados.
 
-### Panel administrativo (Fase 5)
+### Gestión de usuarios (Fase 14)
 
-- Ruta: `/admin/login.html` (link discreto en el footer de `home.html`).
-- Autenticación: **Firebase Auth · Email/Password** + allowlist de UIDs.
-- Sesión: se cierra al salir del navegador (`browserSessionPersistence`).
-- Para habilitar:
-  1. Crear usuario en Firebase Console → Authentication → Users.
-  2. Copiar el UID al array `ADMIN_UIDS` en
-     `assets/js/admin/admin-config.js`.
-  3. Ingresar desde `/admin/login.html`.
+- Ruta admin: `/admin/usuarios.html`.
+- API cliente: `assets/js/data/usuarios.js` (`listar`, `obtener`,
+  `crear`, `actualizar`, `eliminar`).
+- Para dar de alta un miembro del equipo:
+  1. Crear la cuenta en Firebase Console → Authentication → Users
+     (email + contraseña inicial).
+  2. Copiar el UID generado (28 caracteres alfanuméricos).
+  3. En `/admin/usuarios.html` → **+ NUEVO USUARIO** → pegar UID +
+     email + nombre + rol (`tecnico` por defecto) + activo.
+- Para dar de baja: marcar `activo=false` (preserva historial) o
+  eliminar el doc (la cuenta de Firebase Auth se deshabilita aparte
+  desde la consola).
+- El administrador no puede auto-eliminarse ni quitarse el rol.
 
 ### Inventario (Fase 6)
 
@@ -179,24 +197,6 @@ sobre Firestore (Fase 12):
     topbars.
 - **Performance.** `preconnect` adicional a `fonts.gstatic.com` (además del de
   `fonts.googleapis.com`) para adelantar el TLS-handshake del CDN de fuentes.
-
-### Códigos de acceso / Gate dinámico (Fase 12)
-
-- Data layer en `assets/js/data/codigos-acceso.js` con API `validarCodigo`,
-  `listar`, `crear`, `actualizarMetadata`, `eliminar`, `hashCode`
-  (SHA-256 hex via `crypto.subtle`) y `generarCodigoAleatorio`.
-- Colección Firestore `gate_codes/{sha256(hex)}` con `label`, `notes`,
-  `active`, `expires_at`, `created_at`, `created_by`.
-- Reglas Firestore endurecidas: `get` público (conocer el hash = conocer
-  el código), `list` y escritura solo admins, validación server-side de
-  longitud de hash y tipos de `label`/`active`.
-- `assets/js/gate.js` reescrito como módulo ESM: computa el hash en el
-  cliente, hace `getDoc` directo, respeta `active` + `expires_at`. Cae
-  al bootstrap estático (`BOOTSTRAP_CODE = '97601992@'`) para recuperación.
-- Vista admin: `admin/codigos.html` (tabla + filtros + modales **Nuevo** /
-  **Editar** / **Revelar**). El plaintext se muestra una sola vez al crear
-  con botón Copiar (clipboard API) y botón Generar aleatorio
-  (56 caracteres del alfabeto sin confundibles).
 
 ### Alertas &amp; Notificaciones (Fase 11)
 

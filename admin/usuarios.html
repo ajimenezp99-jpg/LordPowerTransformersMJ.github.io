@@ -4,15 +4,15 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="robots" content="noindex, nofollow"/>
-  <title>SGM · TRANSPOWER — Admin · Códigos de Acceso</title>
+  <title>SGM · TRANSPOWER — Admin · Usuarios</title>
   <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
-  <script type="module" src="../assets/js/admin/admin-guard.js"></script>
+  <script type="module" src="../assets/js/auth/admin-guard.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../assets/css/base.css"/>
   <link rel="stylesheet" href="../assets/css/app.css"/>
   <link rel="stylesheet" href="../assets/css/inventario.css"/>
-  <link rel="stylesheet" href="../assets/css/codigos.css"/>
+  <link rel="stylesheet" href="../assets/css/usuarios.css"/>
 </head>
 <body>
 
@@ -26,7 +26,7 @@
     <a href="documentos.html"  class="nav-link">Documentos</a>
     <a href="mapa.html"        class="nav-link">Mapa</a>
     <a href="alertas.html"     class="nav-link">Alertas</a>
-    <a href="codigos.html"     class="nav-link active">Códigos</a>
+    <a href="usuarios.html"    class="nav-link active">Usuarios</a>
     <a href="../home.html"     class="nav-link">Zona interna</a>
   </nav>
   <button class="btn-logout" id="btnLogout">CERRAR SESIÓN</button>
@@ -35,48 +35,50 @@
 <main class="page-container">
 
   <div class="page-header">
-    <div class="breadcrumb">Admin / Códigos de acceso</div>
-    <h1 class="page-title">Códigos de <em>Acceso</em></h1>
+    <div class="breadcrumb">Admin / Usuarios &amp; Roles</div>
+    <h1 class="page-title">Usuarios &amp; <em>Roles</em></h1>
     <p class="page-subtitle">
-      Gate dinámico del sitio en construcción. Los códigos se almacenan
-      <strong>hasheados con SHA-256</strong> en la colección
-      <code>gate_codes</code>: solo quien conoce el código puede obtener
-      su documento. El plaintext <em>nunca</em> se persiste — anótelo al
-      crearlo, porque después solo se verá la etiqueta y el hash abreviado.
-      El código maestro de bootstrap (<code>97601992@</code>) sigue activo
-      como mecanismo de recuperación.
+      Miembros del equipo con acceso a la plataforma. Cada perfil queda
+      en la colección <code>usuarios/{uid}</code> con su rol (admin /
+      técnico) y estado <code>activo</code>. La cuenta de autenticación
+      (Firebase Auth) se crea primero en la consola de Firebase;
+      después se registra aquí el perfil con el UID correspondiente.
     </p>
   </div>
 
   <!-- BARRA DE ACCIONES -->
   <div class="inv-toolbar">
     <div class="inv-filters">
+      <select class="form-select" id="fRol">
+        <option value="">Todos los roles</option>
+        <option value="admin">Administradores</option>
+        <option value="tecnico">Técnicos</option>
+      </select>
       <select class="form-select" id="fEstado">
         <option value="">Todos los estados</option>
         <option value="activo">Activos</option>
         <option value="inactivo">Inactivos</option>
-        <option value="vencido">Vencidos</option>
       </select>
       <input class="form-input" type="search" id="fSearch"
-             placeholder="Buscar por etiqueta o nota…">
+             placeholder="Buscar por nombre o correo…">
       <button class="btn-secondary" id="btnReload">↻ Recargar</button>
     </div>
-    <button class="btn-primary" id="btnNuevo">+ NUEVO CÓDIGO</button>
+    <button class="btn-primary" id="btnNuevo">+ NUEVO USUARIO</button>
   </div>
 
   <div id="infoBox" class="info-msg" style="display:none"></div>
 
   <!-- TABLA -->
-  <div class="section-head">▸ CÓDIGOS REGISTRADOS</div>
+  <div class="section-head">▸ MIEMBROS REGISTRADOS</div>
   <div class="table-wrap">
     <table class="data-table">
       <thead>
         <tr>
-          <th scope="col">Etiqueta</th>
+          <th scope="col">Nombre</th>
+          <th scope="col">Correo</th>
+          <th scope="col">Rol</th>
           <th scope="col">Estado</th>
-          <th scope="col">Expira</th>
-          <th scope="col">Creado</th>
-          <th scope="col">Hash</th>
+          <th scope="col">UID</th>
           <th scope="col" class="col-actions">Acciones</th>
         </tr>
       </thead>
@@ -88,50 +90,52 @@
 
 </main>
 
-<!-- ═══ MODAL NUEVO CÓDIGO ═══ -->
+<!-- ═══ MODAL NUEVO USUARIO ═══ -->
 <div id="modalNuevo" class="modal-overlay" style="display:none">
   <div class="modal-card" role="dialog" aria-labelledby="modalNuevoTitle">
     <div class="modal-head">
-      <h3 id="modalNuevoTitle">Nuevo código</h3>
+      <h3 id="modalNuevoTitle">Nuevo usuario</h3>
       <button class="modal-x" id="modalNuevoClose" aria-label="Cerrar">✕</button>
     </div>
 
     <form id="formNuevo" novalidate>
       <div class="form-group">
-        <label class="form-label" for="fCodigo">Código (texto plano) *</label>
-        <div class="codigo-row">
-          <input class="form-input" type="text" id="fCodigo" required
-                 placeholder="min. 4 caracteres" autocomplete="off">
-          <button type="button" class="btn-secondary" id="btnGenerar">Generar</button>
-        </div>
+        <label class="form-label" for="fUid">UID de Firebase Auth *</label>
+        <input class="form-input" type="text" id="fUid" required
+               autocomplete="off" placeholder="28 caracteres alfanuméricos">
         <span class="hint">
-          Este valor solo se muestra ahora. Al guardar, se almacena su hash.
+          Cree primero la cuenta en Firebase Console → Authentication → Users,
+          y pegue aquí el UID generado.
         </span>
       </div>
 
       <div class="form-row-2">
         <div class="form-group">
-          <label class="form-label" for="fLabel">Etiqueta *</label>
-          <input class="form-input" type="text" id="fLabel" required
-                 placeholder="Acceso contratista ACME">
+          <label class="form-label" for="fEmail">Correo *</label>
+          <input class="form-input" type="email" id="fEmail" required
+                 autocomplete="off" placeholder="nombre@empresa.com">
         </div>
         <div class="form-group">
-          <label class="form-label" for="fExpira">Fecha de expiración</label>
-          <input class="form-input" type="date" id="fExpira">
+          <label class="form-label" for="fNombre">Nombre completo</label>
+          <input class="form-input" type="text" id="fNombre"
+                 autocomplete="off" placeholder="Ingeniero Pérez">
         </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label" for="fNotas">Notas</label>
-        <textarea class="form-textarea" id="fNotas" rows="2"
-                  placeholder="Contexto, persona responsable, etc."></textarea>
-      </div>
-
-      <div class="form-group form-inline">
-        <label class="form-label">
-          <input type="checkbox" id="fActivo" checked>
-          Activo al crear
-        </label>
+      <div class="form-row-2">
+        <div class="form-group">
+          <label class="form-label" for="fNuevoRol">Rol *</label>
+          <select class="form-select" id="fNuevoRol" required>
+            <option value="tecnico">Técnico</option>
+            <option value="admin">Administrador</option>
+          </select>
+        </div>
+        <div class="form-group form-inline">
+          <label class="form-label">
+            <input type="checkbox" id="fActivo" checked>
+            Activo al crear
+          </label>
+        </div>
       </div>
 
       <div id="formMsg" class="msg" role="status" aria-live="polite"></div>
@@ -144,42 +148,40 @@
   </div>
 </div>
 
-<!-- ═══ MODAL EDITAR METADATA ═══ -->
+<!-- ═══ MODAL EDITAR USUARIO ═══ -->
 <div id="modalEditar" class="modal-overlay" style="display:none">
   <div class="modal-card" role="dialog" aria-labelledby="modalEditarTitle">
     <div class="modal-head">
-      <h3 id="modalEditarTitle">Editar código</h3>
+      <h3 id="modalEditarTitle">Editar usuario</h3>
       <button class="modal-x" id="modalEditarClose" aria-label="Cerrar">✕</button>
     </div>
 
     <form id="formEditar" novalidate>
-      <input type="hidden" id="eId">
+      <input type="hidden" id="eUid">
 
       <div class="form-group">
-        <label class="form-label">Hash (solo lectura)</label>
-        <input class="form-input" type="text" id="eHash" readonly>
+        <label class="form-label" for="eEmail">Correo (solo lectura)</label>
+        <input class="form-input" type="email" id="eEmail" readonly>
       </div>
 
       <div class="form-row-2">
         <div class="form-group">
-          <label class="form-label" for="eLabel">Etiqueta *</label>
-          <input class="form-input" type="text" id="eLabel" required>
+          <label class="form-label" for="eNombre">Nombre</label>
+          <input class="form-input" type="text" id="eNombre">
         </div>
         <div class="form-group">
-          <label class="form-label" for="eExpira">Fecha de expiración</label>
-          <input class="form-input" type="date" id="eExpira">
+          <label class="form-label" for="eRol">Rol *</label>
+          <select class="form-select" id="eRol" required>
+            <option value="tecnico">Técnico</option>
+            <option value="admin">Administrador</option>
+          </select>
         </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="eNotas">Notas</label>
-        <textarea class="form-textarea" id="eNotas" rows="2"></textarea>
       </div>
 
       <div class="form-group form-inline">
         <label class="form-label">
           <input type="checkbox" id="eActivo">
-          Activo
+          Cuenta activa
         </label>
       </div>
 
@@ -193,34 +195,12 @@
   </div>
 </div>
 
-<!-- ═══ MODAL CÓDIGO RECIÉN CREADO ═══ -->
-<div id="modalRevelar" class="modal-overlay" style="display:none">
-  <div class="modal-card" role="dialog" aria-labelledby="modalRevelarTitle">
-    <div class="modal-head">
-      <h3 id="modalRevelarTitle">Código creado</h3>
-      <button class="modal-x" id="modalRevelarClose" aria-label="Cerrar">✕</button>
-    </div>
-    <div class="revelar-wrap">
-      <p class="revelar-intro">
-        Anote este código ahora. Por seguridad no volverá a mostrarse —
-        solo quedará el hash en la base de datos.
-      </p>
-      <div class="revelar-code" id="revelarCode">—</div>
-      <div class="revelar-meta" id="revelarMeta">—</div>
-      <div class="modal-actions">
-        <button type="button" class="btn-secondary" id="btnCopiar">Copiar</button>
-        <button type="button" class="btn-primary"   id="btnRevelarOk">ENTENDIDO</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <footer class="page-foot">
-  <span>SGM · TRANSPOWER — Admin · Códigos</span>
+  <span>SGM · TRANSPOWER — Admin · Usuarios</span>
   <span>© <span id="yr">2025</span> · Zona restringida</span>
 </footer>
 
-<script type="module" src="../assets/js/admin/admin-codigos.js"></script>
+<script type="module" src="../assets/js/admin/admin-usuarios.js"></script>
 
 </body>
 </html>

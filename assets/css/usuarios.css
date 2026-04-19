@@ -1,0 +1,95 @@
+/* ═══════════════════════════════════════════════════════════
+   SGM · TRANSPOWER — Usuarios & Roles (Fase 14)
+   Pills y utilidades específicas del panel admin/usuarios.
+═══════════════════════════════════════════════════════════ */
+
+.rol-pill {
+  display: inline-block;
+  padding: .18rem .55rem;
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: .66rem;
+  letter-spacing: .15em;
+  border: 1px solid var(--border);
+}
+.rol-pill.admin {
+  color: var(--accent2);
+  background: rgba(240,165,0,.08);
+  border-color: rgba(240,165,0,.3);
+}
+.rol-pill.tecnico {
+  color: var(--accent);
+  background: rgba(0,200,255,.06);
+  border-color: rgba(0,200,255,.22);
+}
+
+/* Estado reusa cod-pill (activo/inactivo). Si el CSS de codigos
+   ya no se carga, definimos lo esencial aquí. */
+.cod-pill {
+  display: inline-block;
+  padding: .18rem .55rem;
+  border-radius: 2px;
+  font-family: var(--font-mono);
+  font-size: .66rem;
+  letter-spacing: .15em;
+  border: 1px solid var(--border);
+}
+.cod-pill.activo {
+  color: var(--accent3);
+  background: rgba(0,255,153,.08);
+  border-color: rgba(0,255,153,.3);
+}
+.cod-pill.inactivo {
+  color: var(--muted);
+  background: rgba(120,140,160,.06);
+}
+
+.cod-hash {
+  font-family: var(--font-mono);
+  font-size: .72rem;
+  color: var(--muted);
+  background: rgba(0,0,0,.25);
+  padding: .2rem .45rem;
+  border-radius: 2px;
+  border: 1px solid var(--border);
+}
+
+.btn-mini {
+  font-family: var(--font-mono);
+  font-size: .68rem;
+  letter-spacing: .1em;
+  padding: .3rem .7rem;
+  border-radius: 2px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: all .15s ease;
+  margin-right: .35rem;
+}
+.btn-mini:hover:not(:disabled) {
+  border-color: rgba(0,200,255,.35);
+  color: var(--accent);
+}
+.btn-mini:disabled {
+  opacity: .45;
+  cursor: not-allowed;
+}
+.btn-mini.danger {
+  color: #ff7a90;
+  border-color: rgba(255,90,110,.35);
+}
+.btn-mini.danger:hover:not(:disabled) {
+  background: rgba(255,90,110,.08);
+  color: #ff99aa;
+}
+
+.form-inline {
+  display: flex;
+  align-items: center;
+  gap: .6rem;
+  padding-top: 1.5rem;
+}
+.form-inline input[type="checkbox"] {
+  margin-right: .4rem;
+}
