@@ -4,7 +4,7 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="robots" content="noindex, nofollow"/>
-  <title>SGM · TRANSPOWER — Inventario de Activos</title>
+  <title>SGM · TRANSPOWER — Gestión Documental</title>
   <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
   <script src="../assets/js/auth-guard-pages.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="../assets/css/base.css"/>
   <link rel="stylesheet" href="../assets/css/app.css"/>
   <link rel="stylesheet" href="../assets/css/inventario.css"/>
+  <link rel="stylesheet" href="../assets/css/documentos.css"/>
 </head>
 <body>
 
@@ -20,10 +21,10 @@
   <nav class="main-nav">
     <a href="../home.html"    class="nav-link">Inicio</a>
     <a href="about.html"      class="nav-link">Proyecto</a>
-    <a href="inventario.html" class="nav-link active">Inventario</a>
+    <a href="inventario.html" class="nav-link">Inventario</a>
     <a href="ordenes.html"    class="nav-link">Órdenes</a>
     <a href="kpis.html"       class="nav-link">KPIs</a>
-    <a href="documentos.html" class="nav-link">Documentos</a>
+    <a href="documentos.html" class="nav-link active">Documentos</a>
     <a href="cobertura.html"  class="nav-link">Cobertura</a>
     <a href="normativa.html"  class="nav-link">Normativa</a>
     <a href="contacto.html"   class="nav-link">Contacto</a>
@@ -34,49 +35,52 @@
 <main class="page-container">
 
   <div class="page-header">
-    <div class="breadcrumb">Inicio / Inventario</div>
-    <h1 class="page-title">Inventario de <em>Activos</em></h1>
+    <div class="breadcrumb">Inicio / Gestión Documental</div>
+    <h1 class="page-title">Gestión <em>Documental</em></h1>
     <p class="page-subtitle">
-      Vista de solo lectura de los transformadores de potencia gestionados por
-      el sistema. Los datos se consultan en tiempo real desde Firestore.
-      La gestión (alta, edición, baja) es exclusiva del panel administrativo.
+      Repositorio de protocolos, informes técnicos, certificados y reportes de
+      ensayo. Los archivos se descargan directamente desde Firebase Storage; la
+      indexación (categoría, norma aplicable, transformador asociado) se mantiene
+      en la colección <code>documentos</code> de Firestore.
     </p>
   </div>
 
   <!-- KPIs -->
   <div class="stats-grid">
     <div class="stat-card">
-      <div class="stat-icon">⚡</div>
+      <div class="stat-icon">📁</div>
       <div class="stat-value" id="kTotal">—</div>
-      <div class="stat-label">TRANSFORMADORES REGISTRADOS</div>
+      <div class="stat-label">DOCUMENTOS</div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon">✅</div>
-      <div class="stat-value" id="kOp" style="color:var(--accent3)">—</div>
-      <div class="stat-label">EN OPERACIÓN</div>
+      <div class="stat-icon">📕</div>
+      <div class="stat-value" id="kProt" style="color:var(--accent)">—</div>
+      <div class="stat-label">PROTOCOLOS</div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon">🔧</div>
-      <div class="stat-value" id="kMan" style="color:var(--accent2)">—</div>
-      <div class="stat-label">EN MANTENIMIENTO</div>
+      <div class="stat-icon">📄</div>
+      <div class="stat-value" id="kInf" style="color:var(--accent3)">—</div>
+      <div class="stat-label">INFORMES</div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon">⛔</div>
-      <div class="stat-value" id="kFs" style="color:#ff7a99">—</div>
-      <div class="stat-label">FUERA DE SERVICIO</div>
+      <div class="stat-icon">💾</div>
+      <div class="stat-value" id="kPeso" style="color:var(--accent2)">—</div>
+      <div class="stat-label">VOLUMEN TOTAL</div>
     </div>
   </div>
 
   <!-- FILTROS -->
   <div class="inv-toolbar">
     <div class="inv-filters">
-      <select class="form-select" id="fDept">
-        <option value="">Todos los departamentos</option>
+      <select class="form-select" id="fCategoria">
+        <option value="">Todas las categorías</option>
       </select>
-      <select class="form-select" id="fEstado">
-        <option value="">Todos los estados</option>
+      <select class="form-select" id="fNorma">
+        <option value="">Todas las normas</option>
       </select>
-      <input class="form-input" type="search" id="fSearch" placeholder="Buscar por código o nombre…" style="min-width:260px">
+      <input class="form-input" type="search" id="fSearch"
+             placeholder="Buscar por código, título, autor…"
+             style="min-width:260px">
     </div>
     <span id="counter" style="font-family:var(--font-mono); font-size:.72rem; color:var(--muted); letter-spacing:.1em">—</span>
   </div>
@@ -84,18 +88,18 @@
   <div id="infoBox" class="info-msg" style="display:none"></div>
 
   <!-- TABLA -->
-  <div class="section-head">▸ LISTADO DE TRANSFORMADORES</div>
+  <div class="section-head">▸ LISTADO DE DOCUMENTOS</div>
   <div class="table-wrap">
     <table class="data-table">
       <thead>
         <tr>
           <th scope="col">Código</th>
-          <th scope="col">Nombre / Subestación</th>
-          <th scope="col">Departamento</th>
-          <th scope="col">Municipio</th>
-          <th scope="col">Potencia</th>
-          <th scope="col">Tensión</th>
-          <th scope="col">Estado</th>
+          <th scope="col">Título</th>
+          <th scope="col">Categoría</th>
+          <th scope="col">Norma</th>
+          <th scope="col">Archivo</th>
+          <th scope="col">Emisión</th>
+          <th scope="col">Autor</th>
         </tr>
       </thead>
       <tbody id="tbody">
@@ -105,10 +109,10 @@
   </div>
 
   <div class="highlight-box">
-    <strong>Nota:</strong> esta vista consume la colección <code>transformadores</code>
-    de Firestore. Si el inventario aparece vacío, el panel administrativo aún no
-    ha registrado activos. La georreferenciación de cada transformador se
-    visualizará en el <strong>mapa interactivo (Fase 10)</strong>.
+    <strong>Nota:</strong> esta vista consume la colección <code>documentos</code>
+    de Firestore y los binarios alojados en Firebase Storage
+    (<code>documentos/{id}/</code>). La subida, edición de metadatos y borrado
+    se realizan exclusivamente desde el panel administrativo.
   </div>
 
 </main>
@@ -118,7 +122,7 @@
   <span>© <span id="yr">2025</span> · Zona interna</span>
 </footer>
 
-<script type="module" src="../assets/js/inventario-public.js"></script>
+<script type="module" src="../assets/js/documentos-public.js"></script>
 
 </body>
 </html>

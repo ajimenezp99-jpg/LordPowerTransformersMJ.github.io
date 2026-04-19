@@ -1,13 +1,38 @@
 rules_version = '2';
 
 // ══════════════════════════════════════════════════════════════
-// SGM · TRANSPOWER — Reglas Firebase Storage (Fase 4)
-// Estado: DENY-ALL. Se abrirá en Fase 9 (Gestión Documental) con
-// validación de tamaño, MIME y autenticación admin.
+// SGM · TRANSPOWER — Reglas Firebase Storage (Fase 9)
+// Gestión documental:
+//   documentos/{docId}/{filename=**}  → lectura pública
+//   (filtrada por gate estático), escritura restringida a admins
+//   registrados en /admins/{uid} con tope de 20 MB por archivo.
 // ══════════════════════════════════════════════════════════════
 
 service firebase.storage {
   match /b/{bucket}/o {
+
+    // ── Helpers ──
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isAdmin() {
+      return isSignedIn()
+        && firestore.exists(
+             /databases/(default)/documents/admins/$(request.auth.uid)
+           );
+    }
+
+    // ── Documentos técnicos ──
+    match /documentos/{docId}/{filename=**} {
+      allow read:   if true;
+      allow create: if isAdmin()
+                    && request.resource.size <= 20 * 1024 * 1024;
+      allow update: if isAdmin()
+                    && request.resource.size <= 20 * 1024 * 1024;
+      allow delete: if isAdmin();
+    }
+
+    // ── Resto: cerrado por defecto ──
     match /{allPaths=**} {
       allow read, write: if false;
     }
