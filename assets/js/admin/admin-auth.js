@@ -1,87 +1,50 @@
 // ══════════════════════════════════════════════════════════════
-// SGM · TRANSPOWER — Helpers de autenticación admin (Fase 5)
-// Envoltorio sobre Firebase Auth + chequeo contra ADMIN_UIDS.
+// SGM · TRANSPOWER — Compatibilidad admin-auth (Fase 14)
+// ──────────────────────────────────────────────────────────────
+// Este módulo existía en F5 con allowlist estática (ADMIN_UIDS).
+// En F14 el acceso es unificado por Firebase Auth + /usuarios/{uid}
+// con rol='admin'. Se conserva la misma superficie pública
+// (`logoutAdmin`, `onAdminAuthChange`, `ADMIN_ROUTES`) para no
+// tener que reescribir los controladores admin-*.js individuales.
 // ══════════════════════════════════════════════════════════════
 
-import {
-  signInWithEmailAndPassword,
-  signOut,
-  onAuthStateChanged,
-  setPersistence,
-  browserSessionPersistence
-} from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
+import { logout as sessionLogout, getSession }
+  from '../auth/session-guard.js';
 
-import { getAuthSafe, isFirebaseConfigured } from '../firebase-init.js';
-import { isAdminUid, ADMIN_UIDS, ADMIN_ROUTES } from './admin-config.js';
-
-const AUTH_ERRORS = {
-  'auth/invalid-email':            'Correo inválido.',
-  'auth/user-disabled':            'Cuenta deshabilitada.',
-  'auth/user-not-found':           'Credenciales incorrectas.',
-  'auth/wrong-password':           'Credenciales incorrectas.',
-  'auth/invalid-credential':       'Credenciales incorrectas.',
-  'auth/too-many-requests':        'Demasiados intentos. Espere unos minutos.',
-  'auth/network-request-failed':   'Sin conexión con el servidor de autenticación.',
-  'auth/operation-not-allowed':    'Método Email/Password no habilitado en el proyecto Firebase.'
+export const ADMIN_ROUTES = {
+  login:    '/index.html',
+  home:     '/admin/index.html',
+  fallback: '/home.html'
 };
 
-export function humanizeAuthError(err) {
-  if (!err) return 'Error desconocido.';
-  const code = err.code || '';
-  return AUTH_ERRORS[code] || (err.message || 'Error desconocido.');
-}
-
-export function ensureReady() {
-  if (!isFirebaseConfigured) {
-    return {
-      ok: false,
-      reason: 'Firebase aún no configurado. Editar assets/js/firebase-config.js.'
-    };
-  }
-  if (!Array.isArray(ADMIN_UIDS) || ADMIN_UIDS.length === 0) {
-    return {
-      ok: false,
-      reason: 'Sin UID admin en la allowlist. Editar assets/js/admin/admin-config.js.'
-    };
-  }
-  const auth = getAuthSafe();
-  if (!auth) {
-    return { ok: false, reason: 'No se pudo inicializar Firebase Auth.' };
-  }
-  return { ok: true, auth };
-}
-
-export async function loginAdmin(email, password) {
-  const chk = ensureReady();
-  if (!chk.ok) throw new Error(chk.reason);
-
-  await setPersistence(chk.auth, browserSessionPersistence);
-
-  const cred = await signInWithEmailAndPassword(chk.auth, email, password);
-  if (!isAdminUid(cred.user.uid)) {
-    await signOut(chk.auth);
-    throw new Error('Cuenta sin permisos administrativos.');
-  }
-  return cred.user;
-}
-
 export async function logoutAdmin() {
-  const auth = getAuthSafe();
-  if (auth) await signOut(auth);
-  try { sessionStorage.removeItem('sgm.admin'); } catch (_) {}
+  await sessionLogout();
 }
 
+// Notifica cuando la sesión está disponible. El guard ya redirigió
+// a login si no había sesión o el rol no era admin, así que aquí
+// simplemente se entrega el perfil cuando exista.
 export function onAdminAuthChange(callback) {
-  const auth = getAuthSafe();
-  if (!auth) {
-    callback(null, { ok: false, reason: 'Firebase no inicializado.' });
-    return () => {};
+  function emit() {
+    const s = getSession();
+    if (s) callback(s.user, { ok: true });
+    else   callback(null, { ok: false, reason: 'Sin sesión.' });
   }
-  return onAuthStateChanged(auth, (user) => {
-    if (!user) return callback(null, { ok: false, reason: 'Sin sesión.' });
-    if (!isAdminUid(user.uid)) return callback(null, { ok: false, reason: 'UID no autorizado.' });
-    callback(user, { ok: true });
-  });
+  const s = getSession();
+  if (s) { emit(); return () => {}; }
+  const handler = () => emit();
+  window.addEventListener('sgm:session-ready', handler, { once: true });
+  return () => window.removeEventListener('sgm:session-ready', handler);
 }
 
-export { ADMIN_ROUTES };
+// Stub mínimo — ya nadie debería llamarlos, pero los mantenemos
+// para no romper imports durante la migración.
+export function humanizeAuthError(err) {
+  return err?.message || 'Error desconocido.';
+}
+export function ensureReady() {
+  return { ok: true };
+}
+export async function loginAdmin() {
+  throw new Error('Login consolidado. Use /index.html.');
+}

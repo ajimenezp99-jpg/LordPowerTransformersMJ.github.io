@@ -7,9 +7,10 @@ import { loadDashboard } from './kpis-render.js';
 
 const $ = (id) => document.getElementById(id);
 
-$('btnLogout').addEventListener('click', () => {
-  try { sessionStorage.removeItem('sgm.access'); } catch (_) {}
-  location.href = '../index.html';
+// Logout unificado (Fase 14)
+import('./auth/session-guard.js').then((m) => {
+  const btn = document.getElementById('btnLogout');
+  if (btn) btn.addEventListener('click', () => m.logout());
 });
 $('yr').textContent = new Date().getFullYear();
 

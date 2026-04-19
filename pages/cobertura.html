@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex, nofollow"/>
   <title>SGM · TRANSPOWER — Cobertura Geográfica</title>
   <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
-  <script src="../assets/js/auth-guard-pages.js"></script>
+  <script type="module" src="../assets/js/auth/page-guard.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../assets/css/base.css"/>
@@ -163,9 +163,8 @@
 </footer>
 
 <script>
-  document.getElementById('btnLogout').addEventListener('click', () => {
-    try { sessionStorage.removeItem('sgm.access'); } catch (_) {}
-    location.href = '../index.html';
+  import('../assets/js/auth/session-guard.js').then((m) => {
+    document.getElementById('btnLogout').addEventListener('click', () => m.logout());
   });
   document.getElementById('yr').textContent = new Date().getFullYear();
 </script>

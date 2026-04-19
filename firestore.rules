@@ -1,12 +1,14 @@
 rules_version = '2';
 
 // ══════════════════════════════════════════════════════════════
-// SGM · TRANSPOWER — Reglas Firestore (Fase 12)
-// Colecciones activas: `transformadores` (F6), `ordenes` (F7),
-// `documentos` (F9, metadata · binarios en Storage),
-// `alertas_config` + `alertas_reconocidas` (F11, motor de alertas),
-// `gate_codes` (F12, gate dinámico con códigos hasheados).
-// Estado admin se enforce vía colección /admins/{uid}.
+// SGM · TRANSPOWER — Reglas Firestore (Fase 14)
+// Modelo unificado: toda lectura requiere sesión activa y perfil
+// en /usuarios/{uid} con `activo=true`. Las escrituras las hace
+// únicamente quien tenga rol 'admin' en el perfil, o quien esté
+// en la colección heredada /admins/{uid} (bootstrap de F5).
+// Colecciones: transformadores (F6), ordenes (F7), documentos
+// (F9, metadata), alertas_config + alertas_reconocidas (F11),
+// usuarios (F14, roles del equipo).
 // ══════════════════════════════════════════════════════════════
 
 service cloud.firestore {
@@ -16,24 +18,69 @@ service cloud.firestore {
     function isSignedIn() {
       return request.auth != null;
     }
-    function isAdmin() {
+
+    function hasProfile() {
       return isSignedIn()
-        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+        && exists(/databases/$(database)/documents/usuarios/$(request.auth.uid));
+    }
+
+    function profile() {
+      return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data;
+    }
+
+    // Miembro activo del equipo. Admite bootstrap por /admins/{uid}
+    // para no bloquear al propietario durante la migración desde F5.
+    function isTeamMember() {
+      return isSignedIn() && (
+        (hasProfile() && profile().activo == true) ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    // Admin. Puede ser por rol='admin' en /usuarios, o por el doc
+    // legacy /admins/{uid} heredado de F5.
+    function isAdmin() {
+      return isSignedIn() && (
+        (hasProfile() && profile().rol == 'admin' && profile().activo == true) ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
     }
 
     // ── /admins/{uid} ──
-    // Documento marcador. El contenido no se usa (puede tener {active: true}).
-    // Se crea y mantiene desde la consola Firebase por el propietario.
+    // Documento marcador legacy de F5. Se mantiene como bootstrap
+    // para el propietario. El contenido no se usa.
     match /admins/{uid} {
       allow read:  if isSignedIn() && request.auth.uid == uid;
       allow write: if false;
     }
 
+    // ── /usuarios/{uid} — F14 ──
+    // Perfil del miembro del equipo: email, nombre, rol, activo.
+    // - Cada usuario puede leer su propio perfil (para que el guard
+    //   verifique estado y rol).
+    // - Admins pueden listar y gestionar todos los perfiles.
+    match /usuarios/{uid} {
+      allow get:    if isSignedIn() && (request.auth.uid == uid || isAdmin());
+      allow list:   if isAdmin();
+      allow create: if isAdmin()
+                    && request.resource.data.keys().hasAll([
+                        'email','rol','activo'
+                       ])
+                    && request.resource.data.email is string
+                    && request.resource.data.email.size() > 0
+                    && request.resource.data.rol in ['admin','tecnico']
+                    && request.resource.data.activo is bool;
+      allow update: if isAdmin()
+                    && (!('rol' in request.resource.data)
+                        || request.resource.data.rol in ['admin','tecnico'])
+                    && (!('activo' in request.resource.data)
+                        || request.resource.data.activo is bool);
+      allow delete: if isAdmin() && request.auth.uid != uid;
+    }
+
     // ── /transformadores/{id} ──
-    // Lectura pública (el gate estático del sitio ya filtra visitantes).
-    // Escritura restringida a admins en la allowlist de /admins.
     match /transformadores/{id} {
-      allow read:   if true;
+      allow read:   if isTeamMember();
       allow create: if isAdmin()
                     && request.resource.data.keys().hasAll([
                         'codigo','nombre','departamento','estado'
@@ -51,11 +98,8 @@ service cloud.firestore {
     }
 
     // ── /ordenes/{id} ──
-    // Órdenes de trabajo vinculadas a un transformador.
-    // Lectura pública (filtrada por gate estático).
-    // Escritura restringida a admins en la allowlist.
     match /ordenes/{id} {
-      allow read:   if true;
+      allow read:   if isTeamMember();
       allow create: if isAdmin()
                     && request.resource.data.keys().hasAll([
                         'codigo','titulo','transformadorId',
@@ -86,7 +130,7 @@ service cloud.firestore {
 
       // Historial inmutable — sólo escribir (append-only).
       match /historial/{evt} {
-        allow read:   if true;
+        allow read:   if isTeamMember();
         allow create: if isAdmin();
         allow update: if false;
         allow delete: if false;
@@ -94,11 +138,8 @@ service cloud.firestore {
     }
 
     // ── /documentos/{id} ──
-    // Metadata de archivos técnicos almacenados en Storage.
-    // Lectura pública (filtrada por gate estático).
-    // Escritura restringida a admins con validación de enums.
     match /documentos/{id} {
-      allow read:   if true;
+      allow read:   if isTeamMember();
       allow create: if isAdmin()
                     && request.resource.data.keys().hasAll([
                         'codigo','titulo','categoria','norma_aplicable'
@@ -124,18 +165,14 @@ service cloud.firestore {
     }
 
     // ── /alertas_config/{id} ──
-    // Configuración global del motor de alertas (umbrales en días y flags de
-    // notificación por correo, reservado para Fase 12).
     match /alertas_config/{id} {
-      allow read:   if true;
+      allow read:   if isTeamMember();
       allow write:  if isAdmin();
     }
 
     // ── /alertas_reconocidas/{id} ──
-    // Reconocimiento (acknowledge) de alertas por parte de administradores.
-    // El id es el id sintético determinista generado por el motor cliente.
     match /alertas_reconocidas/{id} {
-      allow read:   if true;
+      allow read:   if isTeamMember();
       allow create: if isAdmin()
                     && request.resource.data.alertId is string
                     && request.resource.data.alertId.size() > 0;
@@ -143,24 +180,12 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // ── /gate_codes/{hash} ──
-    // Gate dinámico. El docId es SHA-256(hex) del código en texto
-    // plano. El `get` es público (conocer el hash equivale a
-    // conocer el código), pero el `list` y las escrituras están
-    // restringidas a admins. Así el cliente no puede enumerar los
-    // códigos válidos aun cuando puede validar el suyo.
+    // ── /gate_codes/{hash} — DEPRECADO (F12) ──
+    // El gate de códigos fue retirado en F14 (login unificado). Se
+    // mantiene la colección cerrada por si quedan datos residuales
+    // de la fase anterior; ninguna página del sitio la lee ya.
     match /gate_codes/{hash} {
-      allow get:    if true;
-      allow list:   if isAdmin();
-      allow create: if isAdmin()
-                    && hash is string
-                    && hash.size() >= 32
-                    && request.resource.data.label is string
-                    && request.resource.data.active is bool;
-      allow update: if isAdmin()
-                    && (!('active' in request.resource.data)
-                        || request.resource.data.active is bool);
-      allow delete: if isAdmin();
+      allow read, write: if false;
     }
 
     // ── Resto: cerrado por defecto ──

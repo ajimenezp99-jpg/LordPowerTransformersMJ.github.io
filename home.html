@@ -10,7 +10,7 @@
   <title>SGM · TRANSPOWER — Panel Principal</title>
   <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg"/>
   <link rel="canonical" href="https://lordpowertransformersmj.github.io/home.html"/>
-  <script src="assets/js/auth-guard.js"></script>
+  <script type="module" src="assets/js/auth/page-guard.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
@@ -35,7 +35,12 @@
     <a href="pages/cobertura.html"    class="nav-link">Cobertura</a>
     <a href="pages/normativa.html"    class="nav-link">Normativa</a>
     <a href="pages/contacto.html"     class="nav-link">Contacto</a>
+    <a href="admin/index.html"        class="nav-link nav-admin" id="navAdmin" hidden>Admin ▾</a>
   </nav>
+  <div class="user-chip" id="userChip" hidden>
+    <span class="user-chip-name" id="userName">—</span>
+    <span class="user-chip-rol"  id="userRol">—</span>
+  </div>
   <button class="btn-logout" id="btnLogout">CERRAR SESIÓN</button>
 </header>
 
@@ -121,11 +126,11 @@
   <div class="section-head">▸ PROGRESO DE DESARROLLO DEL SISTEMA</div>
   <div class="progress-wrap">
     <div class="progress-label">
-      <span>Fases 0–13 completadas de 14</span>
-      <span>96 %</span>
+      <span>Plataforma lista · 14 / 14 fases</span>
+      <span>100 %</span>
     </div>
     <div class="progress-bar">
-      <div class="progress-fill" style="--fill-pct:96%"></div>
+      <div class="progress-fill" style="--fill-pct:100%"></div>
     </div>
   </div>
   <div class="phases-row">
@@ -143,7 +148,7 @@
     <span class="status-badge done">F11 Alertas</span>
     <span class="status-badge done">F12 Gate Dinámico</span>
     <span class="status-badge done">F13 Pulido</span>
-    <span class="status-badge planned">F14 Lanzamiento</span>
+    <span class="status-badge done">F14 Lanzamiento</span>
   </div>
 
 </main>
@@ -151,18 +156,31 @@
 <footer class="page-foot">
   <span>SGM · TRANSPOWER — Caribe Colombiano</span>
   <span>ISO 50001:2018 · IEEE C57.12 · IEC 60076</span>
-  <span>
-    © <span id="yr">2025</span> · Zona interna ·
-    <a href="admin/login.html" style="color:var(--muted);text-decoration:none;opacity:.7">admin</a>
-  </span>
+  <span>© <span id="yr">2025</span> · v1.0.0</span>
 </footer>
 
-<script>
-  document.getElementById('btnLogout').addEventListener('click', () => {
-    try { sessionStorage.removeItem('sgm.access'); } catch (_) {}
-    location.href = 'index.html';
-  });
+<script type="module">
+  import { logout } from './assets/js/auth/session-guard.js';
+
   document.getElementById('yr').textContent = new Date().getFullYear();
+  document.getElementById('btnLogout').addEventListener('click', () => logout());
+
+  // Personaliza el header con los datos del perfil cuando la sesión
+  // esté lista. Si el rol es admin, se muestra el enlace al panel.
+  function mountSession(sess) {
+    if (!sess) return;
+    const chip   = document.getElementById('userChip');
+    const nName  = document.getElementById('userName');
+    const nRol   = document.getElementById('userRol');
+    const aAdmin = document.getElementById('navAdmin');
+    const p = sess.profile || {};
+    nName.textContent = p.nombre || p.email || sess.user.email || '—';
+    nRol.textContent  = (sess.role || 'tecnico').toUpperCase();
+    chip.hidden = false;
+    if (sess.role === 'admin') aAdmin.hidden = false;
+  }
+  if (window.__sgmSession) mountSession(window.__sgmSession);
+  else window.addEventListener('sgm:session-ready', (e) => mountSession(e.detail));
 </script>
 
 <!-- KPIs del parque en tiempo real (Fase 8) -->

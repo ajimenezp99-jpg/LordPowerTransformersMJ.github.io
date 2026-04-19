@@ -106,37 +106,51 @@ El sistema contempla:
 
 ---
 
-## 4. Barrera de acceso (gate)
+## 4. Control de acceso
 
-### Estado actual: **dinámica** (Fase 12)
+### Estado actual: **Login-first unificado** (Fase 14)
 
-- Los códigos se almacenan en la colección Firestore `gate_codes/{hash}`,
-  donde el `hash` es `SHA-256(hex)` del código en texto plano. El plaintext
-  **nunca** se persiste.
-- Reglas Firestore: `get` público (requiere conocer el hash), `list` y
-  escritura restringidas a admins. Esto evita la enumeración y mantiene
-  la capacidad de validar del cliente.
-- Cada doc lleva `label`, `notes`, `active`, `expires_at`, `created_at`,
-  `created_by`. El cliente solo acepta el código si `active=true` y
-  (`expires_at` nulo o futuro).
-- Gate (`assets/js/gate.js`) ahora es un módulo ESM: calcula el hash con
-  `crypto.subtle.digest('SHA-256')` y hace un `getDoc` directo.
-- Panel admin `/admin/codigos.html` para crear, rotar, expirar y eliminar
-  códigos. Al crear se muestra el plaintext una única vez (con opción de
-  copiar y botón generar aleatorio).
-- Bootstrap: el código maestro **`97601992@`** sigue aceptado siempre
-  (fallback) para no perder acceso si se revocan todos los códigos.
-- Sesión: sigue usando `sessionStorage.sgm.access = "1"` (se pierde al
-  cerrar el navegador).
+- **`index.html` es el portal de login público** (SaaS-style). Es la
+  única ruta visible sin autenticación; el resto del sitio devuelve
+  redirect al login mientras no haya sesión activa.
+- **Firebase Authentication (Email/Password)** es la fuente de verdad.
+  Los miembros del equipo se autentican con su correo corporativo y
+  contraseña. La persistencia es configurable por checkbox: sesión
+  (cierra al salir del navegador) o local (permanente hasta logout).
+- **Perfiles y roles en Firestore** — `/usuarios/{uid}` con
+  `{email, nombre, rol, activo, createdAt, createdBy}`. Roles activos:
+  - `admin` — acceso completo + panel `/admin/*`.
+  - `tecnico` — acceso de operación (lectura de módulos, no edita).
+- **Guard unificado** — `assets/js/auth/session-guard.js` es el único
+  punto de verificación. `page-guard.js` y `admin-guard.js` son
+  wrappers auto-ejecutables para páginas protegidas. Oculta el
+  `<body>` hasta resolver; redirige a login si no hay sesión o perfil,
+  y a `/home.html` si un no-admin pisa una ruta admin.
+- **Bootstrap** — `/admins/{uid}` (colección heredada de F5) sigue
+  siendo aceptada como admin legacy para que el propietario no quede
+  bloqueado durante la migración del primer perfil. Basta con crear
+  el doc desde Firebase Console. Una vez hay un admin, se gestionan
+  los demás usuarios desde `/admin/usuarios.html`.
+- **Recuperación de contraseña** — el portal expone
+  `sendPasswordResetEmail` de Firebase Auth.
+- **Gate estático / dinámico retirados** — los artefactos de F0
+  (`gate.js`, `sessionStorage.sgm.access`) y de F12 (`gate_codes`,
+  `/admin/codigos.html`) fueron eliminados. Ya no hay códigos de
+  acceso: solo credenciales personales por miembro.
 
-### Limitaciones conocidas
+### Reglas Firestore (F14)
 
-1. `sessionStorage` sigue siendo manipulable desde la consola — el gate
-   es un deterrente, no una frontera de seguridad. Los datos sensibles
-   ya están protegidos por reglas Firestore por colección.
-2. El fallback de bootstrap (`97601992@`) queda en el código fuente. Es
-   una decisión explícita para que el propietario nunca quede bloqueado;
-   se puede retirar en F14 tras el lanzamiento final.
+- `isTeamMember()` — `activo=true` en `/usuarios/{uid}` **o**
+  existencia en `/admins/{uid}` (bootstrap).
+- `isAdmin()` — `rol='admin'` + `activo=true` en `/usuarios/{uid}`
+  **o** existencia en `/admins/{uid}` (bootstrap).
+- Todas las colecciones de negocio (`transformadores`, `ordenes`,
+  `documentos`, `alertas_*`) requieren `isTeamMember()` para lectura
+  y `isAdmin()` para escritura.
+- `/usuarios/{uid}` — cada usuario puede leer su propio perfil; los
+  admins pueden listar y gestionar todo. No se permite auto-eliminación.
+- `/gate_codes/{hash}` — cerrada (`read, write: if false`). Los datos
+  residuales de F12 quedan inertes hasta que se borren manualmente.
 
 ---
 
@@ -164,7 +178,7 @@ El sistema contempla:
 | 11 | Módulo: Alertas y notificaciones                         |  7%  |  87%      | ✅ completada |
 | 12 | Gate dinámico + endurecimiento admin                     |  5%  |  92%      | ✅ completada |
 | 13 | Pulido: SEO, accesibilidad, performance, i18n            |  4%  |  96%      | ✅ completada |
-| 14 | Lanzamiento: reemplazo del landing y despliegue final    |  4%  | 100%      | ⏳ pendiente |
+| 14 | Lanzamiento: login unificado + roles + v1.0.0            |  4%  | 100%      | ✅ completada |
 
 ### Detalle por microfase
 
@@ -346,11 +360,63 @@ El sistema contempla:
   - Se mantiene el uso de `display=swap` en la URL de Google Fonts (evita FOIT).
 - Barra de progreso y `phases-row` actualizadas en `index.html` y `home.html`: `F13 Pulido` pasa de `planned → done`, `--fill-pct` y etiqueta suben de **92 % → 96 %**, leyenda "Fases 0–13 completadas de 14".
 
-#### ⏳ Fase 14 — Lanzamiento
+#### ✅ Fase 14 — Lanzamiento · Login-first + Roles
 
-- Reemplazo del landing "en construcción" por el home real.
-- La barrera de acceso se mantiene sólo para la zona admin.
-- Tag `v1.0.0`.
+- **Nueva arquitectura "login-first".** `index.html` es ahora el portal
+  de autenticación SaaS-style (formulario centrado email+password +
+  recuperación de contraseña). Ninguna página del sitio es accesible
+  sin sesión Firebase Auth válida.
+- **Unificación admin ↔ público.** El antiguo `/admin/login.html` se
+  eliminó; el mismo login entra tanto al home como al panel admin. El
+  panel admin deja de ser un sitio aparte: es una sección integrada
+  del home, con enlace "Admin" en la nav principal visible solo
+  cuando `rol=admin`.
+- **Sistema de roles.** Nueva colección `/usuarios/{uid}` con campos
+  `{email, nombre, rol, activo, createdAt, createdBy}`. Roles:
+  `admin` (control total + CRUD) y `tecnico` (lectura operativa).
+- **Guard unificado.** `assets/js/auth/session-guard.js` reemplaza a
+  los 4 guards previos (`gate.js`, `auth-guard.js`,
+  `auth-guard-pages.js`, `admin/admin-guard.js`). Wrappers
+  auto-ejecutables: `page-guard.js` (sesión) y `admin-guard.js`
+  (sesión + rol admin). Oculta el `<body>` hasta resolver; expone
+  `window.__sgmSession = {user, profile, role}` y dispara
+  `sgm:session-ready`.
+- **Data layer de usuarios.** `assets/js/data/usuarios.js` con
+  `listar`, `obtener`, `crear`, `actualizar`, `eliminar`, `ROLES`,
+  `labelRol`.
+- **Panel de gestión de usuarios.** `/admin/usuarios.html` +
+  `admin-usuarios.js` — tabla con filtros (rol / estado / texto),
+  modal **Nuevo** (pide UID de Firebase Auth + email + nombre + rol +
+  activo) y modal **Editar** (nombre + rol + activo). El correo es
+  read-only en edición (es identidad en Auth). Bloquea al admin de
+  auto-eliminarse y de quitarse el rol o desactivar su cuenta.
+- **Reglas Firestore refactorizadas.** Lecturas por `isTeamMember()`,
+  escrituras por `isAdmin()`. Ambas helpers admiten fallback al doc
+  legacy `/admins/{uid}` para no bloquear al propietario durante la
+  migración. Nueva sección `/usuarios/{uid}` con validación de enums
+  server-side (`rol ∈ {admin, tecnico}`, `activo bool`). La colección
+  `gate_codes` queda cerrada (`read, write: if false`).
+- **Retiro del gate de F12.** Se eliminaron `assets/js/gate.js`,
+  `assets/js/data/codigos-acceso.js`, `assets/js/admin/admin-codigos.js`,
+  `assets/css/codigos.css` y `/admin/codigos.html`. Todas las nav
+  admin sustituyen el enlace "Códigos" por "Usuarios".
+- **Retiro del guard estático.** Se eliminaron `assets/js/auth-guard.js`,
+  `assets/js/auth-guard-pages.js`, `assets/js/admin/admin-guard.js`
+  y `assets/js/admin/admin-config.js`. `admin-auth.js` queda como
+  shim fino que reexporta `logoutAdmin` (wrapper de `session-guard`)
+  y `onAdminAuthChange` (basado en evento `sgm:session-ready`) para
+  no tocar los controladores admin-*.js.
+- **Recuperación de contraseña.** El portal expone
+  `sendPasswordResetEmail` de Firebase Auth; envía el enlace al
+  correo indicado en el campo email.
+- **Persistencia configurable.** Checkbox "Mantener sesión en este
+  dispositivo" alterna entre `browserLocalPersistence` (permanente) y
+  `browserSessionPersistence` (hasta cerrar el navegador).
+- **Home actualizada.** Nav incluye `user-chip` (nombre + rol) y,
+  para admins, enlace `Admin ▾`. Logout usa el helper unificado.
+  Barra de progreso al 100 %, v1.0.0. Se mantiene `noindex` en la
+  zona interna; el sitemap solo lista la landing de login.
+- **Tag `v1.0.0`** al cierre de la fase.
 
 ---
 
@@ -368,8 +434,8 @@ El sistema contempla:
 
 | Métrica                    | Valor |
 |----------------------------|-------|
-| Fase en curso              | **Fase 13 cerrada · a la espera de Fase 14** |
-| Porcentaje global           | **96 %** |
+| Fase en curso              | **Fase 14 cerrada · v1.0.0** |
+| Porcentaje global           | **100 %** |
 | Último commit              | (ver historial Git) |
 | Servicios dinámicos activos | ninguno (aún sólo estático) |
 
@@ -391,3 +457,4 @@ El sistema contempla:
 - **Fase 11** — Alertas &amp; Notificaciones. `assets/js/data/alertas.js` implementa un motor de reglas cliente-side sobre `transformadores` + `ordenes` con 7 reglas (`orden_vencida`, `orden_proxima`, `orden_prolongada`, `orden_critica_abierta`, `mantenimiento_largo`, `sin_coordenadas`, `sin_fecha_instalacion`) y tres severidades (crítica · atención · informativa). IDs sintéticos deterministas `tipo:recursoId:sello` permiten persistir reconocimientos en `alertas_reconocidas/{alertId}` (`{alertId, nota, uid, at}`). Configuración global en `alertas_config/global` con umbrales (`proxima_dias=15`, `prolongada_dias=30`, `mantenimiento_dias=14`) + placeholders de notificación por correo (`destinatario_email`, `notificaciones_enabled`, reservados para F12). `firestore.rules` extendidas: lectura pública + escritura admin en las dos colecciones. Vista pública `pages/alertas.html` + `alertas-public.js` (5 tarjetas resumen, 4 filtros, tabla con severidad-pill / tipo-pill / enlaces al recurso). Vista admin `admin/alertas.html` + `admin-alertas.js` (mismo dashboard + panel de configuración con 5 campos + botones reconocer/desreconocer por fila que solicitan nota y guardan UID). `assets/css/alertas.css` (banner resumen, pills de severidad, `.alert-row.reconocida`, `.config-panel`, `.btn-ack` / `.btn-unack`). Nav "Alertas" en home + 10 subpáginas + 6 paneles admin. Landing y home al 87 %.
 - **Fase 12** — Gate dinámico + endurecimiento admin. `assets/js/data/codigos-acceso.js` implementa el nuevo gate sobre la colección `gate_codes/{sha256(hex)}` donde el docId es el hash SHA-256 del código en texto plano (calculado con `crypto.subtle.digest`). El plaintext nunca se persiste. Reglas Firestore endurecidas: `get: if true` (conocer el hash equivale a conocer el código), `list: if isAdmin()` (no hay enumeración), `create`/`update`/`delete` restringidos a admins con validación de longitud de hash y tipo de `label`/`active`. `assets/js/gate.js` reescrito como módulo ESM que consulta Firestore, respeta `active` + `expires_at` y cae al bootstrap estático (`97601992@`) para recuperación permanente. Panel admin `/admin/codigos.html` + `admin-codigos.js` con tabla, filtros (estado/texto), modal **Nuevo** con botón **Generar** aleatorio (alfabeto sin caracteres confundibles), modal **Editar** metadata (no el plaintext) y modal **Revelar** que muestra el código plano una sola vez con botón **Copiar** (clipboard API). `assets/css/codigos.css` con `.cod-pill.{activo|inactivo|vencido}`, `.cod-hash`, `.revelar-code`, `.btn-mini` y `.btn-mini.danger`. Nav "Códigos" en 7 paneles admin. Módulo F12 activado en el panel principal; la tarjeta "Usuarios &amp; Roles" se mueve a F13. Landing y home al 92 %.
 - **Fase 13** — Pulido SEO + accesibilidad. Nuevos `robots.txt` (permite landing + `/assets/`, bloquea `/admin/`, `/home.html`, `/pages/`) y `sitemap.xml` (solo landing, resto bajo gate). `index.html` amplía el `<head>` con Open Graph completo (incluye `og:locale=es_CO`, `og:image`), Twitter Card, `<link rel="canonical">`, `theme-color #040c14`, `color-scheme dark`, `preconnect` a `fonts.gstatic.com` y bloque **JSON-LD Organization** al final del `<body>` con `areaServed` (5 departamentos como `AdministrativeArea`) y `knowsAbout` (ISO 50001, IEEE C57.12, IEC 60076, RETIE, NTC-IEC 60364, CIGRE WG A2, Transformadores, RAM). `home.html` recibe `theme-color`, `color-scheme`, `canonical` y `preconnect`. Accesibilidad: `.skip-link` en landing y home apuntando a `<main id="main">` (el `<div class="wrapper">` del landing se promueve a `<main>`); `:focus-visible` con `outline` + `box-shadow` para botones/inputs/links en `base.css`; `@media (prefers-reduced-motion: reduce)` desactiva `scroll-behavior: smooth` y colapsa animaciones a `.01ms`; clase utilitaria `.sr-only`; `aria-hidden="true"` en decorativos (`.deco-line`, `.pulse`); el `.topbar` del landing pasa de `<div>` a `<header>` (elemento nativo con rol `banner` implícito). Barra de progreso y `phases-row` actualizadas: `F13 Pulido` `planned → done`, `--fill-pct 92% → 96%`, leyenda "Fases 0–13 completadas de 14". Landing y home al 96 %.
+- **Fase 14** — Lanzamiento + refactor de acceso "login-first". `index.html` se reescribe por completo como portal de autenticación SaaS-style (form email+password centrado, recuperación de contraseña vía `sendPasswordResetEmail`, persistencia configurable). Nueva colección `/usuarios/{uid}` con campos `{email, nombre, rol, activo, createdAt, createdBy}` y enums `rol ∈ {admin, tecnico}`. Nuevo guard unificado `assets/js/auth/session-guard.js` + wrappers `page-guard.js` / `admin-guard.js` que reemplazan a `gate.js`, `auth-guard.js`, `auth-guard-pages.js` y `admin/admin-guard.js`. Firestore rules refactorizadas: lecturas por `isTeamMember()` (perfil activo o fallback a `/admins/{uid}`), escrituras por `isAdmin()` (rol admin o fallback legacy). Panel `/admin/usuarios.html` + `admin-usuarios.js` + `assets/css/usuarios.css` con CRUD de perfiles, filtros por rol/estado/texto y protecciones de auto-baja. Panel admin ahora integrado a la plataforma: enlace "Admin ▾" en nav del home visible solo con `rol=admin`, y `user-chip` (nombre + rol) en la topbar. `admin-auth.js` reducido a shim que mantiene la superficie `logoutAdmin` / `onAdminAuthChange` / `ADMIN_ROUTES` sobre el nuevo `session-guard`. Eliminados `admin/login.html`, `admin/codigos.html`, `assets/js/gate.js`, `assets/js/auth-guard.js`, `assets/js/auth-guard-pages.js`, `assets/js/admin/admin-guard.js`, `assets/js/admin/admin-config.js`, `assets/js/admin/admin-codigos.js`, `assets/js/data/codigos-acceso.js` y `assets/css/codigos.css`. `robots.txt` actualizado a "plataforma privada". Barra de progreso al 100 %. Tag **v1.0.0**.

@@ -1,7 +1,7 @@
 # SGM · TRANSPOWER — robots.txt
-# Sitio en construcción. Solo se indexa el landing público;
-# la zona interna y el panel admin están protegidos por gate y
-# se excluyen explícitamente de los crawlers.
+# Plataforma privada (F14). Solo se indexa la landing pública de login;
+# el resto del sitio requiere autenticación Firebase y se excluye
+# explícitamente de los crawlers.
 
 User-agent: *
 Allow: /$

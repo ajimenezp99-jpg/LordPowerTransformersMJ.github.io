@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex, nofollow"/>
   <title>SGM · TRANSPOWER — Panel Administrativo</title>
   <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
-  <script type="module" src="../assets/js/admin/admin-guard.js"></script>
+  <script type="module" src="../assets/js/auth/admin-guard.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="../assets/css/base.css"/>
@@ -44,7 +44,7 @@
     <a href="documentos.html"  class="nav-link">Documentos</a>
     <a href="mapa.html"        class="nav-link">Mapa</a>
     <a href="alertas.html"     class="nav-link">Alertas</a>
-    <a href="codigos.html"     class="nav-link">Códigos</a>
+    <a href="usuarios.html"    class="nav-link">Usuarios</a>
     <a href="../home.html"     class="nav-link">Zona interna</a>
   </nav>
   <button class="btn-logout" id="btnLogout">CERRAR SESIÓN</button>
@@ -105,18 +105,12 @@
       <div class="module-desc">Reglas de vencimiento y canales de envío.</div>
       <span class="status-badge done">ACTIVO · F11</span>
     </a>
-    <a href="codigos.html" class="module-card" style="text-decoration:none">
-      <div class="module-icon">🔐</div>
-      <div class="module-name">Códigos de Acceso</div>
-      <div class="module-desc">Gate dinámico sobre Firestore: rotación, expiración y bootstrap.</div>
-      <span class="status-badge done">ACTIVO · F12</span>
-    </a>
-    <div class="module-card">
+    <a href="usuarios.html" class="module-card" style="text-decoration:none">
       <div class="module-icon">👥</div>
       <div class="module-name">Usuarios &amp; Roles</div>
-      <div class="module-desc">Gestión de cuentas admin y permisos granulares.</div>
-      <span class="status-badge planned">PENDIENTE · F13</span>
-    </div>
+      <div class="module-desc">Alta, baja y asignación de rol (admin / técnico) sobre los miembros del equipo.</div>
+      <span class="status-badge done">ACTIVO · F14</span>
+    </a>
   </div>
 
   <!-- ESTADO DEL SISTEMA -->
@@ -133,9 +127,9 @@
     <div class="content-card">
       <h3>🛡️ Seguridad</h3>
       <ul>
-        <li>Gate dinámico · SHA-256 en Firestore</li>
-        <li>Admin · Firebase Auth + allowlist UID</li>
-        <li>Sesión admin · browserSessionPersistence</li>
+        <li>Login unificado · Firebase Auth</li>
+        <li>Roles: <strong>admin</strong> · <strong>técnico</strong></li>
+        <li>Perfiles en <code>/usuarios/{uid}</code></li>
       </ul>
     </div>
     <div class="content-card">
@@ -148,8 +142,9 @@
     </div>
     <div class="content-card">
       <h3>📈 Progreso</h3>
-      <p>Fase 12 cerrada · <strong style="color:var(--accent)">92 %</strong> global.
-         Próximo: Fase 13 — Pulido: SEO, accesibilidad, performance.</p>
+      <p>Plataforma lista · <strong style="color:var(--accent3)">v1.0.0</strong>.
+         14 de 14 fases completadas. Siguiente ciclo: mejoras funcionales
+         y nuevos módulos según prioridad operativa.</p>
     </div>
   </div>
 
@@ -161,22 +156,19 @@
 </footer>
 
 <script type="module">
-  import { logoutAdmin, ADMIN_ROUTES } from '../assets/js/admin/admin-auth.js';
+  import { logout } from '../assets/js/auth/session-guard.js';
 
   document.getElementById('yr').textContent = new Date().getFullYear();
 
-  // Al montar el guard, window.__sgmAdmin queda disponible
-  const setUser = () => {
-    const u = window.__sgmAdmin;
-    if (u) document.getElementById('adminUser').textContent = u.email || u.uid;
-  };
-  setTimeout(setUser, 200);
-  setTimeout(setUser, 800);
+  function mount(sess) {
+    const p = sess?.profile || {};
+    const label = p.nombre ? (p.nombre + ' · ' + p.email) : (p.email || sess?.user?.email || '—');
+    document.getElementById('adminUser').textContent = label;
+  }
+  if (window.__sgmSession) mount(window.__sgmSession);
+  else window.addEventListener('sgm:session-ready', (e) => mount(e.detail));
 
-  document.getElementById('btnLogout').addEventListener('click', async () => {
-    try { await logoutAdmin(); } catch (_) {}
-    location.replace(ADMIN_ROUTES.login);
-  });
+  document.getElementById('btnLogout').addEventListener('click', () => logout());
 </script>
 
 </body>
