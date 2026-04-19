@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Dashboard ejecutivo</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
+  <link rel="manifest" href="../manifest.json"/>
+  <script type="module" src="../assets/js/auth/page-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css"/>
+  <link rel="stylesheet" href="../assets/css/app.css"/>
+  <style>
+    .wrap { max-width: 1200px; margin: 1rem auto; padding: 0 1rem; }
+    .rol-banner {
+      font-family: var(--font-mono); font-size: .72rem;
+      color: var(--accent2); letter-spacing: .12em;
+      padding: .6rem .9rem; background: rgba(240,165,0,.06);
+      border-left: 3px solid var(--accent2); border-radius: 3px;
+      margin-bottom: 1rem;
+    }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .kpi { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.1); border-radius: 4px; padding: 1rem 1.2rem; }
+    .kpi h3 { font-family: var(--font-mono); font-size: .68rem; color: var(--text-soft); letter-spacing: .1em; margin: 0 0 .4rem; }
+    .kpi .v { font-family: var(--font-mono); font-size: 1.8rem; color: var(--accent); }
+    .kpi .s { font-family: var(--font-mono); font-size: .65rem; color: var(--text-soft); letter-spacing: .06em; }
+    .sections { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .card { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.08); border-radius: 4px; padding: 1rem 1.2rem; }
+    .card h3 { font-family: var(--font-mono); color: var(--accent); font-size: .82rem; margin: 0 0 .7rem; letter-spacing: .1em; }
+    .matrix-mini { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; font-family: var(--font-mono); font-size: .7rem; }
+    .matrix-mini .cell { padding: 4px 6px; text-align: center; border-radius: 2px; }
+    .matrix-mini .head { background: rgba(255,255,255,.1); color: var(--accent); }
+    .col-VRD  { background: rgba(27,142,63,.25); color: #4CB050; }
+    .col-AMRL { background: rgba(245,197,24,.25); color: #F5C518; }
+    .col-NAR  { background: rgba(239,120,32,.25); color: #EF7820; }
+    .col-ROJ  { background: rgba(229,57,53,.25); color: #E53935; }
+    ul.compact { list-style: none; padding: 0; margin: 0; font-family: var(--font-mono); font-size: .75rem; }
+    ul.compact li { padding: .25rem 0; border-bottom: 1px dashed rgba(255,255,255,.08); display: flex; justify-content: space-between; }
+    @media (max-width: 720px) { .sections { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../home.html" class="topbar-brand">SGM · <span>TRANSPOWER</span></a>
+  <nav class="main-nav">
+    <a href="../home.html"       class="nav-link">Home</a>
+    <a href="dashboard.html"     class="nav-link active">Dashboard</a>
+    <a href="inventario.html"    class="nav-link">Inventario</a>
+    <a href="matriz-riesgo.html" class="nav-link">Matriz</a>
+    <a href="alertas.html"       class="nav-link">Alertas</a>
+    <a href="kpis.html"          class="nav-link">KPIs</a>
+  </nav>
+</header>
+
+<main id="main" class="wrap">
+  <div class="rol-banner" id="rolBanner">⋯</div>
+
+  <section class="kpi-grid">
+    <div class="kpi"><h3>Transformadores</h3><div class="v" id="kTotal">—</div><div class="s" id="sTotal"></div></div>
+    <div class="kpi"><h3>HI parque (prom. ponderada)</h3><div class="v" id="kHI">—</div><div class="s">con overrides</div></div>
+    <div class="kpi"><h3>Celdas rojas (matriz)</h3><div class="v" id="kROJ">—</div><div class="s">activos críticos</div></div>
+    <div class="kpi"><h3>Propuestas FUR pendientes</h3><div class="v" id="kFUR">—</div><div class="s">§A9.2</div></div>
+    <div class="kpi"><h3>Monitoreos intensivos C₂H₂</h3><div class="v" id="kC2H2">—</div><div class="s">§A9.1</div></div>
+    <div class="kpi"><h3>Vida remanente promedio</h3><div class="v" id="kVida">—</div><div class="s">Chedong</div></div>
+  </section>
+
+  <section class="sections">
+    <div class="card">
+      <h3>Matriz Criticidad × Salud (semáforo)</h3>
+      <div class="matrix-mini" id="matrixMini"></div>
+    </div>
+    <div class="card">
+      <h3>Top 10 activos en riesgo (PI)</h3>
+      <ul class="compact" id="top10"></ul>
+    </div>
+    <div class="card">
+      <h3>Próximas muestras programadas</h3>
+      <ul class="compact" id="proximas"></ul>
+    </div>
+    <div class="card">
+      <h3>Órdenes activas por estado</h3>
+      <ul class="compact" id="ordenesEstado"></ul>
+    </div>
+  </section>
+</main>
+
+<script type="module">
+import { listar as listarTrafos } from '../assets/js/data/transformadores.js';
+import { listar as listarOrdenes } from '../assets/js/data/ordenes.js';
+import { obtenerCriticidad } from '../assets/js/data/parametros_criticidad.js';
+import { agregarConteos, colorCelda, NIVELES_ORDEN } from '../assets/js/domain/matriz_riesgo.js';
+import { rankearPlanInversion } from '../assets/js/domain/plan_inversion.js';
+import { filtrarPorZona } from '../assets/js/domain/rbac.js';
+
+const $ = (id) => document.getElementById(id);
+const fmtPct = (v) => v == null ? '—' : v.toFixed(1) + ' %';
+
+async function render() {
+  const session = window.__sgmSession;
+  const profile = session && session.profile;
+  const rol = (profile && profile.rol) || 'admin';
+  const zonas = (profile && profile.zonas) || [];
+  $('rolBanner').textContent =
+    `⟁ Rol: ${rol.toUpperCase()} · ` +
+    (zonas.length ? `zonas: ${zonas.join(', ')}` : 'sin restricción geográfica');
+
+  const [rawTrafos, rawOrdenes, crit] = await Promise.all([
+    listarTrafos(), listarOrdenes(), obtenerCriticidad()
+  ]);
+
+  const trafos = filtrarPorZona(rawTrafos, profile);
+  const ordenes = filtrarPorZona(rawOrdenes, profile);
+
+  // KPIs
+  $('kTotal').textContent = trafos.length;
+  $('sTotal').textContent = `filtrados por zona`;
+
+  const hiValues = trafos.map((t) => t.salud_actual && t.salud_actual.hi_final).filter((x) => x != null);
+  const hiProm = hiValues.length ? hiValues.reduce((a, b) => a + b, 0) / hiValues.length : null;
+  $('kHI').textContent = hiProm != null ? hiProm.toFixed(2) : '—';
+
+  const agg = agregarConteos(trafos, crit.rangos);
+  let rojCount = 0;
+  for (const hi of [5, 4, 3, 2, 1]) {
+    for (const n of NIVELES_ORDEN) {
+      if (agg[hi][n].color === 'ROJ') rojCount += agg[hi][n].count;
+    }
+  }
+  $('kROJ').textContent = rojCount;
+
+  $('kFUR').textContent = trafos.filter((t) =>
+    (t.estados_especiales || []).includes('propuesta_fur_pendiente')).length;
+  $('kC2H2').textContent = trafos.filter((t) =>
+    (t.estados_especiales || []).includes('monitoreo_intensivo_c2h2')).length;
+
+  const vidaValues = trafos.map((t) => t.salud_actual && t.salud_actual.vida_remanente_pct).filter((x) => x != null);
+  const vidaProm = vidaValues.length ? vidaValues.reduce((a, b) => a + b, 0) / vidaValues.length : null;
+  $('kVida').textContent = fmtPct(vidaProm);
+
+  // Matriz mini
+  const matrixHtml = [];
+  matrixHtml.push('<div class="cell head"></div>');
+  for (const n of NIVELES_ORDEN) {
+    matrixHtml.push(`<div class="cell head">${n.slice(0,3)}</div>`);
+  }
+  for (const hi of [5, 4, 3, 2, 1]) {
+    matrixHtml.push(`<div class="cell head">HI${hi}</div>`);
+    for (const n of NIVELES_ORDEN) {
+      const c = agg[hi][n];
+      const col = c.color || colorCelda(hi, n);
+      matrixHtml.push(`<div class="cell col-${col}">${c.count}</div>`);
+    }
+  }
+  $('matrixMini').innerHTML = matrixHtml.join('');
+
+  // Top 10 PI
+  const rk = rankearPlanInversion(trafos).slice(0, 10);
+  $('top10').innerHTML = rk.length === 0
+    ? '<li>Sin datos.</li>'
+    : rk.map((r) =>
+      `<li><span>${r.codigo}</span>
+       <span>${r.candidato_forzoso ? '⚠ FORZOSO' : r.score.toFixed(2)}</span></li>`
+    ).join('');
+
+  // Próximas muestras — placeholder (requiere data de /muestras_programadas F26)
+  $('proximas').innerHTML = '<li>— integración pendiente con /muestras_programadas</li>';
+
+  // Órdenes por estado (v2)
+  const porEstado = {};
+  for (const o of ordenes) {
+    const e = o.estado_v2 || o.estado;
+    porEstado[e] = (porEstado[e] || 0) + 1;
+  }
+  $('ordenesEstado').innerHTML = Object.keys(porEstado).length === 0
+    ? '<li>Sin órdenes.</li>'
+    : Object.entries(porEstado).sort((a, b) => b[1] - a[1]).map(
+        ([k, v]) => `<li><span>${k}</span><span>${v}</span></li>`
+      ).join('');
+}
+
+document.addEventListener('sgm:session-ready', render);
+if (window.__sgmSession) render();
+
+// Register SW (F34)
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>

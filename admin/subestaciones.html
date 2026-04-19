@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Subestaciones</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
+  <script type="module" src="../assets/js/auth/admin-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css"/>
+  <link rel="stylesheet" href="../assets/css/app.css"/>
+  <style>
+    .wrap { max-width: 1080px; margin: 1rem auto; padding: 0 1rem; }
+    .toolbar { display: flex; gap: .6rem; margin-bottom: 1rem; }
+    .toolbar select, .toolbar input {
+      padding: .45rem .6rem; background: rgba(0,0,0,.3);
+      border: 1px solid rgba(255,255,255,.15); color: var(--text);
+      font-family: var(--font-mono); font-size: .8rem; border-radius: 3px;
+    }
+    .btn-new {
+      margin-left: auto; padding: .6rem 1.1rem;
+      background: var(--accent); color: #000; border: none;
+      font-family: var(--font-mono); font-size: .78rem; cursor: pointer;
+      border-radius: 3px;
+    }
+    table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: .75rem; }
+    th, td { padding: .45rem .6rem; border-bottom: 1px solid rgba(255,255,255,.08); text-align: left; }
+    th { color: var(--accent); }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: .68rem; }
+    .z-BOLIVAR   { background: rgba(0,255,153,.12); color: var(--accent3); }
+    .z-ORIENTE   { background: rgba(0,170,255,.12); color: #0af; }
+    .z-OCCIDENTE { background: rgba(240,165,0,.12); color: var(--accent2); }
+    .modal-bg { display: none; position: fixed; inset: 0; z-index: 100; background: rgba(0,0,0,.75); align-items: center; justify-content: center; }
+    .modal-bg.open { display: flex; }
+    .modal { background: #0d1418; border: 1px solid rgba(255,255,255,.15); border-radius: 5px; max-width: 580px; width: 96%; padding: 1.4rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .5rem; }
+    .grid label { font-family: var(--font-mono); font-size: .7rem; color: var(--text-soft); }
+    .grid input, .grid select { width: 100%; padding: .4rem .5rem; background: rgba(0,0,0,.3); color: var(--text); border: 1px solid rgba(255,255,255,.12); border-radius: 3px; font-family: var(--font-mono); font-size: .78rem; box-sizing: border-box; }
+    .actions { display: flex; gap: .5rem; justify-content: flex-end; padding-top: 1rem; }
+    .btn { padding: .55rem 1rem; border: none; font-family: var(--font-mono); font-size: .74rem; cursor: pointer; border-radius: 3px; }
+    .btn-cancel { background: rgba(255,255,255,.1); color: var(--text); }
+    .btn-save { background: var(--accent); color: #000; }
+    .btn-del { background: rgba(229,57,53,.15); color: #E53935; padding: .3rem .55rem; font-size: .65rem; }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="topbar-brand">SGM · <span>TRANSPOWER</span> · ADMIN</a>
+  <nav class="main-nav">
+    <a href="index.html"        class="nav-link">Panel</a>
+    <a href="inventario.html"   class="nav-link">Inventario</a>
+    <a href="subestaciones.html" class="nav-link active">Subestaciones</a>
+    <a href="muestras.html"     class="nav-link">Muestras</a>
+    <a href="motor-salud.html"  class="nav-link">Motor Salud</a>
+    <a href="importar.html"     class="nav-link">Importar</a>
+    <a href="../home.html"      class="nav-link">Zona interna</a>
+  </nav>
+</header>
+
+<main id="main" class="wrap">
+  <h1>Subestaciones</h1>
+
+  <div class="toolbar">
+    <select id="fZona">
+      <option value="">Todas las zonas</option>
+      <option value="BOLIVAR">Bolívar</option>
+      <option value="ORIENTE">Oriente</option>
+      <option value="OCCIDENTE">Occidente</option>
+    </select>
+    <select id="fDepto">
+      <option value="">Todos los deptos</option>
+      <option value="bolivar">Bolívar</option>
+      <option value="cordoba">Córdoba</option>
+      <option value="sucre">Sucre</option>
+      <option value="cesar">Cesar</option>
+      <option value="magdalena">Magdalena</option>
+    </select>
+    <button class="btn-new" id="btnNew">+ NUEVA SUBESTACIÓN</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Código</th><th scope="col">Nombre</th>
+        <th scope="col">Zona</th><th scope="col">Depto.</th><th scope="col">Municipio</th>
+        <th scope="col">Nivel (kV)</th><th scope="col">Activa</th><th scope="col">Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="tbody">
+      <tr><td colspan="8" style="color:var(--text-soft); font-family:var(--font-mono); font-size:.72rem; padding:1rem;">⋯ Cargando...</td></tr>
+    </tbody>
+  </table>
+</main>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h2 id="modalTitle">Nueva subestación</h2>
+    <form id="formSE">
+      <input type="hidden" id="sId">
+      <div class="grid">
+        <label>Código* <input type="text" id="sCodigo" required></label>
+        <label>Nombre* <input type="text" id="sNombre" required></label>
+        <label>Departamento*
+          <select id="sDepto" required>
+            <option value="">—</option>
+            <option value="bolivar">Bolívar</option>
+            <option value="cordoba">Córdoba</option>
+            <option value="sucre">Sucre</option>
+            <option value="cesar">Cesar</option>
+            <option value="magdalena">Magdalena</option>
+          </select>
+        </label>
+        <label>Zona
+          <select id="sZona">
+            <option value="">—</option>
+            <option value="BOLIVAR">Bolívar</option>
+            <option value="ORIENTE">Oriente</option>
+            <option value="OCCIDENTE">Occidente</option>
+          </select>
+        </label>
+        <label>Municipio <input type="text" id="sMuni"></label>
+        <label>Nivel tensión (kV) <input type="number" step="any" id="sKv"></label>
+        <label>Latitud <input type="number" step="any" id="sLat"></label>
+        <label>Longitud <input type="number" step="any" id="sLng"></label>
+        <label>Activa
+          <select id="sActiva"><option value="1">Sí</option><option value="0">No</option></select>
+        </label>
+      </div>
+      <label style="display:block; font-family:var(--font-mono); font-size:.7rem; margin-top:.5rem;">
+        Dirección
+        <input type="text" id="sDir" style="width:100%; padding:.4rem; background:rgba(0,0,0,.3); border:1px solid rgba(255,255,255,.12); color:var(--text); border-radius:3px;">
+      </label>
+      <div class="actions">
+        <button type="button" class="btn btn-cancel" id="btnCancel">CANCELAR</button>
+        <button type="submit" class="btn btn-save">GUARDAR</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script type="module">
+import { listar, crear, actualizar, eliminar, obtener } from '../assets/js/data/subestaciones.js';
+
+const $ = (id) => document.getElementById(id);
+
+async function cargar() {
+  try {
+    const filtros = {};
+    if ($('fZona').value)  filtros.zona = $('fZona').value;
+    if ($('fDepto').value) filtros.departamento = $('fDepto').value;
+    const items = await listar(filtros);
+    $('tbody').innerHTML = items.length === 0
+      ? `<tr><td colspan="8" style="color:var(--text-soft); font-family:var(--font-mono); font-size:.72rem; padding:1rem;">Sin subestaciones.</td></tr>`
+      : items.map((s) => `
+        <tr>
+          <td>${s.codigo}</td>
+          <td>${s.nombre}</td>
+          <td><span class="pill z-${s.zona || ''}">${s.zona || '—'}</span></td>
+          <td>${s.departamento || '—'}</td>
+          <td>${s.municipio || '—'}</td>
+          <td>${s.nivel_tension_kv ?? '—'}</td>
+          <td>${s.activa === false ? 'No' : 'Sí'}</td>
+          <td>
+            <button class="btn btn-cancel" data-edit="${s.id}" style="padding:.25rem .5rem; font-size:.62rem;">EDITAR</button>
+            <button class="btn btn-del" data-del="${s.id}">✕</button>
+          </td>
+        </tr>
+      `).join('');
+  } catch (err) { alert('Error: ' + err.message); }
+}
+
+$('fZona').addEventListener('change', cargar);
+$('fDepto').addEventListener('change', cargar);
+
+$('btnNew').addEventListener('click', () => {
+  $('modalTitle').textContent = 'Nueva subestación';
+  $('formSE').reset();
+  $('sId').value = '';
+  $('modalBg').classList.add('open');
+});
+$('btnCancel').addEventListener('click', () => $('modalBg').classList.remove('open'));
+
+document.addEventListener('click', async (ev) => {
+  const editId = ev.target.dataset && ev.target.dataset.edit;
+  const delId  = ev.target.dataset && ev.target.dataset.del;
+  if (editId) {
+    const s = await obtener(editId);
+    if (!s) return;
+    $('modalTitle').textContent = 'Editar subestación';
+    $('sId').value = s.id;
+    $('sCodigo').value = s.codigo;
+    $('sNombre').value = s.nombre;
+    $('sDepto').value = s.departamento || '';
+    $('sZona').value = s.zona || '';
+    $('sMuni').value = s.municipio || '';
+    $('sKv').value = s.nivel_tension_kv ?? '';
+    $('sLat').value = s.latitud ?? '';
+    $('sLng').value = s.longitud ?? '';
+    $('sActiva').value = s.activa === false ? '0' : '1';
+    $('sDir').value = s.direccion || '';
+    $('modalBg').classList.add('open');
+  }
+  if (delId && confirm('¿Eliminar subestación?')) {
+    await eliminar(delId);
+    await cargar();
+  }
+});
+
+$('formSE').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const data = {
+    codigo: $('sCodigo').value, nombre: $('sNombre').value,
+    departamento: $('sDepto').value, zona: $('sZona').value,
+    municipio: $('sMuni').value,
+    nivel_tension_kv: $('sKv').value || null,
+    latitud: $('sLat').value || null, longitud: $('sLng').value || null,
+    activa: $('sActiva').value === '1',
+    direccion: $('sDir').value
+  };
+  try {
+    const session = window.__sgmSession;
+    if ($('sId').value) {
+      await actualizar($('sId').value, data);
+    } else {
+      await crear(data, session && session.user && session.user.uid);
+    }
+    $('modalBg').classList.remove('open');
+    await cargar();
+  } catch (err) { alert('Error: ' + err.message); }
+});
+
+document.addEventListener('sgm:session-ready', cargar);
+if (window.__sgmSession) cargar();
+</script>
+</body>
+</html>

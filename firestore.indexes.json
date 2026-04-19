@@ -81,6 +81,30 @@
       ]
     },
     {
+      "collectionGroup": "muestras",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "transformadorId", "order": "ASCENDING" },
+        { "fieldPath": "fecha_muestra",   "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "muestras",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tipo",         "order": "ASCENDING" },
+        { "fieldPath": "fecha_muestra","order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "muestras",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "laboratorio",  "order": "ASCENDING" },
+        { "fieldPath": "fecha_muestra","order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "historial_hi",
       "queryScope": "COLLECTION",
       "fields": [

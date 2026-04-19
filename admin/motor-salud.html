@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Motor de Salud (Sandbox)</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
+  <script type="module" src="../assets/js/auth/admin-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css"/>
+  <link rel="stylesheet" href="../assets/css/app.css"/>
+  <style>
+    .sandbox-wrap {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.2rem;
+      margin-top: 1rem;
+    }
+    .sandbox-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 4px;
+      padding: 1rem 1.2rem;
+    }
+    .sandbox-card h3 {
+      margin: 0 0 .7rem;
+      font-family: var(--font-mono);
+      font-size: .82rem;
+      letter-spacing: .1em;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+    .sandbox-card label {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: .7rem;
+      color: var(--text-soft);
+      letter-spacing: .06em;
+      margin-top: .6rem;
+    }
+    .sandbox-card input, .sandbox-card select {
+      width: 100%;
+      padding: .45rem .6rem;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: .8rem;
+      border-radius: 3px;
+      box-sizing: border-box;
+    }
+    .sandbox-result {
+      grid-column: 1 / -1;
+      background: rgba(0, 255, 153, .03);
+      border: 1px solid rgba(0, 255, 153, .2);
+      border-radius: 4px;
+      padding: 1.2rem;
+    }
+    .sandbox-result h3 { color: var(--accent3); }
+    .hi-big {
+      font-family: var(--font-mono);
+      font-size: 2.6rem;
+      font-weight: 700;
+      text-align: center;
+      padding: 1rem 0;
+    }
+    .hi-bucket {
+      text-align: center;
+      font-family: var(--font-mono);
+      font-size: .9rem;
+      letter-spacing: .15em;
+      text-transform: uppercase;
+      padding-bottom: 1rem;
+    }
+    .calif-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: .5rem;
+      margin-top: 1rem;
+    }
+    .calif-cell {
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 3px;
+      padding: .5rem .7rem;
+      text-align: center;
+    }
+    .calif-cell strong {
+      display: block;
+      font-size: 1.4rem;
+      font-family: var(--font-mono);
+      color: var(--accent);
+    }
+    .calif-cell small {
+      display: block;
+      font-size: .65rem;
+      color: var(--text-soft);
+      letter-spacing: .08em;
+    }
+    .override-list {
+      list-style: disc inside;
+      font-family: var(--font-mono);
+      font-size: .72rem;
+      color: var(--text-soft);
+      padding-top: .6rem;
+    }
+    .b-muy_bueno  { color:#1B8E3F; }
+    .b-bueno      { color:#4CB050; }
+    .b-medio      { color:#F5C518; }
+    .b-pobre      { color:#EF7820; }
+    .b-muy_pobre  { color:#E53935; }
+    button.btn-calc {
+      grid-column: 1 / -1;
+      padding: .8rem 1rem;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      font-family: var(--font-mono);
+      font-size: .85rem;
+      letter-spacing: .1em;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+    .refnote {
+      font-size: .7rem;
+      color: var(--text-soft);
+      font-family: var(--font-mono);
+      padding-top: .3rem;
+    }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="topbar-brand">SGM · <span>TRANSPOWER</span> · ADMIN</a>
+  <nav class="main-nav">
+    <a href="index.html"         class="nav-link">Panel</a>
+    <a href="inventario.html"    class="nav-link">Inventario</a>
+    <a href="ordenes.html"       class="nav-link">Órdenes</a>
+    <a href="kpis.html"          class="nav-link">KPIs</a>
+    <a href="motor-salud.html"   class="nav-link active">Motor Salud</a>
+    <a href="umbrales-salud.html" class="nav-link">Umbrales</a>
+    <a href="alertas.html"       class="nav-link">Alertas</a>
+    <a href="usuarios.html"      class="nav-link">Usuarios</a>
+    <a href="../home.html"       class="nav-link">Zona interna</a>
+  </nav>
+</header>
+
+<main id="main" class="page-container">
+  <h1>Sandbox del Motor de Salud · MO.00418 Ed. 02</h1>
+  <p class="refnote">
+    Ingrese valores hipotéticos para cada variable y pulse <em>Calcular HI</em>
+    para ver la calificación, el bucket y los overrides aplicados. Todos los
+    cálculos usan las fórmulas oficiales (Tabla 10). Referencia:
+    MO.00418.DE-GAC-AX.01 Ed. 02 §4.1 / §4.2 / §A5 / §A9.
+  </p>
+
+  <form id="formMotor" class="sandbox-wrap" autocomplete="off">
+    <div class="sandbox-card">
+      <h3>DGA — Gases disueltos (ppm)</h3>
+      <label>H₂ <input type="number" step="any" id="H2"   value="50"></label>
+      <label>CH₄ <input type="number" step="any" id="CH4" value="50"></label>
+      <label>C₂H₄ <input type="number" step="any" id="C2H4" value="50"></label>
+      <label>C₂H₆ <input type="number" step="any" id="C2H6" value="30"></label>
+      <label>C₂H₂ <input type="number" step="any" id="C2H2" value="2"></label>
+      <label>CO  <input type="number" step="any" id="CO"  value="200"></label>
+      <label>CO₂ <input type="number" step="any" id="CO2" value="2000"></label>
+    </div>
+
+    <div class="sandbox-card">
+      <h3>ADFQ — Físico-químico</h3>
+      <label>Rigidez dieléctrica (kV)
+        <input type="number" step="any" id="rd" value="35"></label>
+      <label>Tensión interfacial
+        <input type="number" step="any" id="ti" value="1200"></label>
+      <label>Número de neutralización
+        <input type="number" step="any" id="nn" value="1"></label>
+    </div>
+
+    <div class="sandbox-card">
+      <h3>FUR — Furanos (ppb 2FAL)</h3>
+      <label>2FAL <input type="number" step="any" id="ppb2fal" value="1500"></label>
+    </div>
+
+    <div class="sandbox-card">
+      <h3>CRG — Cargabilidad</h3>
+      <label>Carga primario (A)
+        <input type="number" step="any" id="cp" value="70"></label>
+      <label>Ampacidad primario (A)
+        <input type="number" step="any" id="ap" value="100"></label>
+      <label>Carga secundario (A)
+        <input type="number" step="any" id="cs" value="65"></label>
+      <label>Ampacidad secundario (A)
+        <input type="number" step="any" id="as" value="100"></label>
+    </div>
+
+    <div class="sandbox-card">
+      <h3>EDAD</h3>
+      <label>Año de fabricación
+        <input type="number" id="anoFab" value="2005"></label>
+    </div>
+
+    <div class="sandbox-card">
+      <h3>HER — Hermeticidad + PYT</h3>
+      <label>Ubicación de fuga dominante
+        <select id="her">
+          <option value="sin_fugas">Sin fugas (1)</option>
+          <option value="laterales">Laterales (2)</option>
+          <option value="junction_block">Junction Block (3)</option>
+          <option value="accesorios">Accesorios (4)</option>
+          <option value="superiores">Superiores (5)</option>
+        </select>
+      </label>
+      <label>PYT — Protecciones y Telecontrol
+        <select id="pyt">
+          <option value="integral_scada">Integral + SCADA (1)</option>
+          <option value="integral_scada_parc">Completa + SCADA parcial (2)</option>
+          <option value="integral_sin_scada">Completa sin SCADA (3)</option>
+          <option value="parcial_sin_scada">Parcial sin SCADA (4)</option>
+          <option value="sin_proteccion">Sin protección (5)</option>
+        </select>
+      </label>
+      <label><input type="checkbox" id="c2h2Accel"> Aceleración C₂H₂ detectada (§A9.1)</label>
+      <label><input type="checkbox" id="finVida"> FUR≥4 aprobado por experto (§A9.2)</label>
+    </div>
+
+    <button type="submit" class="btn-calc">CALCULAR HI</button>
+  </form>
+
+  <section class="sandbox-result" id="resultado" hidden>
+    <h3>Resultado del motor</h3>
+    <div class="hi-big" id="hiValor">—</div>
+    <div class="hi-bucket" id="hiBucket">—</div>
+
+    <div class="calif-grid" id="califGrid"></div>
+
+    <h3 style="margin-top:1.2rem">Overrides aplicados</h3>
+    <ul class="override-list" id="overridesList"></ul>
+
+    <h3 style="margin-top:1.2rem">Diagnóstico DGA</h3>
+    <div class="calif-grid" id="diagGrid"></div>
+
+    <p class="refnote" style="margin-top:1rem">
+      Fuente: MO.00418.DE-GAC-AX.01 Ed. 02 · Tabla 10 (pesos canónicos) +
+      §A5 (overrides automáticos) + §A9.1 (C₂H₂ aceleración) + §A9.2 (juicio experto FUR).
+    </p>
+  </section>
+</main>
+
+<script type="module">
+import { snapshotSaludCompleto, calcularHIBruto, aplicarOverrides }
+  from '../assets/js/domain/salud_activos.js';
+import { diagnosticoDGA, alertaArcoD2 }
+  from '../assets/js/domain/dga_diagnostico.js';
+import { CONDICIONES } from '../assets/js/domain/schema.js';
+
+const $ = (id) => document.getElementById(id);
+
+function readForm() {
+  return {
+    transformador: { fabricacion: { ano_fabricacion: +$('anoFab').value } },
+    muestraDGA: { gases: {
+      H2: +$('H2').value, CH4: +$('CH4').value,
+      C2H4: +$('C2H4').value, C2H6: +$('C2H6').value,
+      C2H2: +$('C2H2').value, CO: +$('CO').value, CO2: +$('CO2').value
+    }},
+    muestraADFQ: { rigidez_kv: +$('rd').value, ti: +$('ti').value, nn: +$('nn').value },
+    muestraFUR: { ppb: +$('ppb2fal').value },
+    cargaActual: {
+      cp: +$('cp').value, ap: +$('ap').value,
+      cs: +$('cs').value, as: +$('as').value
+    },
+    pyt: $('pyt').value,
+    her: $('her').value,
+    contextoOverrides: {
+      c2h2_aceleracion_detectada: $('c2h2Accel').checked,
+      fin_vida_util_papel: $('finVida').checked
+    }
+  };
+}
+
+function render(snap, diag, arcoD2) {
+  $('resultado').hidden = false;
+
+  $('hiValor').textContent = snap.hi_final != null ? snap.hi_final.toFixed(3) : '—';
+  const bc = CONDICIONES.find((c) => c.key === snap.bucket);
+  $('hiBucket').textContent = bc ? bc.label : (snap.bucket || '—');
+  $('hiBucket').className = 'hi-bucket b-' + (snap.bucket || '');
+
+  const califs = [
+    ['TDGC', snap.calif_tdgc], ['CO', snap.calif_co], ['CO₂', snap.calif_co2],
+    ['C₂H₂', snap.calif_c2h2], ['EVAL DGA', snap.eval_dga],
+    ['RD', snap.calif_rd], ['IC', snap.calif_ic], ['EVAL ADFQ', snap.eval_adfq],
+    ['FUR', snap.calif_fur], ['CRG', snap.calif_crg], ['EDAD', snap.calif_edad],
+    ['HER', snap.calif_her], ['PYT', snap.calif_pyt]
+  ];
+  $('califGrid').innerHTML = califs.map(([k, v]) => `
+    <div class="calif-cell"><strong>${v != null ? (Number.isInteger(v) ? v : v.toFixed(2)) : '—'}</strong><small>${k}</small></div>
+  `).join('');
+
+  $('overridesList').innerHTML = (snap.overrides_aplicados.length
+    ? snap.overrides_aplicados.map((o) => `<li>${o}</li>`).join('')
+    : '<li>Sin overrides aplicados.</li>');
+
+  $('diagGrid').innerHTML = `
+    <div class="calif-cell"><strong>${diag.duval.codigo}</strong><small>${diag.duval.label}</small></div>
+    <div class="calif-cell"><strong>${diag.rogers.codigo}</strong><small>Rogers</small></div>
+    <div class="calif-cell"><strong>${diag.doernenburg.codigo}</strong><small>Doernenburg</small></div>
+    <div class="calif-cell"><strong>${arcoD2 ? '⚠ SI' : 'NO'}</strong><small>Alerta D2 (C₂H₂/C₂H₄ ≥ 3)</small></div>
+  `;
+}
+
+$('formMotor').addEventListener('submit', (ev) => {
+  ev.preventDefault();
+  const ctx = readForm();
+  const snap = snapshotSaludCompleto(ctx);
+  const diag = diagnosticoDGA(ctx.muestraDGA.gases);
+  const arcoD2 = alertaArcoD2(ctx.muestraDGA.gases);
+  render(snap, diag, arcoD2);
+});
+</script>
+</body>
+</html>

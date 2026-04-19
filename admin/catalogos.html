@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Catálogos (F22)</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
+  <script type="module" src="../assets/js/auth/admin-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css"/>
+  <link rel="stylesheet" href="../assets/css/app.css"/>
+  <style>
+    .wrap { max-width: 1200px; margin: 1rem auto; padding: 0 1rem; }
+    .tabs { display: flex; gap: .4rem; margin-bottom: 1rem; }
+    .tabs button { padding: .55rem 1rem; background: rgba(255,255,255,.05); color: var(--text-soft); border: 1px solid rgba(255,255,255,.1); font-family: var(--font-mono); font-size: .76rem; cursor: pointer; border-radius: 3px; }
+    .tabs button.active { background: var(--accent); color: #000; border-color: var(--accent); }
+    .pane { display: none; }
+    .pane.active { display: block; }
+    .btn-seed { margin-left: auto; padding: .6rem 1rem; background: var(--accent2); color: #000; border: none; font-family: var(--font-mono); font-size: .76rem; cursor: pointer; border-radius: 3px; }
+    .toolbar { display: flex; gap: .6rem; margin-bottom: 1rem; align-items: center; }
+    table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: .73rem; }
+    th, td { padding: .4rem .55rem; border-bottom: 1px solid rgba(255,255,255,.08); text-align: left; }
+    th { color: var(--accent); }
+    .c-obj-1 { color: #1B8E3F; }
+    .c-obj-2 { color: #4CB050; }
+    .c-obj-3 { color: #F5C518; }
+    .c-obj-4 { color: #EF7820; }
+    .c-obj-5 { color: #E53935; }
+    .mitig { display: inline-block; padding: 1px 6px; border-radius: 3px; background: rgba(240,165,0,.15); color: var(--accent2); font-size: .6rem; }
+    #msg { font-family: var(--font-mono); font-size: .75rem; padding: .4rem 0; }
+    #msg.ok { color: var(--accent3); }
+    #msg.err { color: #ff5577; }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="topbar-brand">SGM · <span>TRANSPOWER</span> · ADMIN</a>
+  <nav class="main-nav">
+    <a href="index.html"        class="nav-link">Panel</a>
+    <a href="inventario.html"   class="nav-link">Inventario</a>
+    <a href="catalogos.html"    class="nav-link active">Catálogos</a>
+    <a href="contratos.html"    class="nav-link">Contratos</a>
+    <a href="muestras.html"     class="nav-link">Muestras</a>
+    <a href="motor-salud.html"  class="nav-link">Motor Salud</a>
+    <a href="../home.html"      class="nav-link">Zona interna</a>
+  </nav>
+</header>
+
+<main id="main" class="wrap">
+  <h1>Catálogos de mantenimiento · §A7 MO.00418</h1>
+
+  <div class="toolbar">
+    <div class="tabs">
+      <button data-pane="macro"  class="active">Macroactividades</button>
+      <button data-pane="sub">Subactividades</button>
+      <button data-pane="cau">Causantes</button>
+    </div>
+    <button class="btn-seed" id="btnSeed">CARGAR BASELINE OFICIAL</button>
+  </div>
+
+  <div id="msg"></div>
+
+  <section class="pane active" id="pane-macro">
+    <table>
+      <thead><tr>
+        <th scope="col">Código</th><th scope="col">Nombre</th>
+        <th scope="col">Cond. obj.</th><th scope="col">Periodicidad</th>
+        <th scope="col"># Subactividades</th><th scope="col">Referencia</th>
+      </tr></thead>
+      <tbody id="tbody-macro"><tr><td colspan="6" style="padding:1rem; font-family:var(--font-mono); font-size:.72rem; color:var(--text-soft);">⋯</td></tr></tbody>
+    </table>
+  </section>
+
+  <section class="pane" id="pane-sub">
+    <table>
+      <thead><tr>
+        <th scope="col">Código</th><th scope="col">Nombre</th>
+        <th scope="col">Cond. obj.</th><th scope="col">Especialidad</th>
+        <th scope="col">Tiempo (h)</th><th scope="col">Costo ref.</th>
+      </tr></thead>
+      <tbody id="tbody-sub"><tr><td colspan="6" style="padding:1rem; font-family:var(--font-mono); font-size:.72rem; color:var(--text-soft);">⋯</td></tr></tbody>
+    </table>
+  </section>
+
+  <section class="pane" id="pane-cau">
+    <table>
+      <thead><tr>
+        <th scope="col">Código</th><th scope="col">Nombre</th><th scope="col">Origen</th>
+      </tr></thead>
+      <tbody id="tbody-cau"><tr><td colspan="3" style="padding:1rem; font-family:var(--font-mono); font-size:.72rem; color:var(--text-soft);">⋯</td></tr></tbody>
+    </table>
+  </section>
+</main>
+
+<script type="module">
+import {
+  seedCatalogos,
+  listarSubactividades, listarMacroactividades, listarCausantes
+} from '../assets/js/data/catalogos.js';
+
+const $ = (id) => document.getElementById(id);
+const setMsg = (t, cls) => { $('msg').textContent = t; $('msg').className = cls || ''; };
+
+document.querySelectorAll('.tabs button').forEach((b) => {
+  b.addEventListener('click', () => {
+    document.querySelectorAll('.tabs button').forEach((x) => x.classList.toggle('active', x === b));
+    document.querySelectorAll('.pane').forEach((p) => p.classList.toggle('active', p.id === 'pane-' + b.dataset.pane));
+  });
+});
+
+async function cargar() {
+  try {
+    const [sub, macro, cau] = await Promise.all([
+      listarSubactividades(), listarMacroactividades(), listarCausantes()
+    ]);
+    // Macro
+    $('tbody-macro').innerHTML = macro.length === 0
+      ? `<tr><td colspan="6" style="padding:1rem;">Sin macroactividades. Usa CARGAR BASELINE.</td></tr>`
+      : macro.map((m) => `
+        <tr>
+          <td>${m.codigo}</td>
+          <td>${m.nombre}</td>
+          <td class="c-obj-${m.condicion_objetivo}">Cond. ${m.condicion_objetivo}</td>
+          <td>${m.periodicidad_dias ? m.periodicidad_dias + ' d' : 'bajo demanda'}</td>
+          <td>${(m.subactividades || []).length}</td>
+          <td>${m.referencia || '—'}</td>
+        </tr>`).join('');
+    // Subactividades
+    $('tbody-sub').innerHTML = sub.length === 0
+      ? `<tr><td colspan="6" style="padding:1rem;">Sin subactividades.</td></tr>`
+      : sub.map((s) => `
+        <tr>
+          <td>${s.codigo}${s.mitigacion ? ' <span class="mitig">MIT</span>' : ''}</td>
+          <td>${s.nombre}</td>
+          <td class="c-obj-${s.condicion_objetivo}">Cond. ${s.condicion_objetivo}</td>
+          <td>${s.especialidad || '—'}</td>
+          <td>${s.tiempo_h ?? '—'}</td>
+          <td>${s.costo_ref ? new Intl.NumberFormat('es-CO').format(s.costo_ref) : '—'}</td>
+        </tr>`).join('');
+    // Causantes
+    $('tbody-cau').innerHTML = cau.length === 0
+      ? `<tr><td colspan="3" style="padding:1rem;">Sin causantes.</td></tr>`
+      : cau.map((c) => `<tr><td>${c.codigo}</td><td>${c.nombre}</td><td>${c.origen}</td></tr>`).join('');
+  } catch (err) { setMsg('Error: ' + err.message, 'err'); }
+}
+
+$('btnSeed').addEventListener('click', async () => {
+  if (!confirm('Cargar los 3 catálogos baseline oficiales MO.00418? Idempotente (no sobrescribe cambios manuales activos).')) return;
+  try {
+    const session = window.__sgmSession;
+    const r = await seedCatalogos({ uid: session && session.user && session.user.uid });
+    setMsg(`✓ Baseline cargado: ${r.subactividades} subactividades · ${r.macroactividades} macroactividades · ${r.causantes} causantes.`, 'ok');
+    await cargar();
+  } catch (err) { setMsg('Error: ' + err.message, 'err'); }
+});
+
+document.addEventListener('sgm:session-ready', cargar);
+if (window.__sgmSession) cargar();
+</script>
+</body>
+</html>

@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Contratos</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
+  <script type="module" src="../assets/js/auth/admin-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css"/>
+  <link rel="stylesheet" href="../assets/css/app.css"/>
+  <style>
+    .wrap { max-width: 1200px; margin: 1rem auto; padding: 0 1rem; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .kpi { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.1); border-radius: 4px; padding: 1rem; }
+    .kpi h3 { font-family: var(--font-mono); font-size: .68rem; color: var(--text-soft); letter-spacing: .1em; margin: 0 0 .4rem; }
+    .kpi .v { font-family: var(--font-mono); font-size: 1.7rem; color: var(--accent); }
+    .toolbar { display: flex; gap: .6rem; margin-bottom: 1rem; }
+    .toolbar select { padding: .45rem .6rem; background: rgba(0,0,0,.3); border: 1px solid rgba(255,255,255,.15); color: var(--text); font-family: var(--font-mono); font-size: .8rem; border-radius: 3px; }
+    .btn-new { margin-left: auto; padding: .6rem 1.1rem; background: var(--accent); color: #000; border: none; font-family: var(--font-mono); font-size: .78rem; cursor: pointer; border-radius: 3px; }
+    table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: .73rem; }
+    th, td { padding: .45rem .6rem; border-bottom: 1px solid rgba(255,255,255,.08); text-align: left; }
+    th { color: var(--accent); }
+    .progress-bar { display: inline-block; width: 110px; height: 6px; background: rgba(255,255,255,.1); border-radius: 3px; overflow: hidden; vertical-align: middle; margin-left: .5rem; }
+    .progress-bar span { display: block; height: 100%; background: var(--accent3); }
+    .e-vigente { color: var(--accent3); }
+    .e-suspendido { color: var(--accent2); }
+    .e-finalizado { color: var(--text-soft); }
+    .modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.75); align-items: center; justify-content: center; z-index: 100; }
+    .modal-bg.open { display: flex; }
+    .modal { background: #0d1418; border: 1px solid rgba(255,255,255,.15); border-radius: 5px; width: 96%; max-width: 640px; padding: 1.4rem; max-height: 90vh; overflow-y: auto; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .5rem; }
+    .grid label, label.full { font-family: var(--font-mono); font-size: .7rem; color: var(--text-soft); display: block; }
+    .grid input, .grid select, label.full input { width: 100%; padding: .4rem .5rem; background: rgba(0,0,0,.3); border: 1px solid rgba(255,255,255,.12); color: var(--text); font-family: var(--font-mono); font-size: .78rem; border-radius: 3px; box-sizing: border-box; }
+    .actions { display: flex; gap: .5rem; justify-content: flex-end; padding-top: 1rem; }
+    .btn { padding: .55rem 1rem; border: none; font-family: var(--font-mono); font-size: .74rem; cursor: pointer; border-radius: 3px; }
+    .btn-cancel { background: rgba(255,255,255,.1); color: var(--text); }
+    .btn-save { background: var(--accent); color: #000; }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="topbar-brand">SGM · <span>TRANSPOWER</span> · ADMIN</a>
+  <nav class="main-nav">
+    <a href="index.html"        class="nav-link">Panel</a>
+    <a href="inventario.html"   class="nav-link">Inventario</a>
+    <a href="contratos.html"    class="nav-link active">Contratos</a>
+    <a href="muestras.html"     class="nav-link">Muestras</a>
+    <a href="motor-salud.html"  class="nav-link">Motor Salud</a>
+    <a href="importar.html"     class="nav-link">Importar</a>
+    <a href="../home.html"      class="nav-link">Zona interna</a>
+  </nav>
+</header>
+
+<main id="main" class="wrap">
+  <h1>Contratos macro</h1>
+
+  <section class="kpi-grid">
+    <div class="kpi"><h3>Total contratos</h3><div class="v" id="kTotal">—</div></div>
+    <div class="kpi"><h3>Vigentes</h3><div class="v" id="kVigentes">—</div></div>
+    <div class="kpi"><h3>Monto total</h3><div class="v" id="kMonto">—</div></div>
+    <div class="kpi"><h3>Ejecutado</h3><div class="v" id="kEjec">—</div></div>
+    <div class="kpi"><h3>Disponible</h3><div class="v" id="kDisp">—</div></div>
+  </section>
+
+  <div class="toolbar">
+    <select id="fEstado">
+      <option value="">Todos</option>
+      <option value="vigente">Vigente</option>
+      <option value="suspendido">Suspendido</option>
+      <option value="finalizado">Finalizado</option>
+      <option value="en_liquidacion">En liquidación</option>
+    </select>
+    <button class="btn-new" id="btnNew">+ NUEVO CONTRATO</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Código</th><th scope="col">Aliado</th>
+        <th scope="col">Alcance</th><th scope="col">Estado</th>
+        <th scope="col">Monto</th><th scope="col">Ejecutado / Disp.</th>
+        <th scope="col">Vigencia</th><th scope="col">—</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"><tr><td colspan="8" style="color:var(--text-soft); font-family:var(--font-mono); font-size:.72rem; padding:1rem;">⋯ Cargando...</td></tr></tbody>
+  </table>
+</main>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h2 id="modalTitle">Nuevo contrato</h2>
+    <form id="formC">
+      <input type="hidden" id="cId">
+      <div class="grid">
+        <label>Código* <input type="text" id="cCodigo" required></label>
+        <label>Aliado
+          <select id="cAliado">
+            <option value="BRIGADA_TX">Brigada TX</option>
+            <option value="CDM">CDM</option>
+            <option value="TYS">TyS</option>
+            <option value="TYS_G3">TyS G3</option>
+            <option value="CDM_TYS">CDM-TyS</option>
+            <option value="OTRO">Otro</option>
+          </select>
+        </label>
+        <label>Aliado (otro) <input type="text" id="cAliadoOtro"></label>
+        <label>Estado
+          <select id="cEstado">
+            <option value="vigente">Vigente</option>
+            <option value="suspendido">Suspendido</option>
+            <option value="finalizado">Finalizado</option>
+            <option value="en_liquidacion">En liquidación</option>
+          </select>
+        </label>
+        <label>Fecha inicio* <input type="date" id="cInicio" required></label>
+        <label>Fecha fin <input type="date" id="cFin"></label>
+        <label>Monto total <input type="number" step="any" id="cMonto"></label>
+        <label>Moneda <input type="text" id="cMoneda" value="COP"></label>
+        <label>Comprometido <input type="number" step="any" id="cComp"></label>
+        <label>Ejecutado <input type="number" step="any" id="cEjec"></label>
+      </div>
+      <label class="full">Alcance
+        <input type="text" id="cAlcance">
+      </label>
+      <label class="full">Observaciones
+        <input type="text" id="cObs">
+      </label>
+      <div class="actions">
+        <button type="button" class="btn btn-cancel" id="btnCancel">CANCELAR</button>
+        <button type="submit" class="btn btn-save">GUARDAR</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script type="module">
+import { listar, crear, actualizar, eliminar, obtener } from '../assets/js/data/contratos.js';
+
+const $ = (id) => document.getElementById(id);
+
+function formatCop(n) {
+  if (n == null) return '—';
+  return new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 }).format(n);
+}
+
+async function cargar() {
+  const filtros = {};
+  if ($('fEstado').value) filtros.estado = $('fEstado').value;
+  const items = await listar(filtros);
+  $('kTotal').textContent = items.length;
+  $('kVigentes').textContent = items.filter((c) => c.estado === 'vigente').length;
+  const totM = items.reduce((s, c) => s + (c.monto_total || 0), 0);
+  const totE = items.reduce((s, c) => s + (c.presupuesto_ejecutado || 0), 0);
+  const totD = items.reduce((s, c) => s + (c.presupuesto_disponible || 0), 0);
+  $('kMonto').textContent = formatCop(totM);
+  $('kEjec').textContent = formatCop(totE);
+  $('kDisp').textContent = formatCop(totD);
+
+  $('tbody').innerHTML = items.length === 0
+    ? `<tr><td colspan="8" style="color:var(--text-soft); font-family:var(--font-mono); font-size:.72rem; padding:1rem;">Sin contratos.</td></tr>`
+    : items.map((c) => {
+      const pct = c.monto_total > 0 ? ((c.presupuesto_ejecutado || 0) / c.monto_total * 100) : 0;
+      return `
+      <tr>
+        <td>${c.codigo}</td>
+        <td>${c.aliado}${c.aliado_otro ? ` (${c.aliado_otro})` : ''}</td>
+        <td>${c.alcance || '—'}</td>
+        <td class="e-${c.estado}">${c.estado}</td>
+        <td>${formatCop(c.monto_total)}</td>
+        <td>
+          ${formatCop(c.presupuesto_ejecutado)} / ${formatCop(c.presupuesto_disponible)}
+          <span class="progress-bar"><span style="width:${Math.min(100, pct).toFixed(1)}%"></span></span>
+        </td>
+        <td>${c.fecha_inicio || '—'} → ${c.fecha_fin || '—'}</td>
+        <td>
+          <button class="btn btn-cancel" data-edit="${c.id}" style="padding:.25rem .5rem; font-size:.62rem;">EDITAR</button>
+        </td>
+      </tr>`;
+    }).join('');
+}
+
+$('fEstado').addEventListener('change', cargar);
+$('btnNew').addEventListener('click', () => {
+  $('modalTitle').textContent = 'Nuevo contrato';
+  $('formC').reset();
+  $('cId').value = '';
+  $('cMoneda').value = 'COP';
+  $('modalBg').classList.add('open');
+});
+$('btnCancel').addEventListener('click', () => $('modalBg').classList.remove('open'));
+
+document.addEventListener('click', async (ev) => {
+  const editId = ev.target.dataset && ev.target.dataset.edit;
+  if (editId) {
+    const c = await obtener(editId);
+    if (!c) return;
+    $('modalTitle').textContent = 'Editar contrato';
+    $('cId').value = c.id;
+    $('cCodigo').value = c.codigo;
+    $('cAliado').value = c.aliado || 'OTRO';
+    $('cAliadoOtro').value = c.aliado_otro || '';
+    $('cEstado').value = c.estado || 'vigente';
+    $('cInicio').value = c.fecha_inicio || '';
+    $('cFin').value = c.fecha_fin || '';
+    $('cMonto').value = c.monto_total ?? '';
+    $('cMoneda').value = c.moneda || 'COP';
+    $('cComp').value = c.presupuesto_comprometido ?? '';
+    $('cEjec').value = c.presupuesto_ejecutado ?? '';
+    $('cAlcance').value = c.alcance || '';
+    $('cObs').value = c.observaciones || '';
+    $('modalBg').classList.add('open');
+  }
+});
+
+$('formC').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const data = {
+    codigo: $('cCodigo').value, aliado: $('cAliado').value,
+    aliado_otro: $('cAliadoOtro').value, estado: $('cEstado').value,
+    fecha_inicio: $('cInicio').value, fecha_fin: $('cFin').value,
+    monto_total: $('cMonto').value || 0, moneda: $('cMoneda').value,
+    presupuesto_comprometido: $('cComp').value || 0,
+    presupuesto_ejecutado:    $('cEjec').value || 0,
+    alcance: $('cAlcance').value, observaciones: $('cObs').value
+  };
+  try {
+    const session = window.__sgmSession;
+    if ($('cId').value) await actualizar($('cId').value, data);
+    else await crear(data, session && session.user && session.user.uid);
+    $('modalBg').classList.remove('open');
+    await cargar();
+  } catch (err) { alert('Error: ' + err.message); }
+});
+
+document.addEventListener('sgm:session-ready', cargar);
+if (window.__sgmSession) cargar();
+</script>
+</body>
+</html>

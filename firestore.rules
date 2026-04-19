@@ -245,7 +245,8 @@ service cloud.firestore {
                         'planificada','en_curso','cerrada','cancelada'
                        ]
                     && request.resource.data.tipo in [
-                        'preventivo','correctivo','predictivo','emergencia'
+                        'preventivo','correctivo','predictivo','emergencia',
+                        'etu','reemplazo','retiro'
                        ]
                     && request.resource.data.prioridad in [
                         'baja','media','alta','critica'
@@ -255,7 +256,8 @@ service cloud.firestore {
                         'planificada','en_curso','cerrada','cancelada'
                        ]
                     && request.resource.data.tipo in [
-                        'preventivo','correctivo','predictivo','emergencia'
+                        'preventivo','correctivo','predictivo','emergencia',
+                        'etu','reemplazo','retiro'
                        ]
                     && request.resource.data.prioridad in [
                         'baja','media','alta','critica'
@@ -300,6 +302,130 @@ service cloud.firestore {
     match /alertas_config/{id} {
       allow read:   if isTeamMember();
       allow write:  if isAdmin();
+    }
+
+    // ── /umbrales_salud/{id} (Fase 18) ──
+    // Documento `global` con los umbrales activos del motor de
+    // salud. Historial append-only en /historial/{id}.
+    match /umbrales_salud/{id} {
+      allow read:   if isTeamMember();
+      allow write:  if isAdmin();
+      match /historial/{evt} {
+        allow read:   if isTeamMember();
+        allow create: if isAdmin();
+        allow update: if false;
+        allow delete: if false;
+      }
+    }
+
+    // ── /contramuestras/{id} (F26) ──
+    match /contramuestras/{id} {
+      allow read:   if isTeamMember();
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── /monitoreo_intensivo/{id} (F18/F26 · A9.1) ──
+    match /monitoreo_intensivo/{id} {
+      allow read:   if isTeamMember();
+      allow create: if isAdmin()
+                    && request.resource.data.transformadorId is string
+                    && request.resource.data.tipo == 'C2H2';
+      allow update: if isAdmin();
+      allow delete: if false;
+    }
+
+    // ── /auditoria/{id} (F35) ──
+    match /auditoria/{id} {
+      allow read:   if isAdmin() || (hasProfile() && profile().rol == 'auditor_campo');
+      allow create: if isSignedIn()
+                    && request.resource.data.accion is string;
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // ── /fallados/{id} (F25) ──
+    match /fallados/{id} {
+      allow read:   if isTeamMember();
+      allow create: if isAdmin()
+                    && request.resource.data.transformadorId is string
+                    && request.resource.data.tipo_falla in
+                       ['termica','electrica','mecanica','quimica','externa','desconocida']
+                    && request.resource.data.metodo_rca in
+                       ['5_porques','ishikawa','fmea'];
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── /parametros_sistema/{id} (F36) ──
+    match /parametros_sistema/{id} {
+      allow read:   if isTeamMember();
+      allow write:  if isAdmin();
+    }
+
+    // ── /contratos/{id} (F21) ──
+    match /contratos/{id} {
+      allow read:   if isTeamMember();
+      allow create: if isAdmin()
+                    && request.resource.data.codigo is string
+                    && request.resource.data.codigo.size() > 0
+                    && request.resource.data.estado in
+                       ['vigente','suspendido','finalizado','en_liquidacion'];
+      allow update: if isAdmin()
+                    && request.resource.data.estado in
+                       ['vigente','suspendido','finalizado','en_liquidacion'];
+      allow delete: if isAdmin();
+    }
+
+    // ── /subactividades, /macroactividades, /causantes (F22) ──
+    match /subactividades/{id} {
+      allow read:   if isTeamMember();
+      allow write:  if isAdmin();
+    }
+    match /macroactividades/{id} {
+      allow read:   if isTeamMember();
+      allow write:  if isAdmin();
+    }
+    match /causantes/{id} {
+      allow read:   if isTeamMember();
+      allow write:  if isAdmin();
+    }
+
+    // ── /muestras/{id} (Fase 19) ──
+    // Time-series DGA/ADFQ/FUR. Read team, Create/Update admin
+    // con validación de enum tipo. Delete solo admin.
+    match /muestras/{id} {
+      allow read:   if isTeamMember();
+      allow create: if isAdmin()
+                    && request.resource.data.transformadorId is string
+                    && request.resource.data.tipo in ['DGA','ADFQ','FURANOS','COMBO']
+                    && request.resource.data.fecha_muestra is string;
+      allow update: if isAdmin()
+                    && (!('tipo' in request.resource.data)
+                        || request.resource.data.tipo in ['DGA','ADFQ','FURANOS','COMBO']);
+      allow delete: if isAdmin();
+    }
+
+    // ── /importaciones/{id} (Fase 17) ──
+    // Log append-only de jobs de importación Excel. Cada job
+    // lleva el reporte de discrepancias Excel ↔ MO.00418.
+    match /importaciones/{id} {
+      allow read:   if isTeamMember();
+      allow create: if isAdmin();
+      allow update: if false;
+      allow delete: if false;
+    }
+
+    // ── /propuestas_reclasificacion_fur/{id} (F18/F26 · A9.2) ──
+    match /propuestas_reclasificacion_fur/{id} {
+      allow read:   if isTeamMember();
+      allow create: if isAdmin()
+                    && request.resource.data.transformadorId is string
+                    && request.resource.data.estado == 'pendiente_revision_experto'
+                    && request.resource.data.referencia_normativa is string;
+      allow update: if isAdmin();
+      allow delete: if false;
     }
 
     match /alertas_reconocidas/{id} {
