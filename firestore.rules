@@ -1,10 +1,11 @@
 rules_version = '2';
 
 // ══════════════════════════════════════════════════════════════
-// SGM · TRANSPOWER — Reglas Firestore (Fase 11)
+// SGM · TRANSPOWER — Reglas Firestore (Fase 12)
 // Colecciones activas: `transformadores` (F6), `ordenes` (F7),
 // `documentos` (F9, metadata · binarios en Storage),
-// `alertas_config` + `alertas_reconocidas` (F11, motor de alertas).
+// `alertas_config` + `alertas_reconocidas` (F11, motor de alertas),
+// `gate_codes` (F12, gate dinámico con códigos hasheados).
 // Estado admin se enforce vía colección /admins/{uid}.
 // ══════════════════════════════════════════════════════════════
 
@@ -139,6 +140,26 @@ service cloud.firestore {
                     && request.resource.data.alertId is string
                     && request.resource.data.alertId.size() > 0;
       allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // ── /gate_codes/{hash} ──
+    // Gate dinámico. El docId es SHA-256(hex) del código en texto
+    // plano. El `get` es público (conocer el hash equivale a
+    // conocer el código), pero el `list` y las escrituras están
+    // restringidas a admins. Así el cliente no puede enumerar los
+    // códigos válidos aun cuando puede validar el suyo.
+    match /gate_codes/{hash} {
+      allow get:    if true;
+      allow list:   if isAdmin();
+      allow create: if isAdmin()
+                    && hash is string
+                    && hash.size() >= 32
+                    && request.resource.data.label is string
+                    && request.resource.data.active is bool;
+      allow update: if isAdmin()
+                    && (!('active' in request.resource.data)
+                        || request.resource.data.active is bool);
       allow delete: if isAdmin();
     }
 

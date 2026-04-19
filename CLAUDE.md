@@ -108,27 +108,35 @@ El sistema contempla:
 
 ## 4. Barrera de acceso (gate)
 
-### Estado actual: **estática**
+### Estado actual: **dinámica** (Fase 12)
 
-- Código de acceso: **`97601992@`** (definido en `assets/js/gate.js`).
-- Se valida en el cliente contra la constante del archivo.
-- En caso correcto, se guarda el flag `sgm.access = "1"` en `sessionStorage` y se redirige a `home.html`.
-- Las páginas internas incluyen `assets/js/auth-guard.js`, que redirige a `index.html` si no existe el flag.
-- Al cerrar la pestaña/navegador se pierde la sesión (comportamiento deseado en la etapa de construcción).
+- Los códigos se almacenan en la colección Firestore `gate_codes/{hash}`,
+  donde el `hash` es `SHA-256(hex)` del código en texto plano. El plaintext
+  **nunca** se persiste.
+- Reglas Firestore: `get` público (requiere conocer el hash), `list` y
+  escritura restringidas a admins. Esto evita la enumeración y mantiene
+  la capacidad de validar del cliente.
+- Cada doc lleva `label`, `notes`, `active`, `expires_at`, `created_at`,
+  `created_by`. El cliente solo acepta el código si `active=true` y
+  (`expires_at` nulo o futuro).
+- Gate (`assets/js/gate.js`) ahora es un módulo ESM: calcula el hash con
+  `crypto.subtle.digest('SHA-256')` y hace un `getDoc` directo.
+- Panel admin `/admin/codigos.html` para crear, rotar, expirar y eliminar
+  códigos. Al crear se muestra el plaintext una única vez (con opción de
+  copiar y botón generar aleatorio).
+- Bootstrap: el código maestro **`97601992@`** sigue aceptado siempre
+  (fallback) para no perder acceso si se revocan todos los códigos.
+- Sesión: sigue usando `sessionStorage.sgm.access = "1"` (se pierde al
+  cerrar el navegador).
 
 ### Limitaciones conocidas
 
-1. El código es visible en el código fuente del cliente (cualquiera que inspeccione `gate.js` lo ve).
-2. `sessionStorage` es fácilmente manipulable desde la consola.
-3. Aceptable **únicamente** como barrera temporal mientras el sitio está en construcción.
-
-### Evolución prevista
-
-En la **Fase 11** el gate estático se reemplaza por un mecanismo dinámico:
-
-- Códigos rotativos generados desde el panel admin y almacenados en Firestore.
-- Validación contra una Serverless Function (Vercel) que nunca expone el código al cliente.
-- Expiración automática por tiempo o uso único.
+1. `sessionStorage` sigue siendo manipulable desde la consola — el gate
+   es un deterrente, no una frontera de seguridad. Los datos sensibles
+   ya están protegidos por reglas Firestore por colección.
+2. El fallback de bootstrap (`97601992@`) queda en el código fuente. Es
+   una decisión explícita para que el propietario nunca quede bloqueado;
+   se puede retirar en F14 tras el lanzamiento final.
 
 ---
 
@@ -154,7 +162,7 @@ En la **Fase 11** el gate estático se reemplaza por un mecanismo dinámico:
 | 9 | Módulo: Gestión documental (+ Storage)                    |  8%  |  73%      | ✅ completada |
 | 10 | Módulo: Georreferenciación (Leaflet)                     |  7%  |  80%      | ✅ completada |
 | 11 | Módulo: Alertas y notificaciones                         |  7%  |  87%      | ✅ completada |
-| 12 | Gate dinámico + endurecimiento admin                     |  5%  |  92%      | ⏳ pendiente |
+| 12 | Gate dinámico + endurecimiento admin                     |  5%  |  92%      | ✅ completada |
 | 13 | Pulido: SEO, accesibilidad, performance, i18n            |  4%  |  96%      | ⏳ pendiente |
 | 14 | Lanzamiento: reemplazo del landing y despliegue final    |  4%  | 100%      | ⏳ pendiente |
 
@@ -304,11 +312,18 @@ En la **Fase 11** el gate estático se reemplaza por un mecanismo dinámico:
 - `assets/css/alertas.css` — banner resumen, `sev-pill.{critica|warning|info}`, `alerta-tipo-pill`, filas `.alert-row.reconocida` con tachado, panel `.config-panel` con grid de inputs, botones `btn-ack` / `btn-unack` / `btn-goto`.
 - Nav "Alertas" en home + 10 subpáginas (incluye `_firebase-test` y `mapa`) + 6 paneles admin.
 
-#### ⏳ Fase 12 — Gate dinámico + endurecimiento
+#### ✅ Fase 12 — Gate dinámico + endurecimiento
 
-- Gate estático reemplazado por códigos rotativos en Firestore.
-- Serverless function `/api/verify-code` valida sin exponer el secreto.
-- Revisión de reglas de seguridad Firestore/Storage.
+- `assets/js/data/codigos-acceso.js` — data layer del gate dinámico. API: `validarCodigo` (público, con fallback al bootstrap estático), `listar`, `crear`, `actualizarMetadata`, `eliminar`, `hashCode` (SHA-256 hex via `crypto.subtle`), `generarCodigoAleatorio(len=12)`, `estadoCodigo`, `hashPreview`. Constante exportada `BOOTSTRAP_CODE = '97601992@'` como mecanismo de recuperación permanente.
+- **Colección nueva** `gate_codes/{sha256(plaintext)}` con `label`, `notes`, `active`, `expires_at`, `created_at`, `created_by`. El plaintext **nunca** se persiste; el hash hex es el docId.
+- **Reglas Firestore endurecidas:**
+  - `get: if true` — cualquier cliente puede leer un doc si ya conoce el hash (i.e., conoce el código). Esto permite validar sin exponer los códigos.
+  - `list: if isAdmin()` — impide enumeración anónima.
+  - `create` valida que el docId tenga ≥ 32 chars, que `label` sea string y que `active` sea bool; `update` valida `active` cuando está presente.
+- `assets/js/gate.js` reescrito como **módulo ESM**: computa SHA-256 con `crypto.subtle.digest`, hace `getDoc(gate_codes/{hash})`, verifica `active=true` y `expires_at` futuro. Si Firebase no está configurado o no hay match, acepta el bootstrap estático. Mensaje "⋯ Verificando…" mientras resuelve.
+- Panel admin `/admin/codigos.html` + `admin-codigos.js` con tabla (etiqueta, estado-pill, fecha expiración, fecha creación, hash abreviado, acciones), filtros (estado activo/inactivo/vencido + búsqueda), modal **Nuevo** con botón **Generar** aleatorio (56 chars del alfabeto sin confundibles) y modal **Editar** metadata (label/notes/expires/active, no el plaintext). Tras crear, un modal **Revelar** muestra el plaintext una sola vez con botón **Copiar** (clipboard API).
+- `assets/css/codigos.css` — `.cod-pill.{activo|inactivo|vencido}`, `.cod-hash`, `.codigo-row` para fila input+generar, `.revelar-code` (caja destacada con borde dashed y glow), `.btn-mini` y `.btn-mini.danger`.
+- Nav "Códigos" en 7 paneles admin. Se activa la tarjeta F12 del panel principal (`admin/index.html`), se mueve F13 la tarjeta "Usuarios & Roles" y se actualiza el resumen "Fase 12 cerrada · 92 %".
 
 #### ⏳ Fase 13 — Pulido
 
@@ -338,8 +353,8 @@ En la **Fase 11** el gate estático se reemplaza por un mecanismo dinámico:
 
 | Métrica                    | Valor |
 |----------------------------|-------|
-| Fase en curso              | **Fase 11 cerrada · a la espera de Fase 12** |
-| Porcentaje global           | **87 %** |
+| Fase en curso              | **Fase 12 cerrada · a la espera de Fase 13** |
+| Porcentaje global           | **92 %** |
 | Último commit              | (ver historial Git) |
 | Servicios dinámicos activos | ninguno (aún sólo estático) |
 
@@ -359,3 +374,4 @@ En la **Fase 11** el gate estático se reemplaza por un mecanismo dinámico:
 - **Fase 9** — Gestión Documental con Firebase Storage. Colección `documentos` con metadatos (codigo, titulo, descripcion, categoria, norma_aplicable, transformadorId/Codigo, autor, fecha_emision, filename, mime, size, storagePath, downloadURL, status) + timestamps y `createdBy`. Binarios en `documentos/{docId}/{filename}` con tope de **20 MB**. `firestore.rules` valida enums (6 categorías × 7 normas) y limita escritura a admins. `storage.rules` abre `documentos/**` con lectura pública y escritura admin vía `firestore.exists(/admins/{uid})`. Índices `categoria+codigo`, `norma_aplicable+codigo`, `transformadorId+codigo`. `assets/js/data/documentos.js` (API `listar`/`obtener`/`subir`/`actualizarMetadata`/`eliminar` + `uploadBytesResumable` con progreso + limpieza de Storage al borrar). `admin/documentos.html` + `admin-documentos.js` (tabla + modal con drop-zone + barra de progreso). `pages/documentos.html` + `documentos-public.js` (4 KPIs, filtros cat/norma, búsqueda local, enlaces de descarga). `assets/css/documentos.css` (pills por categoría y estado, drop-zone). Nav "Documentos" en home + 8 subpáginas + 4 paneles admin. Landing y home al 73 %.
 - **Fase 10** — Georreferenciación con **Leaflet 1.9.4** + **Leaflet.markercluster 1.5.3** (CDN unpkg con SRI). Renderer compartido `assets/js/mapa-render.js` expone `initMap`, `loadMarkers`, `resetMap` y `legendHtml`. Tile layer OpenStreetMap, centro Caribe Colombiano `[9.4,-74.8]` zoom 7, `fitBounds` automático con padding al cargar. Paleta por estado (operativo/mantenimiento/fuera_servicio/retirado) aplicada a `divIcon` vía CSS var `--dot-color`. Filtro de coordenadas válidas (descarta `null`, `0,0` y valores fuera de rango). `pages/mapa.html` + `mapa-public.js` (filtros depto/estado, contador `X visible de Y`, status-bar, popups solo-lectura). `admin/mapa.html` + `admin-mapa.js` (mismos filtros + popup con enlace `inventario.html#edit:{id}` para corregir coordenadas). `assets/css/mapa.css` (contenedor `#sgmMap` 560px/460px, tema oscuro para controles Leaflet y popups, leyenda con dots coloreados). Nav "Mapa" en home + 9 subpáginas + 5 paneles admin. Landing y home al 80 %.
 - **Fase 11** — Alertas &amp; Notificaciones. `assets/js/data/alertas.js` implementa un motor de reglas cliente-side sobre `transformadores` + `ordenes` con 7 reglas (`orden_vencida`, `orden_proxima`, `orden_prolongada`, `orden_critica_abierta`, `mantenimiento_largo`, `sin_coordenadas`, `sin_fecha_instalacion`) y tres severidades (crítica · atención · informativa). IDs sintéticos deterministas `tipo:recursoId:sello` permiten persistir reconocimientos en `alertas_reconocidas/{alertId}` (`{alertId, nota, uid, at}`). Configuración global en `alertas_config/global` con umbrales (`proxima_dias=15`, `prolongada_dias=30`, `mantenimiento_dias=14`) + placeholders de notificación por correo (`destinatario_email`, `notificaciones_enabled`, reservados para F12). `firestore.rules` extendidas: lectura pública + escritura admin en las dos colecciones. Vista pública `pages/alertas.html` + `alertas-public.js` (5 tarjetas resumen, 4 filtros, tabla con severidad-pill / tipo-pill / enlaces al recurso). Vista admin `admin/alertas.html` + `admin-alertas.js` (mismo dashboard + panel de configuración con 5 campos + botones reconocer/desreconocer por fila que solicitan nota y guardan UID). `assets/css/alertas.css` (banner resumen, pills de severidad, `.alert-row.reconocida`, `.config-panel`, `.btn-ack` / `.btn-unack`). Nav "Alertas" en home + 10 subpáginas + 6 paneles admin. Landing y home al 87 %.
+- **Fase 12** — Gate dinámico + endurecimiento admin. `assets/js/data/codigos-acceso.js` implementa el nuevo gate sobre la colección `gate_codes/{sha256(hex)}` donde el docId es el hash SHA-256 del código en texto plano (calculado con `crypto.subtle.digest`). El plaintext nunca se persiste. Reglas Firestore endurecidas: `get: if true` (conocer el hash equivale a conocer el código), `list: if isAdmin()` (no hay enumeración), `create`/`update`/`delete` restringidos a admins con validación de longitud de hash y tipo de `label`/`active`. `assets/js/gate.js` reescrito como módulo ESM que consulta Firestore, respeta `active` + `expires_at` y cae al bootstrap estático (`97601992@`) para recuperación permanente. Panel admin `/admin/codigos.html` + `admin-codigos.js` con tabla, filtros (estado/texto), modal **Nuevo** con botón **Generar** aleatorio (alfabeto sin caracteres confundibles), modal **Editar** metadata (no el plaintext) y modal **Revelar** que muestra el código plano una sola vez con botón **Copiar** (clipboard API). `assets/css/codigos.css` con `.cod-pill.{activo|inactivo|vencido}`, `.cod-hash`, `.revelar-code`, `.btn-mini` y `.btn-mini.danger`. Nav "Códigos" en 7 paneles admin. Módulo F12 activado en el panel principal; la tarjeta "Usuarios &amp; Roles" se mueve a F13. Landing y home al 92 %.

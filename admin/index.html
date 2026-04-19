@@ -44,6 +44,7 @@
     <a href="documentos.html"  class="nav-link">Documentos</a>
     <a href="mapa.html"        class="nav-link">Mapa</a>
     <a href="alertas.html"     class="nav-link">Alertas</a>
+    <a href="codigos.html"     class="nav-link">Códigos</a>
     <a href="../home.html"     class="nav-link">Zona interna</a>
   </nav>
   <button class="btn-logout" id="btnLogout">CERRAR SESIÓN</button>
@@ -104,17 +105,17 @@
       <div class="module-desc">Reglas de vencimiento y canales de envío.</div>
       <span class="status-badge done">ACTIVO · F11</span>
     </a>
-    <div class="module-card">
+    <a href="codigos.html" class="module-card" style="text-decoration:none">
       <div class="module-icon">🔐</div>
       <div class="module-name">Códigos de Acceso</div>
-      <div class="module-desc">Gate dinámico: rotación, expiración, uso único.</div>
-      <span class="status-badge planned">PENDIENTE · F12</span>
-    </div>
+      <div class="module-desc">Gate dinámico sobre Firestore: rotación, expiración y bootstrap.</div>
+      <span class="status-badge done">ACTIVO · F12</span>
+    </a>
     <div class="module-card">
       <div class="module-icon">👥</div>
       <div class="module-name">Usuarios &amp; Roles</div>
       <div class="module-desc">Gestión de cuentas admin y permisos granulares.</div>
-      <span class="status-badge planned">PENDIENTE · F12</span>
+      <span class="status-badge planned">PENDIENTE · F13</span>
     </div>
   </div>
 
@@ -132,7 +133,7 @@
     <div class="content-card">
       <h3>🛡️ Seguridad</h3>
       <ul>
-        <li>Gate estático · sessionStorage</li>
+        <li>Gate dinámico · SHA-256 en Firestore</li>
         <li>Admin · Firebase Auth + allowlist UID</li>
         <li>Sesión admin · browserSessionPersistence</li>
       </ul>
@@ -147,8 +148,8 @@
     </div>
     <div class="content-card">
       <h3>📈 Progreso</h3>
-      <p>Fase 11 cerrada · <strong style="color:var(--accent)">87 %</strong> global.
-         Próximo: Fase 12 — Gate dinámico + endurecimiento.</p>
+      <p>Fase 12 cerrada · <strong style="color:var(--accent)">92 %</strong> global.
+         Próximo: Fase 13 — Pulido: SEO, accesibilidad, performance.</p>
     </div>
   </div>
 

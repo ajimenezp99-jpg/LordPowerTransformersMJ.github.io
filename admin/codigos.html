@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Admin · Códigos de Acceso</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
+  <script type="module" src="../assets/js/admin/admin-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css"/>
+  <link rel="stylesheet" href="../assets/css/app.css"/>
+  <link rel="stylesheet" href="../assets/css/inventario.css"/>
+  <link rel="stylesheet" href="../assets/css/codigos.css"/>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="topbar-brand">SGM · <span>TRANSPOWER</span> · ADMIN</a>
+  <nav class="main-nav">
+    <a href="index.html"       class="nav-link">Panel</a>
+    <a href="inventario.html"  class="nav-link">Inventario</a>
+    <a href="ordenes.html"     class="nav-link">Órdenes</a>
+    <a href="kpis.html"        class="nav-link">KPIs</a>
+    <a href="documentos.html"  class="nav-link">Documentos</a>
+    <a href="mapa.html"        class="nav-link">Mapa</a>
+    <a href="alertas.html"     class="nav-link">Alertas</a>
+    <a href="codigos.html"     class="nav-link active">Códigos</a>
+    <a href="../home.html"     class="nav-link">Zona interna</a>
+  </nav>
+  <button class="btn-logout" id="btnLogout">CERRAR SESIÓN</button>
+</header>
+
+<main class="page-container">
+
+  <div class="page-header">
+    <div class="breadcrumb">Admin / Códigos de acceso</div>
+    <h1 class="page-title">Códigos de <em>Acceso</em></h1>
+    <p class="page-subtitle">
+      Gate dinámico del sitio en construcción. Los códigos se almacenan
+      <strong>hasheados con SHA-256</strong> en la colección
+      <code>gate_codes</code>: solo quien conoce el código puede obtener
+      su documento. El plaintext <em>nunca</em> se persiste — anótelo al
+      crearlo, porque después solo se verá la etiqueta y el hash abreviado.
+      El código maestro de bootstrap (<code>97601992@</code>) sigue activo
+      como mecanismo de recuperación.
+    </p>
+  </div>
+
+  <!-- BARRA DE ACCIONES -->
+  <div class="inv-toolbar">
+    <div class="inv-filters">
+      <select class="form-select" id="fEstado">
+        <option value="">Todos los estados</option>
+        <option value="activo">Activos</option>
+        <option value="inactivo">Inactivos</option>
+        <option value="vencido">Vencidos</option>
+      </select>
+      <input class="form-input" type="search" id="fSearch"
+             placeholder="Buscar por etiqueta o nota…">
+      <button class="btn-secondary" id="btnReload">↻ Recargar</button>
+    </div>
+    <button class="btn-primary" id="btnNuevo">+ NUEVO CÓDIGO</button>
+  </div>
+
+  <div id="infoBox" class="info-msg" style="display:none"></div>
+
+  <!-- TABLA -->
+  <div class="section-head">▸ CÓDIGOS REGISTRADOS</div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th scope="col">Etiqueta</th>
+          <th scope="col">Estado</th>
+          <th scope="col">Expira</th>
+          <th scope="col">Creado</th>
+          <th scope="col">Hash</th>
+          <th scope="col" class="col-actions">Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tbody">
+        <tr><td colspan="6" class="td-empty">Cargando…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+</main>
+
+<!-- ═══ MODAL NUEVO CÓDIGO ═══ -->
+<div id="modalNuevo" class="modal-overlay" style="display:none">
+  <div class="modal-card" role="dialog" aria-labelledby="modalNuevoTitle">
+    <div class="modal-head">
+      <h3 id="modalNuevoTitle">Nuevo código</h3>
+      <button class="modal-x" id="modalNuevoClose" aria-label="Cerrar">✕</button>
+    </div>
+
+    <form id="formNuevo" novalidate>
+      <div class="form-group">
+        <label class="form-label" for="fCodigo">Código (texto plano) *</label>
+        <div class="codigo-row">
+          <input class="form-input" type="text" id="fCodigo" required
+                 placeholder="min. 4 caracteres" autocomplete="off">
+          <button type="button" class="btn-secondary" id="btnGenerar">Generar</button>
+        </div>
+        <span class="hint">
+          Este valor solo se muestra ahora. Al guardar, se almacena su hash.
+        </span>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label class="form-label" for="fLabel">Etiqueta *</label>
+          <input class="form-input" type="text" id="fLabel" required
+                 placeholder="Acceso contratista ACME">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="fExpira">Fecha de expiración</label>
+          <input class="form-input" type="date" id="fExpira">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="fNotas">Notas</label>
+        <textarea class="form-textarea" id="fNotas" rows="2"
+                  placeholder="Contexto, persona responsable, etc."></textarea>
+      </div>
+
+      <div class="form-group form-inline">
+        <label class="form-label">
+          <input type="checkbox" id="fActivo" checked>
+          Activo al crear
+        </label>
+      </div>
+
+      <div id="formMsg" class="msg" role="status" aria-live="polite"></div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="btnCancelNuevo">Cancelar</button>
+        <button type="submit" class="btn-primary" id="btnGuardarNuevo">GUARDAR →</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══ MODAL EDITAR METADATA ═══ -->
+<div id="modalEditar" class="modal-overlay" style="display:none">
+  <div class="modal-card" role="dialog" aria-labelledby="modalEditarTitle">
+    <div class="modal-head">
+      <h3 id="modalEditarTitle">Editar código</h3>
+      <button class="modal-x" id="modalEditarClose" aria-label="Cerrar">✕</button>
+    </div>
+
+    <form id="formEditar" novalidate>
+      <input type="hidden" id="eId">
+
+      <div class="form-group">
+        <label class="form-label">Hash (solo lectura)</label>
+        <input class="form-input" type="text" id="eHash" readonly>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label class="form-label" for="eLabel">Etiqueta *</label>
+          <input class="form-input" type="text" id="eLabel" required>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="eExpira">Fecha de expiración</label>
+          <input class="form-input" type="date" id="eExpira">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="eNotas">Notas</label>
+        <textarea class="form-textarea" id="eNotas" rows="2"></textarea>
+      </div>
+
+      <div class="form-group form-inline">
+        <label class="form-label">
+          <input type="checkbox" id="eActivo">
+          Activo
+        </label>
+      </div>
+
+      <div id="formEditarMsg" class="msg" role="status" aria-live="polite"></div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="btnCancelEditar">Cancelar</button>
+        <button type="submit" class="btn-primary" id="btnGuardarEditar">GUARDAR →</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ═══ MODAL CÓDIGO RECIÉN CREADO ═══ -->
+<div id="modalRevelar" class="modal-overlay" style="display:none">
+  <div class="modal-card" role="dialog" aria-labelledby="modalRevelarTitle">
+    <div class="modal-head">
+      <h3 id="modalRevelarTitle">Código creado</h3>
+      <button class="modal-x" id="modalRevelarClose" aria-label="Cerrar">✕</button>
+    </div>
+    <div class="revelar-wrap">
+      <p class="revelar-intro">
+        Anote este código ahora. Por seguridad no volverá a mostrarse —
+        solo quedará el hash en la base de datos.
+      </p>
+      <div class="revelar-code" id="revelarCode">—</div>
+      <div class="revelar-meta" id="revelarMeta">—</div>
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="btnCopiar">Copiar</button>
+        <button type="button" class="btn-primary"   id="btnRevelarOk">ENTENDIDO</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer class="page-foot">
+  <span>SGM · TRANSPOWER — Admin · Códigos</span>
+  <span>© <span id="yr">2025</span> · Zona restringida</span>
+</footer>
+
+<script type="module" src="../assets/js/admin/admin-codigos.js"></script>
+
+</body>
+</html>
