@@ -265,9 +265,9 @@ independientes, cada una con commit aislado:
 | 21 | Contratos (8 contratos macro · presupuesto)                | ✅ completada |
 | 22 | Catálogos (subactividades / macroactividades / causantes)  | ✅ completada |
 | 23 | Refactor Órdenes v2 (FKs catálogo)                         | ✅ completada |
-| 24 | TPT / Respaldo (calculadora sobrecarga IEEE C57.91)        | 🔜 planificada |
-| 25 | Fallados + RCA (5 porqués, Ishikawa, FMEA)                 | 🔜 planificada |
-| 26 | Contramuestras + Monitoreo Intensivo C₂H₂ + Juicio experto FUR | 🔜 planificada |
+| 24 | TPT / Respaldo (calculadora sobrecarga IEEE C57.91)        | ✅ completada |
+| 25 | Fallados + RCA (5 porqués, Ishikawa, FMEA)                 | ✅ completada |
+| 26 | Contramuestras + Monitoreo Intensivo C₂H₂ + Juicio experto FUR | ✅ completada |
 | 27 | Dashboards ejecutivos por rol                              | 🔜 planificada |
 | 28 | RBAC granular con ámbito geográfico (5 roles + admin)      | 🔜 planificada |
 | 29 | Workflow aprobaciones + Estados especiales (OTC §A9.3)     | 🔜 planificada |

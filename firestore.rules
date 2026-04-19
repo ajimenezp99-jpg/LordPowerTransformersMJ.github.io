@@ -318,6 +318,14 @@ service cloud.firestore {
       }
     }
 
+    // ── /contramuestras/{id} (F26) ──
+    match /contramuestras/{id} {
+      allow read:   if isTeamMember();
+      allow create: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
     // ── /monitoreo_intensivo/{id} (F18/F26 · A9.1) ──
     match /monitoreo_intensivo/{id} {
       allow read:   if isTeamMember();
@@ -326,6 +334,19 @@ service cloud.firestore {
                     && request.resource.data.tipo == 'C2H2';
       allow update: if isAdmin();
       allow delete: if false;
+    }
+
+    // ── /fallados/{id} (F25) ──
+    match /fallados/{id} {
+      allow read:   if isTeamMember();
+      allow create: if isAdmin()
+                    && request.resource.data.transformadorId is string
+                    && request.resource.data.tipo_falla in
+                       ['termica','electrica','mecanica','quimica','externa','desconocida']
+                    && request.resource.data.metodo_rca in
+                       ['5_porques','ishikawa','fmea'];
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
     }
 
     // ── /contratos/{id} (F21) ──
