@@ -40,7 +40,15 @@ export async function computeDashboard() {
     listarTransformadores({}),
     listarOrdenes({})
   ]);
+  return computeFromDatasets(trafos, ords);
+}
 
+/**
+ * Variante pura del dashboard: recibe los datasets ya cargados en
+ * lugar de leerlos de Firestore. Útil para recomputar desde snapshots
+ * en vivo (onSnapshot) sin disparar nuevas lecturas.
+ */
+export function computeFromDatasets(trafos, ords) {
   const trafoById = new Map(trafos.map((t) => [t.id, t]));
 
   // ── Totales simples ──

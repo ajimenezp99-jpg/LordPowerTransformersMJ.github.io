@@ -183,25 +183,39 @@
   else window.addEventListener('sgm:session-ready', (e) => mountSession(e.detail));
 </script>
 
-<!-- KPIs del parque en tiempo real (Fase 8) -->
+<!-- KPIs del parque en tiempo real (Fase 8 + Fase 15: onSnapshot) -->
 <script type="module">
-  import { computeDashboard, isReady } from './assets/js/data/kpis.js';
+  import { computeFromDatasets, isReady } from './assets/js/data/kpis.js';
+  import { suscribir as suscribirTransformadores } from './assets/js/data/transformadores.js';
+  import { suscribir as suscribirOrdenes }          from './assets/js/data/ordenes.js';
 
-  if (!isReady()) {
-    // Firebase no configurado: dejar placeholders.
-  } else {
-    try {
-      const snap = await computeDashboard();
-      const $ = (id) => document.getElementById(id);
-      $('hkTrafos').textContent  = snap.totales.transformadores;
-      $('hkActivas').textContent = snap.totales.ordenes_planificadas + snap.totales.ordenes_en_curso;
-      $('hkDisp').textContent    = snap.ram.disponibilidad_pct == null
-        ? '—' : snap.ram.disponibilidad_pct.toFixed(1) + ' %';
-      $('hkMtbf').textContent    = snap.ram.mtbf_dias
-        ? snap.ram.mtbf_dias.toFixed(0) + ' d' : '— d';
-    } catch (err) {
-      console.warn('KPIs no disponibles:', err);
-    }
+  if (isReady()) {
+    const $ = (id) => document.getElementById(id);
+    let trafos = null;
+    let ordenes = null;
+    let timer  = null;
+
+    const render = () => {
+      if (!trafos || !ordenes) return;
+      try {
+        const snap = computeFromDatasets(trafos, ordenes);
+        $('hkTrafos').textContent  = snap.totales.transformadores;
+        $('hkActivas').textContent = snap.totales.ordenes_planificadas + snap.totales.ordenes_en_curso;
+        $('hkDisp').textContent    = snap.ram.disponibilidad_pct == null
+          ? '—' : snap.ram.disponibilidad_pct.toFixed(1) + ' %';
+        $('hkMtbf').textContent    = snap.ram.mtbf_dias
+          ? snap.ram.mtbf_dias.toFixed(0) + ' d' : '— d';
+      } catch (err) {
+        console.warn('KPIs no disponibles:', err);
+      }
+    };
+    const schedule = () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(render, 150);
+    };
+
+    suscribirTransformadores({}, (items) => { trafos  = items; schedule(); });
+    suscribirOrdenes({},         (items) => { ordenes = items; schedule(); });
   }
 </script>
 </body>

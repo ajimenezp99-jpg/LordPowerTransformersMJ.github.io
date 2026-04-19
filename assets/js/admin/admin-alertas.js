@@ -4,7 +4,7 @@
 // ══════════════════════════════════════════════════════════════
 
 import {
-  computarAlertas,
+  suscribirComputo,
   obtenerConfig, actualizarConfig,
   reconocer, desreconocer,
   SEVERIDADES, TIPOS_ALERTA,
@@ -145,22 +145,25 @@ function render() {
   }).join('');
 }
 
-async function cargar() {
+let unsubscribe = null;
+
+function cargar() {
   if (!isReady()) {
     showInfo('⚠ Firebase no configurado. No se pueden calcular alertas hasta completar la configuración.', 'err');
     tbody.innerHTML = `<tr><td colspan="6" class="td-empty">Sin datos.</td></tr>`;
     return;
   }
-  try {
-    showInfo('');
-    tbody.innerHTML = `<tr><td colspan="6" class="td-empty">Recalculando…</td></tr>`;
-    snapshot = await computarAlertas();
-    render();
-  } catch (err) {
-    console.error(err);
-    showInfo('Error al calcular alertas: ' + (err.message || err), 'err');
-    tbody.innerHTML = `<tr><td colspan="6" class="td-empty">Error.</td></tr>`;
-  }
+  if (unsubscribe) { try { unsubscribe(); } catch (_) {} unsubscribe = null; }
+  showInfo('');
+  tbody.innerHTML = `<tr><td colspan="6" class="td-empty">Recalculando…</td></tr>`;
+  unsubscribe = suscribirComputo(
+    (snap) => { snapshot = snap; render(); },
+    (err) => {
+      console.error(err);
+      showInfo('Error al calcular alertas: ' + (err.message || err), 'err');
+      tbody.innerHTML = `<tr><td colspan="6" class="td-empty">Error.</td></tr>`;
+    }
+  );
 }
 
 async function cargarConfig() {
@@ -189,7 +192,7 @@ async function guardarConfig() {
       notificaciones_enabled: cEnabled.value === 'true'
     }, currentUid);
     showConfigMsg('✓ Guardado. Recalculando alertas…', 'ok');
-    await cargar();
+    // El snapshot se recalcula automáticamente por suscribirComputo.
   } catch (err) {
     showConfigMsg('Error al guardar: ' + (err.message || err), 'err');
   } finally {
@@ -209,7 +212,7 @@ async function onTbodyClick(ev) {
     try {
       ack.disabled = true;
       await reconocer(alertId, nota, currentUid);
-      await cargar();
+      // suscribirComputo volverá a emitir con la alerta marcada como reconocida.
     } catch (err) {
       showInfo('No se pudo reconocer: ' + (err.message || err), 'err');
       ack.disabled = false;
@@ -222,7 +225,7 @@ async function onTbodyClick(ev) {
     try {
       un.disabled = true;
       await desreconocer(alertId);
-      await cargar();
+      // suscribirComputo volverá a emitir con el cambio.
     } catch (err) {
       showInfo('No se pudo desreconocer: ' + (err.message || err), 'err');
       un.disabled = false;
@@ -245,6 +248,9 @@ tbody.addEventListener('click', onTbodyClick);
 
 onAdminAuthChange((user) => {
   currentUid = user?.uid || null;
+});
+window.addEventListener('beforeunload', () => {
+  if (unsubscribe) { try { unsubscribe(); } catch (_) {} }
 });
 
 $('btnLogout').addEventListener('click', async () => {

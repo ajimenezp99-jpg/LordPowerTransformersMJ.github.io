@@ -179,6 +179,7 @@ El sistema contempla:
 | 12 | Gate dinámico + endurecimiento admin                     |  5%  |  92%      | ✅ completada |
 | 13 | Pulido: SEO, accesibilidad, performance, i18n            |  4%  |  96%      | ✅ completada |
 | 14 | Lanzamiento: login unificado + roles + v1.0.0            |  4%  | 100%      | ✅ completada |
+| 15 | Realtime: `onSnapshot` en home, órdenes y alertas        |  —   | 100% + RT | ✅ completada |
 
 ### Detalle por microfase
 
@@ -418,6 +419,29 @@ El sistema contempla:
   zona interna; el sitemap solo lista la landing de login.
 - **Tag `v1.0.0`** al cierre de la fase.
 
+#### ✅ Fase 15 — Realtime con `onSnapshot`
+
+Primera evolución post-v1: la plataforma deja de recargar datos bajo
+demanda y pasa a escuchar Firestore en vivo. Ahora cualquier cambio
+que haga un administrador (alta/baja/edición de transformadores u
+órdenes, reconocimiento de alertas, ajuste de umbrales) se propaga
+instantáneamente a todas las pestañas abiertas del equipo, sin
+botones de "Recargar".
+
+- **Data layer.**
+  - `assets/js/data/transformadores.js` → `suscribir(filtros, onData, onError)` con `onSnapshot`.
+  - `assets/js/data/ordenes.js` → `suscribir(filtros, onData, onError)` con los mismos filtros que `listar`.
+  - `assets/js/data/kpis.js` → nueva función pura `computeFromDatasets(trafos, ords)` extraída de `computeDashboard()` para permitir recomputar sin I/O.
+  - `assets/js/data/alertas.js` → nueva función pura `computarFromDatasets(transformadores, ordenes, config, recs, hoy)` y `suscribirComputo(onData, onError)` que combina **4 suscripciones** (`transformadores`, `ordenes`, `alertas_config/global` y `alertas_reconocidas`) con **debounce de 250 ms** y retorna un único `unsubscribe()` que cancela todas.
+- **Vistas migradas.**
+  - `home.html` — las 4 tarjetas del parque (Transformadores / Órdenes activas / Disponibilidad / MTBF) se alimentan de dos `suscribir()` paralelos (transformadores + ordenes) y recomputan con `computeFromDatasets` con debounce 150 ms.
+  - `assets/js/ordenes-public.js` — `cargar()` deja de hacer `await listar(...)`; ahora administra el ciclo de vida de `suscribir()`, con cancelación al cambiar filtros y en `beforeunload`.
+  - `assets/js/admin/admin-ordenes.js` — misma migración; se eliminan los `await cargar()` tras crear/editar/eliminar porque la suscripción refresca sola.
+  - `assets/js/alertas-public.js` — usa `suscribirComputo`.
+  - `assets/js/admin/admin-alertas.js` — usa `suscribirComputo`; reconocer/desreconocer y guardar configuración ya no recargan manualmente (el motor recalcula cuando llega el snapshot de `alertas_reconocidas` o `alertas_config/global`).
+- **Cuota Firestore.** Se reemplazan ráfagas de `getDocs()` por conexiones `onSnapshot` persistentes. Cada página interna mantiene abiertas 1–4 suscripciones según el módulo; dentro del plan Spark (50 k lecturas/día) el cliente solo consume delta-reads cuando un documento cambia.
+- **Backwards-compat.** `listar()` y `computarAlertas()` siguen existiendo para flujos CSV / exports que no requieren realtime.
+
 ---
 
 ## 6. Convenciones de trabajo
@@ -434,8 +458,8 @@ El sistema contempla:
 
 | Métrica                    | Valor |
 |----------------------------|-------|
-| Fase en curso              | **Fase 14 cerrada · v1.0.0** |
-| Porcentaje global           | **100 %** |
+| Fase en curso              | **Fase 15 cerrada · realtime activo** |
+| Porcentaje global           | **100 %** (+ Realtime) |
 | Último commit              | (ver historial Git) |
 | Servicios dinámicos activos | ninguno (aún sólo estático) |
 
@@ -458,3 +482,4 @@ El sistema contempla:
 - **Fase 12** — Gate dinámico + endurecimiento admin. `assets/js/data/codigos-acceso.js` implementa el nuevo gate sobre la colección `gate_codes/{sha256(hex)}` donde el docId es el hash SHA-256 del código en texto plano (calculado con `crypto.subtle.digest`). El plaintext nunca se persiste. Reglas Firestore endurecidas: `get: if true` (conocer el hash equivale a conocer el código), `list: if isAdmin()` (no hay enumeración), `create`/`update`/`delete` restringidos a admins con validación de longitud de hash y tipo de `label`/`active`. `assets/js/gate.js` reescrito como módulo ESM que consulta Firestore, respeta `active` + `expires_at` y cae al bootstrap estático (`97601992@`) para recuperación permanente. Panel admin `/admin/codigos.html` + `admin-codigos.js` con tabla, filtros (estado/texto), modal **Nuevo** con botón **Generar** aleatorio (alfabeto sin caracteres confundibles), modal **Editar** metadata (no el plaintext) y modal **Revelar** que muestra el código plano una sola vez con botón **Copiar** (clipboard API). `assets/css/codigos.css` con `.cod-pill.{activo|inactivo|vencido}`, `.cod-hash`, `.revelar-code`, `.btn-mini` y `.btn-mini.danger`. Nav "Códigos" en 7 paneles admin. Módulo F12 activado en el panel principal; la tarjeta "Usuarios &amp; Roles" se mueve a F13. Landing y home al 92 %.
 - **Fase 13** — Pulido SEO + accesibilidad. Nuevos `robots.txt` (permite landing + `/assets/`, bloquea `/admin/`, `/home.html`, `/pages/`) y `sitemap.xml` (solo landing, resto bajo gate). `index.html` amplía el `<head>` con Open Graph completo (incluye `og:locale=es_CO`, `og:image`), Twitter Card, `<link rel="canonical">`, `theme-color #040c14`, `color-scheme dark`, `preconnect` a `fonts.gstatic.com` y bloque **JSON-LD Organization** al final del `<body>` con `areaServed` (5 departamentos como `AdministrativeArea`) y `knowsAbout` (ISO 50001, IEEE C57.12, IEC 60076, RETIE, NTC-IEC 60364, CIGRE WG A2, Transformadores, RAM). `home.html` recibe `theme-color`, `color-scheme`, `canonical` y `preconnect`. Accesibilidad: `.skip-link` en landing y home apuntando a `<main id="main">` (el `<div class="wrapper">` del landing se promueve a `<main>`); `:focus-visible` con `outline` + `box-shadow` para botones/inputs/links en `base.css`; `@media (prefers-reduced-motion: reduce)` desactiva `scroll-behavior: smooth` y colapsa animaciones a `.01ms`; clase utilitaria `.sr-only`; `aria-hidden="true"` en decorativos (`.deco-line`, `.pulse`); el `.topbar` del landing pasa de `<div>` a `<header>` (elemento nativo con rol `banner` implícito). Barra de progreso y `phases-row` actualizadas: `F13 Pulido` `planned → done`, `--fill-pct 92% → 96%`, leyenda "Fases 0–13 completadas de 14". Landing y home al 96 %.
 - **Fase 14** — Lanzamiento + refactor de acceso "login-first". `index.html` se reescribe por completo como portal de autenticación SaaS-style (form email+password centrado, recuperación de contraseña vía `sendPasswordResetEmail`, persistencia configurable). Nueva colección `/usuarios/{uid}` con campos `{email, nombre, rol, activo, createdAt, createdBy}` y enums `rol ∈ {admin, tecnico}`. Nuevo guard unificado `assets/js/auth/session-guard.js` + wrappers `page-guard.js` / `admin-guard.js` que reemplazan a `gate.js`, `auth-guard.js`, `auth-guard-pages.js` y `admin/admin-guard.js`. Firestore rules refactorizadas: lecturas por `isTeamMember()` (perfil activo o fallback a `/admins/{uid}`), escrituras por `isAdmin()` (rol admin o fallback legacy). Panel `/admin/usuarios.html` + `admin-usuarios.js` + `assets/css/usuarios.css` con CRUD de perfiles, filtros por rol/estado/texto y protecciones de auto-baja. Panel admin ahora integrado a la plataforma: enlace "Admin ▾" en nav del home visible solo con `rol=admin`, y `user-chip` (nombre + rol) en la topbar. `admin-auth.js` reducido a shim que mantiene la superficie `logoutAdmin` / `onAdminAuthChange` / `ADMIN_ROUTES` sobre el nuevo `session-guard`. Eliminados `admin/login.html`, `admin/codigos.html`, `assets/js/gate.js`, `assets/js/auth-guard.js`, `assets/js/auth-guard-pages.js`, `assets/js/admin/admin-guard.js`, `assets/js/admin/admin-config.js`, `assets/js/admin/admin-codigos.js`, `assets/js/data/codigos-acceso.js` y `assets/css/codigos.css`. `robots.txt` actualizado a "plataforma privada". Barra de progreso al 100 %. Tag **v1.0.0**.
+- **Fase 15** — Realtime con `onSnapshot`. Data layer: `transformadores.js` y `ordenes.js` exponen ahora `suscribir(filtros, onData, onError)` además de `listar`; `kpis.js` factoriza `computeFromDatasets(trafos, ords)` como función pura; `alertas.js` factoriza `computarFromDatasets(...)` y añade `suscribirComputo(onData, onError)` que combina **4 suscripciones** (`transformadores`, `ordenes`, `alertas_config/global`, `alertas_reconocidas`) con debounce de 250 ms y devuelve un único `unsubscribe()`. Vistas migradas: `home.html` alimenta sus 4 KPIs vía dos `suscribir()` paralelos + recompute debounced; `ordenes-public.js` y `admin-ordenes.js` reemplazan `await listar(...)` por `suscribir(...)` con gestión de ciclo de vida (cancelación al cambiar filtros y en `beforeunload`); `alertas-public.js` y `admin-alertas.js` usan `suscribirComputo`. Los `await cargar()` tras crear/editar/eliminar/reconocer desaparecen: el snapshot refresca la UI solo. `listar()` y `computarAlertas()` se mantienen para flujos CSV / exports. Primera evolución post-v1; no mueve el 100 % del plan original, añade una capa realtime encima.

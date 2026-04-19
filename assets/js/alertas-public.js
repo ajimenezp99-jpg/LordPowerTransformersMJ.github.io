@@ -4,7 +4,7 @@
 // ══════════════════════════════════════════════════════════════
 
 import {
-  computarAlertas,
+  suscribirComputo,
   SEVERIDADES, TIPOS_ALERTA,
   severidadLabel, tipoAlertaLabel,
   isReady
@@ -120,22 +120,25 @@ function render() {
   }).join('');
 }
 
-async function cargar() {
+let unsubscribe = null;
+
+function cargar() {
   if (!isReady()) {
     showInfo('⚠ Firebase no configurado. No se pueden calcular alertas hasta completar la configuración.', 'err');
     tbody.innerHTML = `<tr><td colspan="5" class="td-empty">Sin datos.</td></tr>`;
     return;
   }
-  try {
-    showInfo('');
-    tbody.innerHTML = `<tr><td colspan="5" class="td-empty">Recalculando…</td></tr>`;
-    snapshot = await computarAlertas();
-    render();
-  } catch (err) {
-    console.error(err);
-    showInfo('Error al calcular alertas: ' + (err.message || err), 'err');
-    tbody.innerHTML = `<tr><td colspan="5" class="td-empty">Error.</td></tr>`;
-  }
+  if (unsubscribe) { try { unsubscribe(); } catch (_) {} unsubscribe = null; }
+  showInfo('');
+  tbody.innerHTML = `<tr><td colspan="5" class="td-empty">Recalculando…</td></tr>`;
+  unsubscribe = suscribirComputo(
+    (snap) => { snapshot = snap; render(); },
+    (err) => {
+      console.error(err);
+      showInfo('Error al calcular alertas: ' + (err.message || err), 'err');
+      tbody.innerHTML = `<tr><td colspan="5" class="td-empty">Error.</td></tr>`;
+    }
+  );
 }
 
 // ── Init ──
@@ -146,6 +149,9 @@ fTipo.addEventListener('change', render);
 fSearch.addEventListener('input', render);
 fShow.addEventListener('change', render);
 btnRel.addEventListener('click', cargar);
+window.addEventListener('beforeunload', () => {
+  if (unsubscribe) { try { unsubscribe(); } catch (_) {} }
+});
 
 // Logout unificado (Fase 14)
 import('./auth/session-guard.js').then((m) => {

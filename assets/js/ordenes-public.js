@@ -4,7 +4,7 @@
 // ══════════════════════════════════════════════════════════════
 
 import {
-  listar, ESTADOS_ORDEN, TIPOS_ORDEN, PRIORIDADES,
+  suscribir, ESTADOS_ORDEN, TIPOS_ORDEN, PRIORIDADES,
   estadoOrdenLabel, tipoLabel, prioridadLabel, isReady
 } from './data/ordenes.js';
 
@@ -85,7 +85,9 @@ function applyLocalFilter() {
   render(filtered);
 }
 
-async function cargar() {
+let unsubscribe = null;
+
+function cargar() {
   if (!isReady()) {
     showInfo('⚠ Firebase aún no configurado — órdenes no disponibles.', 'err');
     tbody.innerHTML = '<tr><td colspan="7" class="td-empty">Órdenes no disponibles.</td></tr>';
@@ -96,19 +98,24 @@ async function cargar() {
     $('kCerr').textContent  = '—';
     return;
   }
-  try {
-    showInfo('');
-    dataset = await listar({
+  if (unsubscribe) { try { unsubscribe(); } catch (_) {} unsubscribe = null; }
+  showInfo('');
+  unsubscribe = suscribir(
+    {
       estado:    fEstado.value    || undefined,
       tipo:      fTipo.value      || undefined,
       prioridad: fPrioridad.value || undefined
-    });
-    updateKpis(dataset);
-    applyLocalFilter();
-  } catch (err) {
-    console.error(err);
-    showInfo('Error al cargar órdenes: ' + (err.message || err), 'err');
-  }
+    },
+    (items) => {
+      dataset = items;
+      updateKpis(dataset);
+      applyLocalFilter();
+    },
+    (err) => {
+      console.error(err);
+      showInfo('Error al cargar órdenes: ' + (err.message || err), 'err');
+    }
+  );
 }
 
 // ── Eventos ──
@@ -116,6 +123,9 @@ fEstado.addEventListener('change', cargar);
 fTipo.addEventListener('change', cargar);
 fPrioridad.addEventListener('change', cargar);
 fSearch.addEventListener('input', applyLocalFilter);
+window.addEventListener('beforeunload', () => {
+  if (unsubscribe) { try { unsubscribe(); } catch (_) {} }
+});
 
 // Logout unificado (Fase 14)
 import('./auth/session-guard.js').then((m) => {

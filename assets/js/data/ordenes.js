@@ -7,6 +7,7 @@ import {
   collection, doc,
   addDoc, updateDoc, deleteDoc,
   getDoc, getDocs, query, where, orderBy, limit,
+  onSnapshot,
   serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
 
@@ -101,6 +102,25 @@ export async function listar(filtros = {}) {
 
   const snap = await getDocs(query(collRef(), ...constraints));
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+}
+
+/**
+ * Suscripción realtime a la colección con los mismos filtros que `listar`.
+ * Devuelve una función `unsubscribe()`.
+ */
+export function suscribir(filtros = {}, onData, onError) {
+  const constraints = [];
+  if (filtros.estado)          constraints.push(where('estado',          '==', filtros.estado));
+  if (filtros.tipo)            constraints.push(where('tipo',            '==', filtros.tipo));
+  if (filtros.prioridad)       constraints.push(where('prioridad',       '==', filtros.prioridad));
+  if (filtros.transformadorId) constraints.push(where('transformadorId', '==', filtros.transformadorId));
+  constraints.push(orderBy('codigo', 'desc'));
+  if (filtros.limite)          constraints.push(limit(filtros.limite));
+  return onSnapshot(
+    query(collRef(), ...constraints),
+    (snap) => onData(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+    (err)  => { if (onError) onError(err); else console.warn('[ordenes.suscribir]', err); }
+  );
 }
 
 export async function obtener(id) {
