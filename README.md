@@ -8,7 +8,7 @@ Caribe Colombiano (Bolívar, Córdoba, Sucre, Cesar y 11 municipios de Magdalena
 
 ## Estado
 
-Fase 11 cerrada · progreso global **87 %**. Ver [`CLAUDE.md`](./CLAUDE.md) para el plan completo.
+Fase 12 cerrada · progreso global **92 %**. Ver [`CLAUDE.md`](./CLAUDE.md) para el plan completo.
 
 ## Stack
 
@@ -64,9 +64,21 @@ Pasos manuales pendientes (consola Firebase):
 
 ## Acceso
 
-Durante la fase de construcción el sitio queda tras un **gate estático**
-(código `97601992@`, ver `assets/js/gate.js`). Se reemplazará por un gate
-dinámico en la Fase 12.
+Durante la fase de construcción el sitio queda tras un **gate dinámico**
+sobre Firestore (Fase 12):
+
+- Los códigos se guardan hasheados en `gate_codes/{sha256(código)}`. El
+  plaintext nunca se persiste.
+- Reglas Firestore: `get` público (requiere conocer el hash = conocer el
+  código), `list` y escritura solo para admins. Esto permite validar sin
+  exponer los códigos ni permitir enumeración.
+- Se respeta el flag `active` y `expires_at` en cada doc.
+- El código maestro de bootstrap **`97601992@`** sigue aceptado como
+  mecanismo de recuperación, por si se revocan todos los códigos en
+  Firestore.
+- El panel admin `/admin/codigos.html` permite crear, generar aleatorios,
+  rotar, expirar y eliminar códigos. Al crear se muestra el plaintext una
+  sola vez.
 
 ### Panel administrativo (Fase 5)
 
@@ -141,6 +153,24 @@ dinámico en la Fase 12.
   a `inventario.html#edit:{id}` para corregir coordenadas).
 - CSS con **tema oscuro** para controles y popups Leaflet en
   `assets/css/mapa.css`.
+
+### Códigos de acceso / Gate dinámico (Fase 12)
+
+- Data layer en `assets/js/data/codigos-acceso.js` con API `validarCodigo`,
+  `listar`, `crear`, `actualizarMetadata`, `eliminar`, `hashCode`
+  (SHA-256 hex via `crypto.subtle`) y `generarCodigoAleatorio`.
+- Colección Firestore `gate_codes/{sha256(hex)}` con `label`, `notes`,
+  `active`, `expires_at`, `created_at`, `created_by`.
+- Reglas Firestore endurecidas: `get` público (conocer el hash = conocer
+  el código), `list` y escritura solo admins, validación server-side de
+  longitud de hash y tipos de `label`/`active`.
+- `assets/js/gate.js` reescrito como módulo ESM: computa el hash en el
+  cliente, hace `getDoc` directo, respeta `active` + `expires_at`. Cae
+  al bootstrap estático (`BOOTSTRAP_CODE = '97601992@'`) para recuperación.
+- Vista admin: `admin/codigos.html` (tabla + filtros + modales **Nuevo** /
+  **Editar** / **Revelar**). El plaintext se muestra una sola vez al crear
+  con botón Copiar (clipboard API) y botón Generar aleatorio
+  (56 caracteres del alfabeto sin confundibles).
 
 ### Alertas &amp; Notificaciones (Fase 11)
 
