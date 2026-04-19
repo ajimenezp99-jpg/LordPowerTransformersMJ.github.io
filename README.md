@@ -8,7 +8,7 @@ Caribe Colombiano (Bolívar, Córdoba, Sucre, Cesar y 11 municipios de Magdalena
 
 ## Estado
 
-Fase 12 cerrada · progreso global **92 %**. Ver [`CLAUDE.md`](./CLAUDE.md) para el plan completo.
+Fase 13 cerrada · progreso global **96 %**. Ver [`CLAUDE.md`](./CLAUDE.md) para el plan completo.
 
 ## Stack
 
@@ -153,6 +153,32 @@ sobre Firestore (Fase 12):
   a `inventario.html#edit:{id}` para corregir coordenadas).
 - CSS con **tema oscuro** para controles y popups Leaflet en
   `assets/css/mapa.css`.
+
+### Pulido SEO &amp; Accesibilidad (Fase 13)
+
+- **SEO.** `robots.txt` + `sitemap.xml` en la raíz. La landing (`/`) es la única
+  URL indexable; el resto del sitio está tras el gate dinámico y las páginas
+  internas llevan `noindex, nofollow`.
+- `index.html` trae bloque completo de **Open Graph** (`og:type`, `og:locale=es_CO`,
+  `og:url`, `og:title`, `og:description`, `og:image`) + **Twitter Card** (`summary`)
+  + `<link rel="canonical">` + `<meta name="theme-color" content="#040c14">` +
+  `<meta name="color-scheme" content="dark">`.
+- **JSON-LD Organization** al final del `<body>` de la landing con `areaServed`
+  (Bolívar · Córdoba · Sucre · Cesar · Magdalena como `AdministrativeArea`) y
+  `knowsAbout` (ISO 50001, IEEE C57.12, IEC 60076, RETIE, NTC-IEC 60364,
+  CIGRE WG A2, Transformadores, RAM).
+- **Accesibilidad WCAG AA.**
+  - `.skip-link` ("Saltar al contenido principal") en landing y home apuntando al
+    landmark `<main id="main">`.
+  - `:focus-visible` global con `outline` azul + `box-shadow` de 2 px en
+    botones/inputs/links.
+  - `@media (prefers-reduced-motion: reduce)` desactiva scroll suave y colapsa
+    animaciones a `.01ms`.
+  - `.sr-only` utilitario para contenido solo de lector de pantalla.
+  - `aria-hidden="true"` en elementos decorativos y `role="banner"` en las
+    topbars.
+- **Performance.** `preconnect` adicional a `fonts.gstatic.com` (además del de
+  `fonts.googleapis.com`) para adelantar el TLS-handshake del CDN de fuentes.
 
 ### Códigos de acceso / Gate dinámico (Fase 12)
 
