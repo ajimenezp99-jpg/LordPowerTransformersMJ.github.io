@@ -277,8 +277,8 @@ independientes, cada una con commit aislado:
 | 33 | Desempeño de aliados / contratistas                        | 🔜 planificada |
 | 34 | PWA + offline para brigadistas                             | 🔜 planificada |
 | 35 | Audit log global + bitácora                                | 🔜 planificada |
-| 36 | Matriz de Riesgo Criticidad × Salud                        | 🔜 planificada |
-| 37 | Motor de Estrategias por Condición (catálogo §A7)          | 🔜 planificada |
+| 36 | Matriz de Riesgo Criticidad × Salud                        | ✅ completada |
+| 37 | Motor de Estrategias por Condición (catálogo §A7)          | ✅ completada |
 
 > **Continuidad entre chats:** al reabrir una sesión, lee sección 0
 > (permisos push + token inline), luego la tabla arriba. La próxima

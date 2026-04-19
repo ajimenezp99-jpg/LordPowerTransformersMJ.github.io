@@ -349,6 +349,12 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // ── /parametros_sistema/{id} (F36) ──
+    match /parametros_sistema/{id} {
+      allow read:   if isTeamMember();
+      allow write:  if isAdmin();
+    }
+
     // ── /contratos/{id} (F21) ──
     match /contratos/{id} {
       allow read:   if isTeamMember();

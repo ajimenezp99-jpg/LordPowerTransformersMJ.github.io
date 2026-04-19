@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Matriz de Riesgo</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
+  <script type="module" src="../assets/js/auth/page-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css"/>
+  <link rel="stylesheet" href="../assets/css/app.css"/>
+  <style>
+    .wrap { max-width: 1080px; margin: 1rem auto; padding: 0 1rem; }
+    h1 { font-family: var(--font-display); color: var(--accent); }
+    .ref { font-family: var(--font-mono); font-size: .78rem; color: var(--text-soft); margin-bottom: 1.2rem; }
+    .matriz { border-collapse: collapse; font-family: var(--font-mono); width: 100%; margin-top: 1rem; }
+    .matriz th, .matriz td { border: 1px solid rgba(255,255,255,.1); padding: 1rem; text-align: center; vertical-align: middle; font-size: .8rem; }
+    .matriz th { background: rgba(0,0,0,.3); color: var(--accent); font-size: .75rem; letter-spacing: .06em; }
+    .cell { font-size: 1.6rem; font-weight: 700; cursor: pointer; transition: transform .15s; }
+    .cell:hover { transform: scale(1.05); }
+    .cell.count-0 { opacity: .35; }
+    .col-VRD  { background: rgba(27,142,63,.2); color: #4CB050; }
+    .col-AMRL { background: rgba(245,197,24,.2); color: #F5C518; }
+    .col-NAR  { background: rgba(239,120,32,.2); color: #EF7820; }
+    .col-ROJ  { background: rgba(229,57,53,.2); color: #E53935; }
+    .leyenda { display: flex; gap: 1.5rem; margin-top: 1.2rem; font-family: var(--font-mono); font-size: .72rem; }
+    .leyenda .chip { padding: .4rem .8rem; border-radius: 3px; }
+    .detalle { margin-top: 1.2rem; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.1); border-radius: 4px; padding: 1rem; font-family: var(--font-mono); font-size: .75rem; display: none; }
+    .detalle.open { display: block; }
+    .detalle ul { list-style: disc inside; line-height: 1.6; }
+    .refnote { font-size: .7rem; color: var(--text-soft); padding-top: .3rem; }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../home.html" class="topbar-brand">SGM · <span>TRANSPOWER</span></a>
+  <nav class="main-nav">
+    <a href="../home.html"          class="nav-link">Home</a>
+    <a href="inventario.html"       class="nav-link">Inventario</a>
+    <a href="alertas.html"          class="nav-link">Alertas</a>
+    <a href="matriz-riesgo.html"    class="nav-link active">Matriz Riesgo</a>
+    <a href="kpis.html"             class="nav-link">KPIs</a>
+    <a href="mapa.html"             class="nav-link">Mapa</a>
+  </nav>
+</header>
+
+<main id="main" class="wrap">
+  <h1>Matriz de Riesgo · Criticidad × Salud</h1>
+  <p class="ref">
+    MO.00418.DE-GAC-AX.01 Ed. 02, Tabla 11. Cruce entre nivel de
+    criticidad (usuarios aguas abajo) y condición de salud (HI 1–5).
+    Cada celda muestra el conteo de transformadores. Click en una
+    celda para ver el listado.
+  </p>
+
+  <table class="matriz" id="matriz" aria-label="Matriz de riesgo">
+    <thead>
+      <tr>
+        <th scope="col">HI ↓ &amp; Criticidad →</th>
+        <th scope="col">Mínima</th>
+        <th scope="col">Menor</th>
+        <th scope="col">Moderada</th>
+        <th scope="col">Mayor</th>
+        <th scope="col">Máxima</th>
+      </tr>
+    </thead>
+    <tbody id="mbody"></tbody>
+  </table>
+
+  <div class="leyenda">
+    <span class="chip col-VRD">VRD · OK</span>
+    <span class="chip col-AMRL">AMRL · atención</span>
+    <span class="chip col-NAR">NAR · alta</span>
+    <span class="chip col-ROJ">ROJ · crítica</span>
+  </div>
+
+  <div class="detalle" id="detalle"></div>
+
+  <p class="refnote">
+    Rangos de criticidad calculados sobre el universo de usuarios
+    aguas abajo. Tope máximo dinámico editable desde
+    `admin/matriz-riesgo.html`.
+  </p>
+</main>
+
+<script type="module">
+import { listar } from '../assets/js/data/transformadores.js';
+import { obtenerCriticidad } from '../assets/js/data/parametros_criticidad.js';
+import { agregarConteos, NIVELES_ORDEN, colorCelda } from '../assets/js/domain/matriz_riesgo.js';
+
+const $ = (id) => document.getElementById(id);
+
+async function init() {
+  try {
+    const [txs, crit] = await Promise.all([listar(), obtenerCriticidad()]);
+    const agg = agregarConteos(txs, crit.rangos);
+    const rows = [5, 4, 3, 2, 1].map((hi) => {
+      const cells = NIVELES_ORDEN.map((n) => {
+        const c = agg[hi][n];
+        const col = c.color || colorCelda(hi, n);
+        const cls = 'cell col-' + col + (c.count === 0 ? ' count-0' : '');
+        return `<td class="${cls}" data-hi="${hi}" data-nivel="${n}">${c.count}</td>`;
+      }).join('');
+      return `<tr><th scope="row">HI ${hi}</th>${cells}</tr>`;
+    }).join('');
+    $('mbody').innerHTML = rows;
+
+    document.querySelectorAll('.cell').forEach((c) => {
+      c.addEventListener('click', () => {
+        const hi    = +c.dataset.hi;
+        const nivel = c.dataset.nivel;
+        const cell  = agg[hi][nivel];
+        $('detalle').classList.add('open');
+        $('detalle').innerHTML = cell.ids.length === 0
+          ? `<strong>HI ${hi} × ${nivel}:</strong> sin transformadores.`
+          : `<strong>HI ${hi} × ${nivel} · ${cell.count} transformadores</strong>
+             <ul>${cell.ids.map((id) => `<li>${id}</li>`).join('')}</ul>`;
+      });
+    });
+  } catch (err) {
+    $('mbody').innerHTML = `<tr><td colspan="6" style="color:#ff5577; padding:1rem;">Error: ${err.message}</td></tr>`;
+  }
+}
+
+document.addEventListener('sgm:session-ready', init);
+if (window.__sgmSession) init();
+</script>
+</body>
+</html>
