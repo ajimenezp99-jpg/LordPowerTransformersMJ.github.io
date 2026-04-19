@@ -8,7 +8,7 @@ Caribe Colombiano (Bolívar, Córdoba, Sucre, Cesar y 11 municipios de Magdalena
 
 ## Estado
 
-Fase 8 cerrada · progreso global **65 %**. Ver [`CLAUDE.md`](./CLAUDE.md) para el plan completo.
+Fase 9 cerrada · progreso global **73 %**. Ver [`CLAUDE.md`](./CLAUDE.md) para el plan completo.
 
 ## Stack
 
@@ -109,6 +109,21 @@ dinámico en la Fase 12.
 - Vista admin:   `admin/kpis.html` (con botón **Exportar CSV**).
 - `home.html` consume el snapshot en tiempo real y llena las 4 tarjetas KPI
   superiores (Transformadores · Órdenes activas · Disponibilidad · MTBF).
+
+### Gestión Documental (Fase 9)
+
+- Colección Firestore `documentos` + binarios en Firebase Storage bajo
+  `documentos/{docId}/{filename}` (máx. **20 MB** por archivo).
+- 6 categorías (protocolo, informe, certificado, manual, reporte, otro) y
+  7 normas aplicables (ISO 50001, IEEE C57.12, IEC 60076, RETIE, NTC-IEC 60364,
+  CIGRE WG A2, ninguna).
+- API cliente en `assets/js/data/documentos.js` con `uploadBytesResumable`
+  (barra de progreso) y limpieza automática del objeto en Storage al eliminar.
+- Vista pública: `pages/documentos.html` (KPIs + filtros + búsqueda + descargas).
+- Vista admin:   `admin/documentos.html` (subida + CRUD de metadata).
+- Índices compuestos adicionales (`categoria+codigo`, `norma_aplicable+codigo`,
+  `transformadorId+codigo`). Reglas Firestore validan los enums server-side y
+  reglas Storage limitan escrituras a admins registrados en `/admins/{uid}`.
 
 ### Órdenes de trabajo (Fase 7)
 

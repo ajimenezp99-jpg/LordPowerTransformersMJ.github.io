@@ -47,6 +47,30 @@
         { "fieldPath": "transformadorId", "order": "ASCENDING" },
         { "fieldPath": "codigo",          "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "documentos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "categoria", "order": "ASCENDING" },
+        { "fieldPath": "codigo",    "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "documentos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "norma_aplicable", "order": "ASCENDING" },
+        { "fieldPath": "codigo",          "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "documentos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "transformadorId", "order": "ASCENDING" },
+        { "fieldPath": "codigo",          "order": "DESCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

@@ -1,8 +1,9 @@
 rules_version = '2';
 
 // ══════════════════════════════════════════════════════════════
-// SGM · TRANSPOWER — Reglas Firestore (Fase 7)
-// Colecciones activas: `transformadores` (F6) y `ordenes` (F7).
+// SGM · TRANSPOWER — Reglas Firestore (Fase 9)
+// Colecciones activas: `transformadores` (F6), `ordenes` (F7)
+// y `documentos` (F9, metadata · binarios en Storage).
 // Estado admin se enforce vía colección /admins/{uid}.
 // ══════════════════════════════════════════════════════════════
 
@@ -88,6 +89,36 @@ service cloud.firestore {
         allow update: if false;
         allow delete: if false;
       }
+    }
+
+    // ── /documentos/{id} ──
+    // Metadata de archivos técnicos almacenados en Storage.
+    // Lectura pública (filtrada por gate estático).
+    // Escritura restringida a admins con validación de enums.
+    match /documentos/{id} {
+      allow read:   if true;
+      allow create: if isAdmin()
+                    && request.resource.data.keys().hasAll([
+                        'codigo','titulo','categoria','norma_aplicable'
+                       ])
+                    && request.resource.data.codigo is string
+                    && request.resource.data.codigo.size() > 0
+                    && request.resource.data.categoria in [
+                        'protocolo','informe','certificado','manual','reporte','otro'
+                       ]
+                    && request.resource.data.norma_aplicable in [
+                        'ISO_50001','IEEE_C57_12','IEC_60076',
+                        'RETIE','NTC_IEC_60364','CIGRE_WG_A2','NINGUNA'
+                       ];
+      allow update: if isAdmin()
+                    && request.resource.data.categoria in [
+                        'protocolo','informe','certificado','manual','reporte','otro'
+                       ]
+                    && request.resource.data.norma_aplicable in [
+                        'ISO_50001','IEEE_C57_12','IEC_60076',
+                        'RETIE','NTC_IEC_60364','CIGRE_WG_A2','NINGUNA'
+                       ];
+      allow delete: if isAdmin();
     }
 
     // ── Resto: cerrado por defecto ──
