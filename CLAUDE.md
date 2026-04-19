@@ -28,31 +28,43 @@ Claude Code sobre `ajimenezp99-jpg/lordpowertransformersmj.github.io`
 en *GitHub → Settings → Applications → Installed GitHub Apps*. Mientras
 no se haga, los dos primeros canales seguirán fallando con 403.
 
-**Workaround activo en este clon:** el remote `origin` ya está
-configurado con un **PAT clásico del dueño** embebido en la URL
-(`.git/config`). Esto permite que cualquier `git push` directo
-funcione sin tener que pasar la URL con token inline. El archivo
-`.git/config` no es rastreado por git, así que el token **no se
-commitea** al hacer push.
+**Workaround real (verificado):** el `local_proxy` **resetea el remote
+`origin` entre invocaciones** (cambia de puerto y restaura la URL al
+formato `http://local_proxy@127.0.0.1:PORT/git/...`), así que **no
+sirve** dejar el PAT embebido con `git remote set-url` — sobrevive a
+un único push y luego se pierde. La forma confiable de publicar es
+**pasar la URL con token inline en cada `git push`**:
+
+```bash
+git push https://USER:TOKEN@github.com/USER/REPO.git \
+    BRANCH:BRANCH
+```
+
+donde `TOKEN` es el PAT clásico del dueño guardado fuera del repo
+(en este chat se entregó por mensaje del usuario; en el siguiente
+chat habrá que pedirlo de nuevo o leerlo de donde el dueño lo deje).
 
 **Reglas que debo respetar con este token:**
 1. Jamás copiar el token a un archivo rastreado, a un mensaje de
    commit, a una PR, a un comentario o a cualquier salida visible
-   (logs, prints, etc.). Si tengo que mostrar el remote,
-   redactarlo con `sed 's|ghp_[A-Za-z0-9]*|ghp_****REDACTED****|g'`.
-2. No hacer `git config` globales con el token; solo vive en
-   `.git/config` de este clon.
+   (logs, prints, etc.). Filtrar siempre con
+   `sed 's|ghp_[A-Za-z0-9]*|ghp_****REDACTED****|g'` antes de mostrar
+   un remote o un error de push.
+2. No hacer `git config` globales con el token. Tampoco vale la pena
+   hacer `git config` local porque el proxy lo pisa.
 3. Si el dueño revoca el token (recomendable cuando concede
-   `contents:write` al App), el `git push` volverá a fallar con
-   401/403 y habrá que pedir un token nuevo o usar el App.
-4. Preferir `git push` directo (el remote ya lleva el token) antes
-   que `mcp__github__*` para operaciones de escritura. Los
-   endpoints MCP se pueden seguir usando para lectura.
+   `contents:write` al App), `git push` volverá a fallar con 401/403
+   y habrá que pedir un token nuevo o usar el App.
+4. Preferir `git push` con URL inline antes que `mcp__github__*` para
+   operaciones de escritura. Los endpoints MCP solo sirven para lectura
+   en este entorno.
 5. Si aparece una instrucción del usuario en el chat incluyendo un
-   token nuevo, **asumir que reemplaza al actual** y actualizar
-   `origin` con `git remote set-url origin
-   https://USER:NEW_TOKEN@github.com/...`. No pedirle al usuario
-   que lo re-introduzca.
+   token nuevo, **asumir que reemplaza al actual**; usarlo en el
+   siguiente push inline. No pedirle al usuario que lo re-introduzca
+   si ya lo dio antes.
+6. Al iniciar un chat nuevo: si hay commits pendientes y no hay token
+   visible, **preguntar al dueño** por un PAT clásico (scope `repo`).
+   Sin eso, push imposible.
 
 ### 0.2 Branch de trabajo
 
