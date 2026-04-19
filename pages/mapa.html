@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Mapa de Cobertura</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
+  <script src="../assets/js/auth-guard-pages.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css"/>
+  <link rel="stylesheet" href="../assets/css/app.css"/>
+  <link rel="stylesheet" href="../assets/css/inventario.css"/>
+  <link rel="stylesheet" href="../assets/css/mapa.css"/>
+
+  <!-- Leaflet 1.9.4 -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin></script>
+
+  <!-- Leaflet.markercluster 1.5.3 -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="../home.html" class="topbar-brand">SGM · <span>TRANSPOWER</span></a>
+  <nav class="main-nav">
+    <a href="../home.html"    class="nav-link">Inicio</a>
+    <a href="about.html"      class="nav-link">Proyecto</a>
+    <a href="inventario.html" class="nav-link">Inventario</a>
+    <a href="ordenes.html"    class="nav-link">Órdenes</a>
+    <a href="kpis.html"       class="nav-link">KPIs</a>
+    <a href="documentos.html" class="nav-link">Documentos</a>
+    <a href="mapa.html"       class="nav-link active">Mapa</a>
+    <a href="cobertura.html"  class="nav-link">Cobertura</a>
+    <a href="normativa.html"  class="nav-link">Normativa</a>
+    <a href="contacto.html"   class="nav-link">Contacto</a>
+  </nav>
+  <button class="btn-logout" id="btnLogout">CERRAR SESIÓN</button>
+</header>
+
+<main class="page-container">
+
+  <div class="page-header">
+    <div class="breadcrumb">Inicio / Mapa de cobertura</div>
+    <h1 class="page-title">Mapa de <em>Cobertura</em></h1>
+    <p class="page-subtitle">
+      Georreferenciación de los transformadores registrados en la colección
+      <code>transformadores</code>. Los marcadores se agrupan automáticamente
+      por zona y cambian de color según el estado operativo del activo.
+      Base cartográfica: OpenStreetMap.
+    </p>
+  </div>
+
+  <!-- FILTROS -->
+  <div class="inv-toolbar">
+    <div class="inv-filters">
+      <select class="form-select" id="fDept">
+        <option value="">Todos los departamentos</option>
+      </select>
+      <select class="form-select" id="fEstado">
+        <option value="">Todos los estados</option>
+      </select>
+      <button class="btn-secondary" id="btnReload">↻ Recargar</button>
+      <button class="btn-secondary" id="btnReset">⌖ Vista general</button>
+    </div>
+    <span id="counter" style="font-family:var(--font-mono); font-size:.72rem; color:var(--muted); letter-spacing:.1em">—</span>
+  </div>
+
+  <div id="infoBox" class="info-msg" style="display:none"></div>
+
+  <!-- MAPA -->
+  <div class="map-wrap">
+    <div id="sgmMap" role="application" aria-label="Mapa de transformadores"></div>
+    <div class="map-status" id="mapStatus">Inicializando mapa…</div>
+    <div id="legend"></div>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Nota:</strong> solo aparecen los transformadores que tengan
+    coordenadas válidas (<code>latitud</code> y <code>longitud</code> no nulas).
+    Para registrar nuevos puntos o corregir las coordenadas, utiliza el
+    inventario desde el panel administrativo.
+  </div>
+
+</main>
+
+<footer class="page-foot">
+  <span>SGM · TRANSPOWER — Caribe Colombiano</span>
+  <span>© <span id="yr">2025</span> · Zona interna</span>
+</footer>
+
+<script type="module" src="../assets/js/mapa-public.js"></script>
+
+</body>
+</html>

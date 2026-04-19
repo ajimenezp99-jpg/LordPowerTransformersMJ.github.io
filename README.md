@@ -8,7 +8,7 @@ Caribe Colombiano (Bolívar, Córdoba, Sucre, Cesar y 11 municipios de Magdalena
 
 ## Estado
 
-Fase 9 cerrada · progreso global **73 %**. Ver [`CLAUDE.md`](./CLAUDE.md) para el plan completo.
+Fase 10 cerrada · progreso global **80 %**. Ver [`CLAUDE.md`](./CLAUDE.md) para el plan completo.
 
 ## Stack
 
@@ -16,7 +16,7 @@ Fase 9 cerrada · progreso global **73 %**. Ver [`CLAUDE.md`](./CLAUDE.md) para 
 - Hosting estático: **GitHub Pages** (Actions workflow `pages.yml`).
 - Hosting dinámico (futuro): **Vercel Hobby** (serverless Node.js).
 - Backend (futuro): **Firebase** (Auth · Firestore · Storage).
-- Mapas (futuro): **Leaflet + OpenStreetMap**.
+- Mapas: **Leaflet 1.9.4 + Leaflet.markercluster 1.5.3 + OpenStreetMap** (CDN unpkg).
 
 ## Desarrollo local
 
@@ -124,6 +124,23 @@ dinámico en la Fase 12.
 - Índices compuestos adicionales (`categoria+codigo`, `norma_aplicable+codigo`,
   `transformadorId+codigo`). Reglas Firestore validan los enums server-side y
   reglas Storage limitan escrituras a admins registrados en `/admins/{uid}`.
+
+### Mapa de cobertura (Fase 10)
+
+- Renderer compartido `assets/js/mapa-render.js` sobre **Leaflet 1.9.4** +
+  **Leaflet.markercluster 1.5.3** (CDN unpkg con SRI).
+- Tile layer **OpenStreetMap** estándar. Centro inicial en Caribe Colombiano
+  `[9.4, -74.8]` con zoom 7. `fitBounds` automático al cargar marcadores.
+- Marcadores `divIcon` coloreados según `estado` (operativo / mantenimiento /
+  fuera_servicio / retirado). Clusters automáticos con `maxClusterRadius: 50`.
+- Filtro de coordenadas válidas: descarta `null`, `0,0` y valores fuera de
+  rango para evitar marcadores espurios.
+- Vista pública: `pages/mapa.html` (filtros departamento/estado, contador
+  "X visible de Y", popups solo-lectura con ficha resumida).
+- Vista admin:   `admin/mapa.html` (mismos filtros + popup con enlace directo
+  a `inventario.html#edit:{id}` para corregir coordenadas).
+- CSS con **tema oscuro** para controles y popups Leaflet en
+  `assets/css/mapa.css`.
 
 ### Órdenes de trabajo (Fase 7)
 
