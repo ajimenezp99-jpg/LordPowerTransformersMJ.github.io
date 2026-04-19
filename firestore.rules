@@ -326,6 +326,16 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ── /importaciones/{id} (Fase 17) ──
+    // Log append-only de jobs de importación Excel. Cada job
+    // lleva el reporte de discrepancias Excel ↔ MO.00418.
+    match /importaciones/{id} {
+      allow read:   if isTeamMember();
+      allow create: if isAdmin();
+      allow update: if false;
+      allow delete: if false;
+    }
+
     // ── /propuestas_reclasificacion_fur/{id} (F18/F26 · A9.2) ──
     match /propuestas_reclasificacion_fur/{id} {
       allow read:   if isTeamMember();

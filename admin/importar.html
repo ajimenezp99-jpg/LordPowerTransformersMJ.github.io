@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Importador Excel</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
+  <script type="module" src="../assets/js/auth/admin-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css"/>
+  <link rel="stylesheet" href="../assets/css/app.css"/>
+  <style>
+    .wrap { max-width: 1080px; margin: 1rem auto; padding: 0 1rem; }
+    .dropzone {
+      border: 2px dashed rgba(0,255,153,.4);
+      border-radius: 5px;
+      padding: 2rem;
+      text-align: center;
+      font-family: var(--font-mono);
+      color: var(--text-soft);
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .dropzone.hover { background: rgba(0,255,153,.05); }
+    .report-card {
+      background: rgba(255,255,255,.03);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 4px;
+      padding: 1rem 1.2rem;
+      margin-top: 1rem;
+    }
+    .report-card h3 {
+      margin: 0 0 .7rem;
+      font-family: var(--font-mono);
+      font-size: .82rem;
+      letter-spacing: .1em;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+    table.discrepancias {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: var(--font-mono);
+      font-size: .72rem;
+    }
+    table.discrepancias th, table.discrepancias td {
+      padding: .35rem .55rem;
+      border-bottom: 1px solid rgba(255,255,255,.08);
+      text-align: left;
+    }
+    table.discrepancias th { color: var(--accent); }
+    .bucket-pill {
+      display: inline-block; padding: 2px 8px; border-radius: 3px;
+      font-size: .65rem; letter-spacing: .1em;
+    }
+    .b-muy_bueno  { background: rgba(27,142,63,.25); color:#1B8E3F; }
+    .b-bueno      { background: rgba(76,176,80,.25); color:#4CB050; }
+    .b-medio      { background: rgba(245,197,24,.2); color:#F5C518; }
+    .b-pobre      { background: rgba(239,120,32,.2); color:#EF7820; }
+    .b-muy_pobre  { background: rgba(229,57,53,.25); color:#E53935; }
+    .btn-row { display: flex; gap: .7rem; margin-top: 1rem; flex-wrap: wrap; }
+    button {
+      padding: .7rem 1.2rem;
+      border: none;
+      font-family: var(--font-mono);
+      font-size: .78rem;
+      letter-spacing: .1em;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+    .btn-dry  { background: rgba(240,165,0,.15); color: var(--accent2); border: 1px solid rgba(240,165,0,.5); }
+    .btn-real { background: var(--accent); color: #000; }
+    .progress {
+      margin-top: .8rem;
+      font-family: var(--font-mono);
+      font-size: .75rem;
+      color: var(--accent3);
+    }
+    #msg {
+      margin-top: .8rem;
+      font-family: var(--font-mono);
+      font-size: .78rem;
+    }
+    .msg-ok  { color: var(--accent3); }
+    .msg-err { color: #ff5577; }
+    details { margin-top: .5rem; font-family: var(--font-mono); font-size: .72rem; }
+    summary { cursor: pointer; color: var(--accent2); }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="topbar-brand">SGM · <span>TRANSPOWER</span> · ADMIN</a>
+  <nav class="main-nav">
+    <a href="index.html"         class="nav-link">Panel</a>
+    <a href="inventario.html"    class="nav-link">Inventario</a>
+    <a href="importar.html"      class="nav-link active">Importar</a>
+    <a href="motor-salud.html"   class="nav-link">Motor Salud</a>
+    <a href="umbrales-salud.html" class="nav-link">Umbrales</a>
+    <a href="alertas.html"       class="nav-link">Alertas</a>
+    <a href="usuarios.html"      class="nav-link">Usuarios</a>
+    <a href="../home.html"       class="nav-link">Zona interna</a>
+  </nav>
+</header>
+
+<main id="main" class="wrap">
+  <h1>Importador masivo Excel → Firestore</h1>
+  <p style="font-family: var(--font-mono); font-size: .78rem; color: var(--text-soft); line-height: 1.5;">
+    Carga el archivo <code>Salud de Activos 2026.xlsx</code> (o compatible).
+    Las hojas reconocidas son <code>TX_Potencia</code>, <code>TPT_Servicio</code> y
+    <code>TX_Respaldo</code>. El motor F18 recalcula el HI oficial de cada fila;
+    el reporte de discrepancias Excel ↔ MO.00418 queda guardado en
+    <code>/importaciones/{jobId}</code>.
+  </p>
+
+  <label class="dropzone" id="dropzone">
+    <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none">
+    Arrastra aquí el archivo o haz clic para seleccionar.
+  </label>
+
+  <div class="progress" id="progress"></div>
+
+  <div id="reportWrap" hidden>
+    <section class="report-card">
+      <h3>Resumen del análisis</h3>
+      <div id="summary"></div>
+      <div class="btn-row">
+        <button class="btn-dry"  id="btnDry">SIMULAR (DRY-RUN)</button>
+        <button class="btn-real" id="btnReal">IMPORTAR EN FIRESTORE</button>
+      </div>
+      <div id="msg"></div>
+    </section>
+
+    <section class="report-card">
+      <h3>Discrepancias Excel ↔ MO.00418 Ed. 02 (primeras 30)</h3>
+      <p style="font-family: var(--font-mono); font-size: .72rem; color: var(--text-soft);">
+        Filas donde la CONDICION del Excel difiere en más de 0.5
+        del HI recalculado oficialmente. Atención especial a las que
+        cambian a bucket <span class="bucket-pill b-pobre">pobre</span>
+        o <span class="bucket-pill b-muy_pobre">muy_pobre</span>.
+      </p>
+      <div id="discrepancias"></div>
+    </section>
+  </div>
+</main>
+
+<script type="module">
+import { procesarLibro } from '../assets/js/domain/importador.js';
+import { persistirImportacion, isReady } from '../assets/js/data/importar.js';
+
+// SheetJS vía CDN (UMD build funciona también como ESM con dynamic import).
+async function loadSheetJS() {
+  if (window.XLSX) return window.XLSX;
+  await new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+    s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+  return window.XLSX;
+}
+
+const $ = (id) => document.getElementById(id);
+const setMsg = (t, cls = 'msg-ok') => { $('msg').textContent = t; $('msg').className = cls; };
+
+let procesadoActual = null; // { resultados, reporte, nombre }
+
+$('dropzone').addEventListener('click', () => $('fileInput').click());
+$('dropzone').addEventListener('dragover', (e) => { e.preventDefault(); $('dropzone').classList.add('hover'); });
+$('dropzone').addEventListener('dragleave', () => $('dropzone').classList.remove('hover'));
+$('dropzone').addEventListener('drop', (e) => {
+  e.preventDefault();
+  $('dropzone').classList.remove('hover');
+  if (e.dataTransfer.files[0]) procesarArchivo(e.dataTransfer.files[0]);
+});
+$('fileInput').addEventListener('change', (e) => {
+  if (e.target.files[0]) procesarArchivo(e.target.files[0]);
+});
+
+async function procesarArchivo(file) {
+  try {
+    $('progress').textContent = `⋯ Parseando ${file.name}`;
+    const XLSX = await loadSheetJS();
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: 'array', cellDates: true });
+
+    const hojas = wb.SheetNames.map((name) => ({
+      hoja: name,
+      filas: XLSX.utils.sheet_to_json(wb.Sheets[name], { raw: false, defval: '' })
+    }));
+
+    $('progress').textContent = `⋯ Analizando ${hojas.reduce((s, h) => s + h.filas.length, 0)} filas con motor F18...`;
+
+    const { resultados, reporte } = procesarLibro(hojas);
+    procesadoActual = { resultados, reporte, nombre: file.name };
+
+    $('reportWrap').hidden = false;
+    $('summary').innerHTML = `
+      <p><strong>Archivo:</strong> ${file.name}</p>
+      <p><strong>Filas totales:</strong> ${reporte.total_filas}</p>
+      <p><strong>Por hoja:</strong> ${Object.entries(reporte.por_hoja).map(([h, n]) => `${h}: ${n}`).join(' · ')}</p>
+      <p><strong>Exitosos:</strong> ${reporte.exitosos} · <strong>Errores parseo:</strong> ${reporte.errores}</p>
+      <p><strong>Discrepancias > 0.5:</strong> ${reporte.discrepancias_excel_mo00418.length}</p>
+    `;
+
+    const discs = reporte.discrepancias_excel_mo00418.slice(0, 30);
+    $('discrepancias').innerHTML = discs.length === 0
+      ? '<p style="color:var(--accent3)">Sin discrepancias significativas.</p>'
+      : `<table class="discrepancias">
+           <thead><tr>
+             <th>Hoja</th><th>Código</th><th>HI recalc</th><th>Cond. Excel</th>
+             <th>Δ</th><th>Bucket</th>
+           </tr></thead>
+           <tbody>${discs.map((d) => `
+             <tr>
+               <td>${d.hoja}</td><td>${d.codigo}</td>
+               <td>${d.hi_recalculado != null ? d.hi_recalculado.toFixed(2) : '—'}</td>
+               <td>${d.condicion_excel ?? '—'}</td>
+               <td>${d.diferencia != null ? d.diferencia.toFixed(2) : '—'}</td>
+               <td><span class="bucket-pill b-${d.bucket || ''}">${d.bucket || '—'}</span></td>
+             </tr>
+           `).join('')}</tbody>
+         </table>`;
+
+    $('progress').textContent = '✓ Análisis listo. Revisa el reporte antes de importar.';
+  } catch (err) {
+    console.error(err);
+    $('progress').textContent = 'Error: ' + err.message;
+  }
+}
+
+async function persistir(dryRun) {
+  if (!procesadoActual) return;
+  if (!isReady()) { setMsg('Firebase no inicializado.', 'msg-err'); return; }
+  try {
+    setMsg(dryRun ? '⋯ Simulando...' : '⋯ Importando...', 'msg-ok');
+    const session = window.__sgmSession;
+    const out = await persistirImportacion(
+      procesadoActual.resultados,
+      procesadoActual.reporte,
+      {
+        uid: session && session.user && session.user.uid,
+        dryRun,
+        nombre_archivo: procesadoActual.nombre,
+        onProgress: ({ i, total }) => {
+          $('progress').textContent = `⋯ ${dryRun ? 'Simulando' : 'Persistiendo'} ${i}/${total}`;
+        }
+      }
+    );
+    setMsg(
+      `✓ ${dryRun ? 'Simulación' : 'Importación'} OK. Creados: ${out.creados} · ` +
+      `Actualizados: ${out.actualizados} · Fallidos: ${out.fallidos}` +
+      (out.jobId ? ` · Job: ${out.jobId}` : ''),
+      'msg-ok'
+    );
+  } catch (err) {
+    console.error(err);
+    setMsg('Error: ' + err.message, 'msg-err');
+  }
+}
+
+$('btnDry').addEventListener('click',  () => persistir(true));
+$('btnReal').addEventListener('click', () => {
+  if (!confirm('¿Confirmas la IMPORTACIÓN REAL a Firestore? Los documentos con `codigo` existente se actualizarán.')) return;
+  persistir(false);
+});
+</script>
+</body>
+</html>
