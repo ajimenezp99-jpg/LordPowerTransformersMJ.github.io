@@ -1,23 +1,30 @@
 rules_version = '2';
 
 // ══════════════════════════════════════════════════════════════
-// SGM · TRANSPOWER — Reglas Firestore (Fase 14)
-// Modelo unificado: toda lectura requiere sesión activa y perfil
-// en /usuarios/{uid} con `activo=true`. Las escrituras las hace
-// únicamente quien tenga rol 'admin' en el perfil, o quien esté
-// en la colección heredada /admins/{uid} (bootstrap de F5).
-// Colecciones: transformadores (F6), ordenes (F7), documentos
-// (F9, metadata), alertas_config + alertas_reconocidas (F11),
-// usuarios (F14, roles del equipo).
+// SGM · TRANSPOWER — Reglas Firestore (Fase 16 · schema v2)
+// ──────────────────────────────────────────────────────────────
+// Cambios respecto a F14:
+//   · `transformadores` migra a shape v2: sección `identificacion`,
+//     sección `ubicacion`, `estado_servicio` (enum ampliado con
+//     'fallado'), `schema_version == 2`. Se mantiene compat con
+//     el shape v1 aplanado (proyección v1) para que las vistas
+//     legacy sigan funcionando; los `allow create`/`allow update`
+//     aceptan payloads que traigan ambos niveles.
+//   · Nueva colección `subestaciones`.
+//   · Nuevas subcolecciones append-only `transformadores/{id}/
+//     placas_historicas` y `transformadores/{id}/historial_hi`.
+//   · Las escrituras siguen restringidas a `isAdmin()` mientras
+//     F28 (RBAC granular con ámbito geográfico) entra.
+//
+// Referencia: MO.00418.DE-GAC-AX.01 Ed. 02 — §4.1 (variables), §4.2
+// (ponderación HI), §A9 (protocolos).
 // ══════════════════════════════════════════════════════════════
 
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ── Helpers ──
-    function isSignedIn() {
-      return request.auth != null;
-    }
+    // ── Helpers de sesión / rol ──
+    function isSignedIn() { return request.auth != null; }
 
     function hasProfile() {
       return isSignedIn()
@@ -28,8 +35,6 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/usuarios/$(request.auth.uid)).data;
     }
 
-    // Miembro activo del equipo. Admite bootstrap por /admins/{uid}
-    // para no bloquear al propietario durante la migración desde F5.
     function isTeamMember() {
       return isSignedIn() && (
         (hasProfile() && profile().activo == true) ||
@@ -37,8 +42,6 @@ service cloud.firestore {
       );
     }
 
-    // Admin. Puede ser por rol='admin' en /usuarios, o por el doc
-    // legacy /admins/{uid} heredado de F5.
     function isAdmin() {
       return isSignedIn() && (
         (hasProfile() && profile().rol == 'admin' && profile().activo == true) ||
@@ -46,19 +49,34 @@ service cloud.firestore {
       );
     }
 
-    // ── /admins/{uid} ──
-    // Documento marcador legacy de F5. Se mantiene como bootstrap
-    // para el propietario. El contenido no se usa.
+    // ── Helpers de validación de enums v2 ──
+    function isTipoActivoValido(v) {
+      return v in ['POTENCIA', 'TPT', 'RESPALDO'];
+    }
+    function isEstadoServicioValido(v) {
+      return v in ['operativo', 'mantenimiento', 'fuera_servicio', 'retirado', 'fallado'];
+    }
+    function isZonaValida(v) {
+      return v in ['BOLIVAR', 'ORIENTE', 'OCCIDENTE'];
+    }
+    function isDeptoValido(v) {
+      return v in ['bolivar', 'cordoba', 'sucre', 'cesar', 'magdalena'];
+    }
+    function isGrupoValido(v) {
+      return v == '' || v == null || v in ['G1', 'G2', 'G3'];
+    }
+
+    // ── /admins/{uid} — legacy bootstrap (F5) ──
     match /admins/{uid} {
       allow read:  if isSignedIn() && request.auth.uid == uid;
       allow write: if false;
     }
 
-    // ── /usuarios/{uid} — F14 ──
-    // Perfil del miembro del equipo: email, nombre, rol, activo.
-    // - Cada usuario puede leer su propio perfil (para que el guard
-    //   verifique estado y rol).
-    // - Admins pueden listar y gestionar todos los perfiles.
+    // ── /usuarios/{uid} — perfiles (F14) ──
+    // F28 extenderá a los 5 roles oficiales (director_proyectos,
+    // analista_tx, gestor_contractual, brigadista, auditor_campo).
+    // En F16 se mantiene la lista v1 + aceptación del rol legacy
+    // 'tecnico' (los perfiles actuales no rompen).
     match /usuarios/{uid} {
       allow get:    if isSignedIn() && (request.auth.uid == uid || isAdmin());
       allow list:   if isAdmin();
@@ -68,36 +86,152 @@ service cloud.firestore {
                        ])
                     && request.resource.data.email is string
                     && request.resource.data.email.size() > 0
-                    && request.resource.data.rol in ['admin','tecnico']
+                    && request.resource.data.rol in [
+                        'admin','tecnico',
+                        'director_proyectos','analista_tx',
+                        'gestor_contractual','brigadista','auditor_campo'
+                       ]
                     && request.resource.data.activo is bool;
       allow update: if isAdmin()
                     && (!('rol' in request.resource.data)
-                        || request.resource.data.rol in ['admin','tecnico'])
+                        || request.resource.data.rol in [
+                            'admin','tecnico',
+                            'director_proyectos','analista_tx',
+                            'gestor_contractual','brigadista','auditor_campo'
+                           ])
                     && (!('activo' in request.resource.data)
                         || request.resource.data.activo is bool);
       allow delete: if isAdmin() && request.auth.uid != uid;
     }
 
-    // ── /transformadores/{id} ──
-    match /transformadores/{id} {
+    // ── /subestaciones/{id} (Fase 16) ──
+    // La UI dedicada entra en F20. F16 sólo expone CRUD admin
+    // para que el importador F17 pueda poblar la colección.
+    match /subestaciones/{id} {
       allow read:   if isTeamMember();
       allow create: if isAdmin()
                     && request.resource.data.keys().hasAll([
-                        'codigo','nombre','departamento','estado'
+                        'codigo','nombre','departamento'
                        ])
                     && request.resource.data.codigo is string
                     && request.resource.data.codigo.size() > 0
-                    && request.resource.data.estado in [
-                        'operativo','mantenimiento','fuera_servicio','retirado'
-                       ];
+                    && request.resource.data.nombre is string
+                    && request.resource.data.nombre.size() > 0
+                    && isDeptoValido(request.resource.data.departamento)
+                    && (!('zona' in request.resource.data)
+                        || request.resource.data.zona == ''
+                        || isZonaValida(request.resource.data.zona));
       allow update: if isAdmin()
-                    && request.resource.data.estado in [
-                        'operativo','mantenimiento','fuera_servicio','retirado'
-                       ];
+                    && (!('departamento' in request.resource.data)
+                        || isDeptoValido(request.resource.data.departamento))
+                    && (!('zona' in request.resource.data)
+                        || request.resource.data.zona == ''
+                        || isZonaValida(request.resource.data.zona));
       allow delete: if isAdmin();
     }
 
-    // ── /ordenes/{id} ──
+    // ── /transformadores/{id} — schema v2 ──
+    // Shape aceptado:
+    //   schema_version: 2
+    //   estado_servicio: enum
+    //   identificacion: { codigo, nombre, tipo_activo, uucc?, grupo? }
+    //   ubicacion: { departamento, zona?, ... }
+    //   placa, electrico, mecanico, refrigeracion, protecciones,
+    //   fabricacion, servicio, salud_actual, criticidad
+    //
+    // Además se permiten campos de proyección v1 en el nivel raíz
+    // (codigo, nombre, departamento, estado, ...) para compat con
+    // vistas legacy que todavía consultan por ellos. Las rules
+    // validan AMBOS niveles como coherentes cuando el payload
+    // trae los dos.
+    match /transformadores/{id} {
+
+      allow read: if isTeamMember();
+
+      allow create: if isAdmin()
+        && request.resource.data.schema_version == 2
+        && request.resource.data.keys().hasAll(['identificacion','ubicacion','estado_servicio'])
+        && request.resource.data.identificacion.keys().hasAll(['codigo','nombre','tipo_activo'])
+        && request.resource.data.identificacion.codigo is string
+        && request.resource.data.identificacion.codigo.size() > 0
+        && request.resource.data.identificacion.nombre is string
+        && request.resource.data.identificacion.nombre.size() > 0
+        && isTipoActivoValido(request.resource.data.identificacion.tipo_activo)
+        && isGrupoValido(request.resource.data.identificacion.get('grupo', ''))
+        && isDeptoValido(request.resource.data.ubicacion.departamento)
+        && (!('zona' in request.resource.data.ubicacion)
+            || request.resource.data.ubicacion.zona == ''
+            || isZonaValida(request.resource.data.ubicacion.zona))
+        && isEstadoServicioValido(request.resource.data.estado_servicio)
+        // Proyección v1 (si está presente) debe ser consistente.
+        && (!('codigo' in request.resource.data)
+            || request.resource.data.codigo == request.resource.data.identificacion.codigo)
+        && (!('estado' in request.resource.data)
+            || request.resource.data.estado == request.resource.data.estado_servicio
+            || (request.resource.data.estado_servicio == 'fallado'
+                && request.resource.data.estado == 'retirado'));
+
+      allow update: if isAdmin()
+        && (!('schema_version' in request.resource.data)
+            || request.resource.data.schema_version == 2)
+        && (!('estado_servicio' in request.resource.data)
+            || isEstadoServicioValido(request.resource.data.estado_servicio))
+        && (!('identificacion' in request.resource.data)
+            || !('tipo_activo' in request.resource.data.identificacion)
+            || isTipoActivoValido(request.resource.data.identificacion.tipo_activo))
+        && (!('identificacion' in request.resource.data)
+            || !('grupo' in request.resource.data.identificacion)
+            || isGrupoValido(request.resource.data.identificacion.grupo))
+        && (!('ubicacion' in request.resource.data)
+            || !('departamento' in request.resource.data.ubicacion)
+            || isDeptoValido(request.resource.data.ubicacion.departamento))
+        && (!('ubicacion' in request.resource.data)
+            || !('zona' in request.resource.data.ubicacion)
+            || request.resource.data.ubicacion.zona == ''
+            || isZonaValida(request.resource.data.ubicacion.zona));
+
+      allow delete: if isAdmin();
+
+      // ── /transformadores/{id}/placas_historicas/{evt} ──
+      // Append-only: trazabilidad de retrofits. F16 reserva el
+      // shape; la UI para registrar cambios entra en F23.
+      match /placas_historicas/{evt} {
+        allow read:   if isTeamMember();
+        allow create: if isAdmin()
+                      && request.resource.data.tipo_cambio in [
+                          'potencia','tension','refrigeracion','tap','otro'
+                         ];
+        allow update: if false;
+        allow delete: if false;
+      }
+
+      // ── /transformadores/{id}/historial_hi/{calculo} ──
+      // Append-only: snapshots del Health Index. Cada re-cálculo
+      // del motor (F18) o cambio de umbrales genera una entrada.
+      match /historial_hi/{calculo} {
+        allow read:   if isTeamMember();
+        allow create: if isAdmin()
+                      && request.resource.data.trigger in [
+                          'muestra_nueva','parametros_actualizados',
+                          'migracion_v2','manual','override_experto',
+                          'recalculo_masivo'
+                         ];
+        allow update: if false;
+        allow delete: if false;
+      }
+
+      // ── /transformadores/{id}/historial/{evt} (legacy de F7) ──
+      // Se mantiene por compat con órdenes viejas. El mismo alias
+      // de subcolección no existe; este match es defensivo.
+      match /historial/{evt} {
+        allow read:   if isTeamMember();
+        allow create: if isAdmin();
+        allow update: if false;
+        allow delete: if false;
+      }
+    }
+
+    // ── /ordenes/{id} (sin cambios en F16, migra en F23) ──
     match /ordenes/{id} {
       allow read:   if isTeamMember();
       allow create: if isAdmin()
@@ -128,7 +262,6 @@ service cloud.firestore {
                        ];
       allow delete: if isAdmin();
 
-      // Historial inmutable — sólo escribir (append-only).
       match /historial/{evt} {
         allow read:   if isTeamMember();
         allow create: if isAdmin();
@@ -137,7 +270,7 @@ service cloud.firestore {
       }
     }
 
-    // ── /documentos/{id} ──
+    // ── /documentos/{id} (sin cambios en F16) ──
     match /documentos/{id} {
       allow read:   if isTeamMember();
       allow create: if isAdmin()
@@ -164,13 +297,11 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // ── /alertas_config/{id} ──
     match /alertas_config/{id} {
       allow read:   if isTeamMember();
       allow write:  if isAdmin();
     }
 
-    // ── /alertas_reconocidas/{id} ──
     match /alertas_reconocidas/{id} {
       allow read:   if isTeamMember();
       allow create: if isAdmin()
@@ -180,10 +311,7 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // ── /gate_codes/{hash} — DEPRECADO (F12) ──
-    // El gate de códigos fue retirado en F14 (login unificado). Se
-    // mantiene la colección cerrada por si quedan datos residuales
-    // de la fase anterior; ninguna página del sitio la lee ya.
+    // ── Gate legacy F12 cerrado ──
     match /gate_codes/{hash} {
       allow read, write: if false;
     }

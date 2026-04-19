@@ -17,6 +17,78 @@
       ]
     },
     {
+      "collectionGroup": "transformadores",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "ubicacion.zona", "order": "ASCENDING" },
+        { "fieldPath": "codigo",         "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "transformadores",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "identificacion.grupo", "order": "ASCENDING" },
+        { "fieldPath": "codigo",               "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "transformadores",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "identificacion.tipo_activo", "order": "ASCENDING" },
+        { "fieldPath": "salud_actual.hi_final",      "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "transformadores",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "ubicacion.subestacionId", "order": "ASCENDING" },
+        { "fieldPath": "codigo",                  "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "transformadores",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "salud_actual.bucket", "order": "ASCENDING" },
+        { "fieldPath": "ubicacion.zona",      "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "transformadores",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "estado_servicio", "order": "ASCENDING" },
+        { "fieldPath": "codigo",          "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "subestaciones",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "zona",   "order": "ASCENDING" },
+        { "fieldPath": "codigo", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "subestaciones",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "departamento", "order": "ASCENDING" },
+        { "fieldPath": "codigo",       "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "historial_hi",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "trigger",    "order": "ASCENDING"  },
+        { "fieldPath": "ts_calculo", "order": "DESCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "ordenes",
       "queryScope": "COLLECTION",
       "fields": [

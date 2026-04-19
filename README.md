@@ -8,7 +8,18 @@ Caribe Colombiano (Bolívar, Córdoba, Sucre, Cesar y 11 municipios de Magdalena
 
 ## Estado
 
-Plataforma lista · versión **v1.0.0** · 14 / 14 fases completadas. Ver [`CLAUDE.md`](./CLAUDE.md) para el plan completo.
+Plataforma v1.0.0 cerrada (F0–F14 · 14/14 fases). Evolución v2.0 en
+curso conforme al procedimiento interno **MO.00418.DE-GAC-AX.01 Ed. 02**
+(CARIBEMAR DE LA COSTA S.A.S E.S.P · Afinia · Grupo EPM):
+
+- **F15** ✅ Realtime con `onSnapshot`.
+- **F16** ✅ Refactor del modelo de datos al schema v2 (secciones,
+  `salud_actual`, subestaciones, subcolecciones append-only).
+  Ver [`docs/MODELO-DATOS-v2.md`](./docs/MODELO-DATOS-v2.md).
+- **F17–F37** 🔜 Importador, motor de salud, muestras DGA/ADFQ/FUR,
+  matriz criticidad × salud, estrategias por condición, etc.
+
+Plan completo en [`CLAUDE.md`](./CLAUDE.md).
 
 ## Stack
 
@@ -23,8 +34,14 @@ Plataforma lista · versión **v1.0.0** · 14 / 14 fases completadas. Ver [`CLAU
 ```bash
 npm install        # instala html-validate
 npm run lint       # valida HTML
+npm run test:unit  # tests unitarios del dominio (node --test)
+npm test           # lint + tests
 npm run serve      # sirve el sitio en http://localhost:8080
 ```
+
+Los tests cubren el schema v2 (pesos oficiales del HI, enums, UUCC,
+buckets), el sanitizador/validador de transformadores y subestaciones,
+y la migración v1 → v2 (63 tests al cierre de F16).
 
 ## CI/CD
 
@@ -222,6 +239,41 @@ SaaS-style y ninguna otra ruta es accesible sin sesión activa.
   configuración + acciones **Reconocer** / **Quitar reconocimiento**).
 - Envío efectivo por email queda diferido a **Fase 12** (Vercel Cron +
   Resend/Brevo). Los campos ya están en la colección de config.
+
+### Modelo de datos v2 (Fase 16)
+
+Refactor del shape plano v1 al modelo oficial conforme MO.00418 Ed. 02.
+Detalle completo en [`docs/MODELO-DATOS-v2.md`](./docs/MODELO-DATOS-v2.md).
+
+- **Dominio puro** en `assets/js/domain/`:
+  - `schema.js` — enums y pesos canónicos del HI (Tabla 10 del
+    MO.00418 con verificación de suma = 1.0 en tiempo de carga).
+  - `transformador_schema.js` — sanitizador por secciones
+    (`identificacion`, `placa`, `ubicacion`, `electrico`, `mecanico`,
+    `refrigeracion`, `protecciones`, `fabricacion`, `servicio`) +
+    sub-objetos derivados `salud_actual`, `criticidad`,
+    `restricciones_operativas` (reservados para F18 / F29 / F36).
+  - `subestacion_schema.js` — nueva entidad FK.
+- **Data layer** (`assets/js/data/`):
+  - `transformadores.js` — API v2 con retrocompat v1 vía proyección
+    aplanada al nivel raíz (vistas legacy siguen funcionando sin
+    tocar código).
+  - `subestaciones.js` — CRUD Firebase.
+  - `transformadores_subcolecciones.js` — `placas_historicas` e
+    `historial_hi`, ambas append-only (update/delete bloqueados
+    por rules).
+- **Scripts:** `scripts/migrate/v1-to-v2-transformadores.js` con
+  runner defensivo (dryRun por defecto, acepta adaptadores de I/O
+  para admin SDK, web SDK o mock de tests).
+- **Firestore rules v2:** validación por sección, coherencia entre
+  nivel raíz (v1) y secciones (v2), rechazo de `schema_version ≠ 2`.
+- **Índices nuevos:** `ubicacion.zona+codigo`,
+  `identificacion.grupo+codigo`,
+  `identificacion.tipo_activo+salud_actual.hi_final`,
+  `ubicacion.subestacionId+codigo`,
+  `salud_actual.bucket+ubicacion.zona`,
+  `estado_servicio+codigo`, más 2 índices para `subestaciones` y uno
+  de grupo para `historial_hi`.
 
 ### Órdenes de trabajo (Fase 7)
 
