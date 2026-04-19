@@ -1,9 +1,10 @@
 rules_version = '2';
 
 // ══════════════════════════════════════════════════════════════
-// SGM · TRANSPOWER — Reglas Firestore (Fase 9)
-// Colecciones activas: `transformadores` (F6), `ordenes` (F7)
-// y `documentos` (F9, metadata · binarios en Storage).
+// SGM · TRANSPOWER — Reglas Firestore (Fase 11)
+// Colecciones activas: `transformadores` (F6), `ordenes` (F7),
+// `documentos` (F9, metadata · binarios en Storage),
+// `alertas_config` + `alertas_reconocidas` (F11, motor de alertas).
 // Estado admin se enforce vía colección /admins/{uid}.
 // ══════════════════════════════════════════════════════════════
 
@@ -118,6 +119,26 @@ service cloud.firestore {
                         'ISO_50001','IEEE_C57_12','IEC_60076',
                         'RETIE','NTC_IEC_60364','CIGRE_WG_A2','NINGUNA'
                        ];
+      allow delete: if isAdmin();
+    }
+
+    // ── /alertas_config/{id} ──
+    // Configuración global del motor de alertas (umbrales en días y flags de
+    // notificación por correo, reservado para Fase 12).
+    match /alertas_config/{id} {
+      allow read:   if true;
+      allow write:  if isAdmin();
+    }
+
+    // ── /alertas_reconocidas/{id} ──
+    // Reconocimiento (acknowledge) de alertas por parte de administradores.
+    // El id es el id sintético determinista generado por el motor cliente.
+    match /alertas_reconocidas/{id} {
+      allow read:   if true;
+      allow create: if isAdmin()
+                    && request.resource.data.alertId is string
+                    && request.resource.data.alertId.size() > 0;
+      allow update: if isAdmin();
       allow delete: if isAdmin();
     }
 
