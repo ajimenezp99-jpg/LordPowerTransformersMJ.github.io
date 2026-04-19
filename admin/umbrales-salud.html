@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Umbrales de Salud</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
+  <script type="module" src="../assets/js/auth/admin-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css"/>
+  <link rel="stylesheet" href="../assets/css/app.css"/>
+  <style>
+    .wrap { max-width: 1080px; margin: 1rem auto; padding: 0 1rem; }
+    .u-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 4px;
+      padding: 1rem 1.2rem;
+      margin-bottom: 1.2rem;
+    }
+    .u-card h3 {
+      margin: 0 0 .7rem;
+      font-family: var(--font-mono);
+      font-size: .82rem;
+      letter-spacing: .1em;
+      color: var(--accent);
+      text-transform: uppercase;
+    }
+    .u-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: .7rem;
+    }
+    .u-grid label {
+      display: block;
+      font-family: var(--font-mono);
+      font-size: .72rem;
+      color: var(--text-soft);
+      letter-spacing: .06em;
+    }
+    .u-grid input {
+      width: 100%;
+      padding: .4rem .55rem;
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(255,255,255,0.12);
+      color: var(--text);
+      font-family: var(--font-mono);
+      font-size: .8rem;
+      border-radius: 3px;
+      box-sizing: border-box;
+    }
+    .baseline-chip {
+      display: inline-block;
+      font-size: .6rem;
+      color: var(--accent3);
+      letter-spacing: .08em;
+      margin-top: .15rem;
+    }
+    .btn-row {
+      display: flex;
+      gap: .6rem;
+      margin-top: 1.2rem;
+      flex-wrap: wrap;
+    }
+    .btn-row button {
+      padding: .7rem 1.2rem;
+      border: none;
+      font-family: var(--font-mono);
+      font-size: .78rem;
+      letter-spacing: .1em;
+      cursor: pointer;
+      border-radius: 3px;
+    }
+    .btn-save    { background: var(--accent);  color: #000; }
+    .btn-reset   { background: rgba(240,165,0,.15); color: var(--accent2); border: 1px solid rgba(240,165,0,.5); }
+    .msg {
+      font-family: var(--font-mono);
+      font-size: .75rem;
+      margin-top: .8rem;
+    }
+    .msg.ok  { color: var(--accent3); }
+    .msg.err { color: #ff5577; }
+    .banner {
+      background: rgba(240,165,0,.08);
+      border: 1px solid rgba(240,165,0,.3);
+      border-left: 3px solid var(--accent2);
+      padding: .8rem 1rem;
+      border-radius: 3px;
+      font-family: var(--font-mono);
+      font-size: .72rem;
+      color: var(--accent2);
+      letter-spacing: .08em;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="topbar-brand">SGM · <span>TRANSPOWER</span> · ADMIN</a>
+  <nav class="main-nav">
+    <a href="index.html"         class="nav-link">Panel</a>
+    <a href="inventario.html"    class="nav-link">Inventario</a>
+    <a href="ordenes.html"       class="nav-link">Órdenes</a>
+    <a href="kpis.html"          class="nav-link">KPIs</a>
+    <a href="motor-salud.html"   class="nav-link">Motor Salud</a>
+    <a href="umbrales-salud.html" class="nav-link active">Umbrales</a>
+    <a href="alertas.html"       class="nav-link">Alertas</a>
+    <a href="usuarios.html"      class="nav-link">Usuarios</a>
+    <a href="../home.html"       class="nav-link">Zona interna</a>
+  </nav>
+</header>
+
+<main id="main" class="wrap">
+  <h1>Umbrales del motor de salud · MO.00418 Ed. 02</h1>
+  <div class="banner">
+    ⚠ Cualquier cambio se audita en <code>/umbrales_salud/global/historial</code> y queda
+    trazable con <code>uid</code> + timestamp. El baseline oficial es
+    restaurable con el botón inferior.
+  </div>
+
+  <form id="formUmbrales">
+
+    <div class="u-card">
+      <h3>DGA · TDGC (§A3.1 a) — H₂+CH₄+C₂H₄+C₂H₆ en ppm</h3>
+      <div class="u-grid">
+        <label>Min C5 <input type="number" id="tdgc_c5" required>
+          <span class="baseline-chip">baseline 401</span></label>
+        <label>Min C4 <input type="number" id="tdgc_c4" required>
+          <span class="baseline-chip">baseline 301</span></label>
+        <label>Min C3 <input type="number" id="tdgc_c3" required>
+          <span class="baseline-chip">baseline 201</span></label>
+        <label>Min C2 <input type="number" id="tdgc_c2" required>
+          <span class="baseline-chip">baseline 95</span></label>
+      </div>
+    </div>
+
+    <div class="u-card">
+      <h3>DGA · C₂H₂ (§A3.1 c)</h3>
+      <div class="u-grid">
+        <label>Min C5 (ppm) <input type="number" step="any" id="c2h2_c5" required>
+          <span class="baseline-chip">baseline 7</span></label>
+        <label>Min C4 <input type="number" step="any" id="c2h2_c4" required>
+          <span class="baseline-chip">baseline 6</span></label>
+        <label>Min C3 <input type="number" step="any" id="c2h2_c3" required>
+          <span class="baseline-chip">baseline 5</span></label>
+        <label>Min C2 <input type="number" step="any" id="c2h2_c2" required>
+          <span class="baseline-chip">baseline 3</span></label>
+        <label>Velocidad crítica (ppm/día) (§A9.1)
+          <input type="number" step="any" id="c2h2_vel" required>
+          <span class="baseline-chip">baseline 0.5</span></label>
+        <label>Frecuencia muestreo (días) monitoreo intensivo
+          <input type="number" id="c2h2_freq" required>
+          <span class="baseline-chip">baseline 7</span></label>
+        <label>Umbral transición crítica (ppm)
+          <input type="number" id="c2h2_transicion" required>
+          <span class="baseline-chip">baseline 15</span></label>
+      </div>
+    </div>
+
+    <div class="u-card">
+      <h3>FUR (§A3.3) — ppb 2FAL</h3>
+      <div class="u-grid">
+        <label>Min C5 <input type="number" id="fur_c5" required>
+          <span class="baseline-chip">baseline 5500</span></label>
+        <label>Min C4 <input type="number" id="fur_c4" required>
+          <span class="baseline-chip">baseline 4800</span></label>
+        <label>Min C3 <input type="number" id="fur_c3" required>
+          <span class="baseline-chip">baseline 3600</span></label>
+        <label>Min C2 <input type="number" id="fur_c2" required>
+          <span class="baseline-chip">baseline 2400</span></label>
+      </div>
+    </div>
+
+    <div class="u-card">
+      <h3>CRG (§A3.4) — % de cargabilidad nominal</h3>
+      <div class="u-grid">
+        <label>Min C5 (%) <input type="number" step="any" id="crg_c5" required>
+          <span class="baseline-chip">baseline 90</span></label>
+        <label>Min C4 <input type="number" step="any" id="crg_c4" required>
+          <span class="baseline-chip">baseline 75</span></label>
+        <label>Min C3 <input type="number" step="any" id="crg_c3" required>
+          <span class="baseline-chip">baseline 65</span></label>
+        <label>Min C2 <input type="number" step="any" id="crg_c2" required>
+          <span class="baseline-chip">baseline 60</span></label>
+      </div>
+    </div>
+
+    <div class="u-card">
+      <h3>EDAD (§A3.5) — CREG 085/2018</h3>
+      <div class="u-grid">
+        <label>Min C5 (años) <input type="number" id="edad_c5" required>
+          <span class="baseline-chip">baseline 30</span></label>
+        <label>Min C4 <input type="number" id="edad_c4" required>
+          <span class="baseline-chip">baseline 26</span></label>
+        <label>Min C3 <input type="number" id="edad_c3" required>
+          <span class="baseline-chip">baseline 19</span></label>
+        <label>Min C2 <input type="number" id="edad_c2" required>
+          <span class="baseline-chip">baseline 7</span></label>
+      </div>
+    </div>
+
+    <div class="u-card">
+      <h3>Criticidad (§4.2.1) — usuarios aguas abajo</h3>
+      <div class="u-grid">
+        <label>Usuarios máximos (dinámico)
+          <input type="number" id="crit_max" required>
+          <span class="baseline-chip">baseline 48312</span></label>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button type="submit" class="btn-save">GUARDAR UMBRALES</button>
+      <button type="button" class="btn-reset" id="btnReset">RESTAURAR BASELINE OFICIAL</button>
+    </div>
+    <div class="msg" id="msg"></div>
+  </form>
+</main>
+
+<script type="module">
+import {
+  obtenerUmbralesActivos, guardarUmbrales, restaurarBaseline
+} from '../assets/js/data/umbrales_salud.js';
+import { BASELINE_UMBRALES_SALUD } from '../assets/js/domain/umbrales_salud_baseline.js';
+
+const $ = (id) => document.getElementById(id);
+const msg = (t, cls = 'ok') => {
+  const e = $('msg');
+  e.textContent = t;
+  e.className = 'msg ' + cls;
+};
+
+function fillForm(u) {
+  $('tdgc_c5').value = u.dga.tdgc.c5_min;
+  $('tdgc_c4').value = u.dga.tdgc.c4_min;
+  $('tdgc_c3').value = u.dga.tdgc.c3_min;
+  $('tdgc_c2').value = u.dga.tdgc.c2_min;
+  $('c2h2_c5').value = u.dga.c2h2.c5_min;
+  $('c2h2_c4').value = u.dga.c2h2.c4_min;
+  $('c2h2_c3').value = u.dga.c2h2.c3_min;
+  $('c2h2_c2').value = u.dga.c2h2.c2_min;
+  $('c2h2_vel').value  = u.dga.c2h2_monitoreo.velocidad_critica_ppm_dia;
+  $('c2h2_freq').value = u.dga.c2h2_monitoreo.frecuencia_muestreo_dias;
+  $('c2h2_transicion').value = u.dga.c2h2_monitoreo.umbral_transicion_critica;
+  $('fur_c5').value = u.fur.c5_min;
+  $('fur_c4').value = u.fur.c4_min;
+  $('fur_c3').value = u.fur.c3_min;
+  $('fur_c2').value = u.fur.c2_min;
+  $('crg_c5').value = u.crg.c5_min_excl;
+  $('crg_c4').value = u.crg.c4_min_excl;
+  $('crg_c3').value = u.crg.c3_min_excl;
+  $('crg_c2').value = u.crg.c2_min_excl;
+  $('edad_c5').value = u.edad.c5_min;
+  $('edad_c4').value = u.edad.c4_min;
+  $('edad_c3').value = u.edad.c3_min;
+  $('edad_c2').value = u.edad.c2_min;
+  $('crit_max').value = u.criticidad.max_usuarios_baseline;
+}
+
+function readForm() {
+  return {
+    referencia: BASELINE_UMBRALES_SALUD.referencia,
+    dga: {
+      tdgc: {
+        c5_min: +$('tdgc_c5').value, c4_min: +$('tdgc_c4').value,
+        c3_min: +$('tdgc_c3').value, c2_min: +$('tdgc_c2').value
+      },
+      c2h2: {
+        c5_min: +$('c2h2_c5').value, c4_min: +$('c2h2_c4').value,
+        c3_min: +$('c2h2_c3').value, c2_min: +$('c2h2_c2').value
+      },
+      c2h2_monitoreo: {
+        velocidad_critica_ppm_dia: +$('c2h2_vel').value,
+        frecuencia_muestreo_dias:  +$('c2h2_freq').value,
+        umbral_transicion_critica: +$('c2h2_transicion').value
+      }
+    },
+    fur: {
+      c5_min: +$('fur_c5').value, c4_min: +$('fur_c4').value,
+      c3_min: +$('fur_c3').value, c2_min: +$('fur_c2').value
+    },
+    crg: {
+      c5_min_excl: +$('crg_c5').value, c4_min_excl: +$('crg_c4').value,
+      c3_min_excl: +$('crg_c3').value, c2_min_excl: +$('crg_c2').value
+    },
+    edad: {
+      c5_min: +$('edad_c5').value, c4_min: +$('edad_c4').value,
+      c3_min: +$('edad_c3').value, c2_min: +$('edad_c2').value
+    },
+    criticidad: { max_usuarios_baseline: +$('crit_max').value }
+  };
+}
+
+async function cargar() {
+  try {
+    const u = await obtenerUmbralesActivos();
+    fillForm(u);
+    msg('Cargado desde ' + (u._source === 'firestore' ? 'Firestore' : 'baseline oficial'), 'ok');
+  } catch (err) {
+    console.warn(err);
+    fillForm(BASELINE_UMBRALES_SALUD);
+    msg('Error de carga; se muestran valores baseline. ' + err.message, 'err');
+  }
+}
+
+$('formUmbrales').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  try {
+    const payload = readForm();
+    const session = window.__sgmSession;
+    await guardarUmbrales(payload, {
+      uid: session && session.user && session.user.uid,
+      razon: 'Ajuste manual desde UI F18.'
+    });
+    msg('Umbrales guardados. Se registró entrada en historial.', 'ok');
+  } catch (err) {
+    msg('Error al guardar: ' + err.message, 'err');
+  }
+});
+
+$('btnReset').addEventListener('click', async () => {
+  if (!confirm('Restaurar todos los umbrales al baseline oficial MO.00418?')) return;
+  try {
+    const session = window.__sgmSession;
+    await restaurarBaseline({
+      uid: session && session.user && session.user.uid
+    });
+    await cargar();
+    msg('Baseline oficial restaurado.', 'ok');
+  } catch (err) {
+    msg('Error al restaurar: ' + err.message, 'err');
+  }
+});
+
+document.addEventListener('sgm:session-ready', cargar);
+// Si session-guard ya corrió:
+if (window.__sgmSession) cargar();
+</script>
+</body>
+</html>

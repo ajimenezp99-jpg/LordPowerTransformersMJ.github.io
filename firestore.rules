@@ -302,6 +302,41 @@ service cloud.firestore {
       allow write:  if isAdmin();
     }
 
+    // ── /umbrales_salud/{id} (Fase 18) ──
+    // Documento `global` con los umbrales activos del motor de
+    // salud. Historial append-only en /historial/{id}.
+    match /umbrales_salud/{id} {
+      allow read:   if isTeamMember();
+      allow write:  if isAdmin();
+      match /historial/{evt} {
+        allow read:   if isTeamMember();
+        allow create: if isAdmin();
+        allow update: if false;
+        allow delete: if false;
+      }
+    }
+
+    // ── /monitoreo_intensivo/{id} (F18/F26 · A9.1) ──
+    match /monitoreo_intensivo/{id} {
+      allow read:   if isTeamMember();
+      allow create: if isAdmin()
+                    && request.resource.data.transformadorId is string
+                    && request.resource.data.tipo == 'C2H2';
+      allow update: if isAdmin();
+      allow delete: if false;
+    }
+
+    // ── /propuestas_reclasificacion_fur/{id} (F18/F26 · A9.2) ──
+    match /propuestas_reclasificacion_fur/{id} {
+      allow read:   if isTeamMember();
+      allow create: if isAdmin()
+                    && request.resource.data.transformadorId is string
+                    && request.resource.data.estado == 'pendiente_revision_experto'
+                    && request.resource.data.referencia_normativa is string;
+      allow update: if isAdmin();
+      allow delete: if false;
+    }
+
     match /alertas_reconocidas/{id} {
       allow read:   if isTeamMember();
       allow create: if isAdmin()
