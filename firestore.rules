@@ -326,6 +326,21 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ── /muestras/{id} (Fase 19) ──
+    // Time-series DGA/ADFQ/FUR. Read team, Create/Update admin
+    // con validación de enum tipo. Delete solo admin.
+    match /muestras/{id} {
+      allow read:   if isTeamMember();
+      allow create: if isAdmin()
+                    && request.resource.data.transformadorId is string
+                    && request.resource.data.tipo in ['DGA','ADFQ','FURANOS','COMBO']
+                    && request.resource.data.fecha_muestra is string;
+      allow update: if isAdmin()
+                    && (!('tipo' in request.resource.data)
+                        || request.resource.data.tipo in ['DGA','ADFQ','FURANOS','COMBO']);
+      allow delete: if isAdmin();
+    }
+
     // ── /importaciones/{id} (Fase 17) ──
     // Log append-only de jobs de importación Excel. Cada job
     // lleva el reporte de discrepancias Excel ↔ MO.00418.

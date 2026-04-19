@@ -210,8 +210,9 @@ async function procesarArchivo(file) {
       ? '<p style="color:var(--accent3)">Sin discrepancias significativas.</p>'
       : `<table class="discrepancias">
            <thead><tr>
-             <th>Hoja</th><th>Código</th><th>HI recalc</th><th>Cond. Excel</th>
-             <th>Δ</th><th>Bucket</th>
+             <th scope="col">Hoja</th><th scope="col">Código</th>
+             <th scope="col">HI recalc</th><th scope="col">Cond. Excel</th>
+             <th scope="col">Δ</th><th scope="col">Bucket</th>
            </tr></thead>
            <tbody>${discs.map((d) => `
              <tr>

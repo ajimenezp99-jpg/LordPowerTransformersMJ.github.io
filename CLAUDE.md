@@ -260,7 +260,7 @@ independientes, cada una con commit aislado:
 | 16 | Refactor modelo de datos v2 (secciones, salud_actual, subestaciones) | ✅ completada |
 | 17 | Importador Excel → Firestore con recálculo HI              | ✅ completada |
 | 18 | Motor de Salud (HI ponderado Tabla 10 + overrides §A5/A9)  | ✅ completada |
-| 19 | Muestras de Laboratorio (DGA / ADFQ / FUR) time-series     | 🔜 planificada |
+| 19 | Muestras de Laboratorio (DGA / ADFQ / FUR) time-series     | ✅ completada |
 | 20 | Subestaciones (UI dedicada)                                | 🔜 planificada |
 | 21 | Contratos (8 contratos macro · presupuesto)                | 🔜 planificada |
 | 22 | Catálogos (subactividades / macroactividades / causantes)  | 🔜 planificada |

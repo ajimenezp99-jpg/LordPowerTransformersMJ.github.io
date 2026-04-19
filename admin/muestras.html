@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Muestras (Admin)</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
+  <script type="module" src="../assets/js/auth/admin-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css"/>
+  <link rel="stylesheet" href="../assets/css/app.css"/>
+  <style>
+    .wrap { max-width: 1200px; margin: 1rem auto; padding: 0 1rem; }
+    .toolbar {
+      display: flex; flex-wrap: wrap; gap: .6rem;
+      margin-bottom: 1rem; align-items: center;
+    }
+    .toolbar input, .toolbar select {
+      padding: .45rem .6rem;
+      background: rgba(0,0,0,.3);
+      border: 1px solid rgba(255,255,255,.15);
+      color: var(--text);
+      font-family: var(--font-mono); font-size: .8rem;
+      border-radius: 3px;
+    }
+    .btn-new {
+      margin-left: auto;
+      padding: .6rem 1.1rem;
+      background: var(--accent); color: #000;
+      border: none; font-family: var(--font-mono);
+      font-size: .78rem; letter-spacing: .1em;
+      cursor: pointer; border-radius: 3px;
+    }
+    table {
+      width: 100%; border-collapse: collapse;
+      font-family: var(--font-mono); font-size: .72rem;
+    }
+    th, td { padding: .4rem .6rem; border-bottom: 1px solid rgba(255,255,255,.08); text-align: left; }
+    th { color: var(--accent); }
+    .pill { display: inline-block; padding: 2px 6px; border-radius: 3px; font-size: .62rem; letter-spacing: .08em; }
+    .t-DGA { background: rgba(0,255,153,.15); color: var(--accent3); }
+    .t-ADFQ { background: rgba(0,170,255,.15); color: #0af; }
+    .t-FURANOS { background: rgba(240,165,0,.15); color: var(--accent2); }
+    .t-COMBO { background: rgba(200,100,255,.15); color: #c6f; }
+    .modal-bg {
+      display: none; position: fixed; inset: 0; z-index: 100;
+      background: rgba(0,0,0,.75); align-items: center; justify-content: center;
+    }
+    .modal-bg.open { display: flex; }
+    .modal {
+      background: #0d1418;
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: 5px;
+      max-width: 720px; width: 96%;
+      max-height: 92vh; overflow-y: auto;
+      padding: 1.4rem;
+    }
+    .modal h2 { font-family: var(--font-mono); letter-spacing: .1em; color: var(--accent); }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: .5rem; }
+    .grid label { font-family: var(--font-mono); font-size: .68rem; color: var(--text-soft); }
+    .grid input, .grid select, .grid textarea {
+      width: 100%; padding: .35rem .5rem;
+      background: rgba(0,0,0,.3); border: 1px solid rgba(255,255,255,.12);
+      color: var(--text); font-family: var(--font-mono); font-size: .75rem;
+      border-radius: 3px; box-sizing: border-box;
+    }
+    .actions { display: flex; gap: .5rem; justify-content: flex-end; padding-top: 1rem; }
+    .actions button {
+      padding: .55rem 1rem; border: none; font-family: var(--font-mono);
+      font-size: .74rem; cursor: pointer; border-radius: 3px;
+    }
+    .btn-cancel { background: rgba(255,255,255,.1); color: var(--text); }
+    .btn-save   { background: var(--accent); color: #000; }
+    #msg { font-family: var(--font-mono); font-size: .75rem; padding: .4rem 0; }
+    #msg.ok  { color: var(--accent3); }
+    #msg.err { color: #ff5577; }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="topbar-brand">SGM · <span>TRANSPOWER</span> · ADMIN</a>
+  <nav class="main-nav">
+    <a href="index.html"        class="nav-link">Panel</a>
+    <a href="inventario.html"   class="nav-link">Inventario</a>
+    <a href="muestras.html"     class="nav-link active">Muestras</a>
+    <a href="motor-salud.html"  class="nav-link">Motor Salud</a>
+    <a href="importar.html"     class="nav-link">Importar</a>
+    <a href="usuarios.html"     class="nav-link">Usuarios</a>
+    <a href="../home.html"      class="nav-link">Zona interna</a>
+  </nav>
+</header>
+
+<main id="main" class="wrap">
+  <h1>Muestras de laboratorio · DGA / ADFQ / FUR</h1>
+
+  <div class="toolbar">
+    <select id="fTipo">
+      <option value="">Todos los tipos</option>
+      <option value="DGA">DGA</option>
+      <option value="ADFQ">ADFQ</option>
+      <option value="FURANOS">Furanos</option>
+      <option value="COMBO">Combo</option>
+    </select>
+    <input type="text" id="fTrafo" placeholder="Código TX (filtro)">
+    <button class="btn-new" id="btnNew">+ NUEVA MUESTRA</button>
+  </div>
+
+  <div id="msg"></div>
+
+  <table id="tabla">
+    <thead>
+      <tr>
+        <th scope="col">Fecha</th>
+        <th scope="col">TX</th>
+        <th scope="col">Tipo</th>
+        <th scope="col">Lab</th>
+        <th scope="col">TDGC</th>
+        <th scope="col">C2H2</th>
+        <th scope="col">FUR (ppb)</th>
+        <th scope="col">Eval DGA</th>
+        <th scope="col">Eval ADFQ</th>
+        <th scope="col">Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="tbody">
+      <tr><td colspan="10" style="color: var(--text-soft); font-family: var(--font-mono); font-size: .72rem; padding: 1rem;">⋯ Cargando muestras...</td></tr>
+    </tbody>
+  </table>
+</main>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h2 id="modalTitle">Nueva muestra</h2>
+    <form id="formMuestra">
+      <div class="grid">
+        <label>TX Código* <input type="text" id="mTxCodigo" required></label>
+        <label>TX ID (FK) <input type="text" id="mTxId"></label>
+        <label>Tipo*
+          <select id="mTipo" required>
+            <option>DGA</option><option>ADFQ</option>
+            <option>FURANOS</option><option>COMBO</option>
+          </select>
+        </label>
+        <label>Fecha muestra* <input type="date" id="mFecha" required></label>
+        <label>Laboratorio <input type="text" id="mLab"></label>
+        <label>Técnico <input type="text" id="mTecnico"></label>
+      </div>
+
+      <h3 style="font-family: var(--font-mono); color: var(--accent3); margin-top: 1rem;">Gases (ppm)</h3>
+      <div class="grid">
+        <label>H₂  <input type="number" step="any" id="mH2"></label>
+        <label>CH₄ <input type="number" step="any" id="mCH4"></label>
+        <label>C₂H₄ <input type="number" step="any" id="mC2H4"></label>
+        <label>C₂H₆ <input type="number" step="any" id="mC2H6"></label>
+        <label>C₂H₂ <input type="number" step="any" id="mC2H2"></label>
+        <label>CO  <input type="number" step="any" id="mCO"></label>
+        <label>CO₂ <input type="number" step="any" id="mCO2"></label>
+      </div>
+
+      <h3 style="font-family: var(--font-mono); color: var(--accent3); margin-top: 1rem;">ADFQ</h3>
+      <div class="grid">
+        <label>Rigidez (kV) <input type="number" step="any" id="mRd"></label>
+        <label>Humedad (ppm) <input type="number" step="any" id="mHum"></label>
+        <label>Tensión interfacial <input type="number" step="any" id="mTI"></label>
+        <label>Nº neutralización <input type="number" step="any" id="mNN"></label>
+      </div>
+
+      <h3 style="font-family: var(--font-mono); color: var(--accent3); margin-top: 1rem;">Furanos</h3>
+      <div class="grid">
+        <label>2FAL (ppb) <input type="number" step="any" id="mFur"></label>
+      </div>
+
+      <h3 style="font-family: var(--font-mono); color: var(--accent3); margin-top: 1rem;">
+        Contexto operativo (A9.6 — obligatorio si TDGC&gt;201 o C2H2≥5)
+      </h3>
+      <div class="grid">
+        <label>Eventos externos asociados
+          <select id="mEvento">
+            <option value="">—</option>
+            <option value="descarga_atmosferica">Descarga atmosférica</option>
+            <option value="falla_red_externa">Falla de red externa</option>
+            <option value="maniobra">Maniobra operativa</option>
+            <option value="ninguno">Ninguno</option>
+          </select>
+        </label>
+        <label>¿Intervención previa 30d?
+          <select id="mIntervPrev"><option value="">—</option><option value="1">Sí</option><option value="0">No</option></select>
+        </label>
+      </div>
+      <label style="font-family: var(--font-mono); font-size: .7rem; display: block; margin-top: .5rem;">
+        Observación contextual del analista
+        <textarea id="mContexto" rows="3" style="width: 100%; padding: .4rem; background: rgba(0,0,0,.3); color: var(--text); border: 1px solid rgba(255,255,255,.12); border-radius: 3px;"></textarea>
+      </label>
+
+      <div class="actions">
+        <button type="button" class="btn-cancel" id="btnCancel">CANCELAR</button>
+        <button type="submit" class="btn-save">GUARDAR</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script type="module">
+import { listar, crear } from '../assets/js/data/muestras.js';
+
+const $ = (id) => document.getElementById(id);
+const setMsg = (t, cls) => { $('msg').textContent = t; $('msg').className = cls || ''; };
+
+async function cargar() {
+  try {
+    const tipo = $('fTipo').value;
+    const items = await listar({ tipo, limite: 100 });
+    const trafo = $('fTrafo').value.trim().toUpperCase();
+    const filt = trafo
+      ? items.filter((m) => (m.transformadorCodigo || '').includes(trafo))
+      : items;
+    $('tbody').innerHTML = filt.length === 0
+      ? `<tr><td colspan="10" style="color:var(--text-soft); font-family:var(--font-mono); font-size:.72rem; padding:1rem;">Sin muestras.</td></tr>`
+      : filt.map((m) => `
+        <tr>
+          <td>${m.fecha_muestra || '—'}</td>
+          <td>${m.transformadorCodigo || m.transformadorId}</td>
+          <td><span class="pill t-${m.tipo}">${m.tipo}</span></td>
+          <td>${m.laboratorio || '—'}</td>
+          <td>${m.calif_tdgc ?? '—'}</td>
+          <td>${m.calif_c2h2 ?? '—'}</td>
+          <td>${m.furanos_ppb ?? '—'}</td>
+          <td>${m.eval_dga != null ? m.eval_dga.toFixed(1) : '—'}</td>
+          <td>${m.eval_adfq != null ? m.eval_adfq.toFixed(1) : '—'}</td>
+          <td><button class="btn-cancel" data-del="${m.id}" style="padding: .3rem .5rem; font-size: .62rem;">✕</button></td>
+        </tr>`).join('');
+  } catch (err) {
+    setMsg('Error carga: ' + err.message, 'err');
+  }
+}
+
+$('fTipo').addEventListener('change', cargar);
+$('fTrafo').addEventListener('input', () => { clearTimeout(window._t); window._t = setTimeout(cargar, 300); });
+
+$('btnNew').addEventListener('click', () => {
+  $('modalTitle').textContent = 'Nueva muestra';
+  $('formMuestra').reset();
+  $('modalBg').classList.add('open');
+});
+$('btnCancel').addEventListener('click', () => $('modalBg').classList.remove('open'));
+
+$('formMuestra').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  try {
+    const session = window.__sgmSession;
+    await crear({
+      transformadorCodigo: $('mTxCodigo').value.trim().toUpperCase(),
+      transformadorId:     $('mTxId').value.trim(),
+      tipo:                $('mTipo').value,
+      fecha_muestra:       $('mFecha').value,
+      laboratorio:         $('mLab').value.trim(),
+      tecnico_muestrista:  $('mTecnico').value.trim(),
+      H2: +$('mH2').value || null, CH4: +$('mCH4').value || null,
+      C2H4: +$('mC2H4').value || null, C2H6: +$('mC2H6').value || null,
+      C2H2: +$('mC2H2').value || null,
+      CO: +$('mCO').value || null, CO2: +$('mCO2').value || null,
+      rigidez_kv: +$('mRd').value || null, humedad_ppm: +$('mHum').value || null,
+      ti: +$('mTI').value || null, nn: +$('mNN').value || null,
+      furanos_ppb: +$('mFur').value || null,
+      eventos_externos_asociados: $('mEvento').value ? [$('mEvento').value] : [],
+      hubo_intervencion_previa_30d: $('mIntervPrev').value === '1',
+      observacion_contextual_analista: $('mContexto').value.trim()
+    }, session && session.user && session.user.uid);
+    $('modalBg').classList.remove('open');
+    setMsg('✓ Muestra guardada.', 'ok');
+    await cargar();
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
+});
+
+document.addEventListener('sgm:session-ready', cargar);
+if (window.__sgmSession) cargar();
+</script>
+</body>
+</html>
