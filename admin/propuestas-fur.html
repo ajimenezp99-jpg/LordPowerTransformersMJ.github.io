@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Propuestas FUR (§A9.2)</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
+  <script type="module" src="../assets/js/auth/admin-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css"/>
+  <link rel="stylesheet" href="../assets/css/app.css"/>
+  <style>
+    .wrap { max-width: 1200px; margin: 1rem auto; padding: 0 1rem; }
+    .ref-banner {
+      background: rgba(229,57,53,.08); border: 1px solid rgba(229,57,53,.3);
+      border-left: 3px solid #E53935; padding: .8rem 1rem; border-radius: 3px;
+      font-family: var(--font-mono); font-size: .74rem; color: #E53935;
+      margin-bottom: 1rem;
+    }
+    .toolbar { display: flex; gap: .6rem; margin-bottom: 1rem; }
+    .toolbar select { padding: .45rem .6rem; background: rgba(0,0,0,.3);
+      border: 1px solid rgba(255,255,255,.15); color: var(--text);
+      font-family: var(--font-mono); font-size: .8rem; border-radius: 3px; }
+    table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: .73rem; }
+    th, td { padding: .45rem .6rem; border-bottom: 1px solid rgba(255,255,255,.08); text-align: left; vertical-align: top; }
+    th { color: var(--accent); }
+    .est-pill { padding: 2px 8px; border-radius: 3px; font-size: .65rem; letter-spacing: .08em; }
+    .est-pendiente_revision_experto { background: rgba(245,197,24,.2); color: #F5C518; }
+    .est-aprobada_reemplazo          { background: rgba(229,57,53,.2); color: #E53935; }
+    .est-aprobada_operacion_temporal_controlada { background: rgba(239,120,32,.2); color: #EF7820; }
+    .est-rechazada                    { background: rgba(100,100,100,.2); color: var(--text-soft); }
+    .btn-row { display: flex; gap: .5rem; flex-wrap: wrap; }
+    .btn-row button { padding: .35rem .65rem; border: none; border-radius: 3px; font-family: var(--font-mono); font-size: .65rem; cursor: pointer; letter-spacing: .06em; }
+    .btn-rep   { background: rgba(229,57,53,.3);  color: #E53935; }
+    .btn-otc   { background: rgba(239,120,32,.3); color: #EF7820; }
+    .btn-rej   { background: rgba(100,100,100,.3); color: var(--text-soft); }
+    .detalle-chip {
+      display: inline-block; padding: 1px 5px; border-radius: 2px;
+      background: rgba(255,255,255,.05); font-size: .64rem; margin: 0 .2rem;
+    }
+    #msg { font-family: var(--font-mono); font-size: .75rem; margin-top: .5rem; min-height: 1.2rem; }
+    #msg.ok  { color: var(--accent3); }
+    #msg.err { color: #ff5577; }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="topbar-brand">SGM · <span>TRANSPOWER</span> · ADMIN</a>
+  <nav class="main-nav">
+    <a href="index.html"              class="nav-link">Panel</a>
+    <a href="motor-salud.html"        class="nav-link">Motor Salud</a>
+    <a href="propuestas-fur.html"     class="nav-link active">Propuestas FUR</a>
+    <a href="muestras.html"           class="nav-link">Muestras</a>
+    <a href="umbrales-salud.html"     class="nav-link">Umbrales</a>
+    <a href="../home.html"            class="nav-link">Zona interna</a>
+  </nav>
+</header>
+
+<main id="main" class="wrap">
+  <h1>Propuestas de reclasificación FUR · juicio experto</h1>
+  <div class="ref-banner">
+    ⚠ MO.00418 §4.1.2 Nota Técnica Furanos — Toda muestra con
+    CalifFUR ≥ 4 genera una propuesta que <strong>NO reclasifica
+    HI automáticamente</strong>. Solo el Profesional de
+    Transformadores de Potencia puede aprobar (reemplazo o OTC) o
+    rechazar. La aprobación activa la bandera permanente
+    <code>fin_vida_util_papel</code> y bloquea órdenes distintas
+    de reemplazo/retiro/OTC.
+  </div>
+
+  <div class="toolbar">
+    <select id="fEstado">
+      <option value="pendiente_revision_experto">Pendientes revisión</option>
+      <option value="">Todas</option>
+      <option value="aprobada_reemplazo">Aprobadas reemplazo</option>
+      <option value="aprobada_operacion_temporal_controlada">Aprobadas OTC</option>
+      <option value="rechazada">Rechazadas</option>
+    </select>
+  </div>
+
+  <div id="msg"></div>
+
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">TX</th>
+        <th scope="col">Creada</th>
+        <th scope="col">2FAL (ppb)</th>
+        <th scope="col">CalifFUR</th>
+        <th scope="col">DP estimado</th>
+        <th scope="col">% vida restante</th>
+        <th scope="col">HI propuesto</th>
+        <th scope="col">Estado</th>
+        <th scope="col">Decisión experto</th>
+      </tr>
+    </thead>
+    <tbody id="tbody">
+      <tr><td colspan="9" style="font-family:var(--font-mono); font-size:.72rem; color:var(--text-soft); padding:1rem;">⋯ Cargando...</td></tr>
+    </tbody>
+  </table>
+</main>
+
+<script type="module">
+import { listarPropuestasFUR, resolverPropuestaFUR }
+  from '../assets/js/data/monitoreo_fur.js';
+
+const $ = (id) => document.getElementById(id);
+const setMsg = (t, cls) => { $('msg').textContent = t; $('msg').className = cls || ''; };
+
+async function cargar() {
+  try {
+    const estado = $('fEstado').value || undefined;
+    const items = await listarPropuestasFUR(estado ? { estado } : {});
+    if (items.length === 0) {
+      $('tbody').innerHTML = `<tr><td colspan="9" style="padding:1rem; font-family:var(--font-mono); font-size:.72rem;">Sin propuestas.</td></tr>`;
+      return;
+    }
+    $('tbody').innerHTML = items.map((p) => {
+      const pendiente = p.estado === 'pendiente_revision_experto';
+      return `<tr data-id="${p.id}">
+        <td><strong>${p.transformadorId}</strong></td>
+        <td>${(p.creada_ts || '').slice(0, 10) || '—'}</td>
+        <td>${p.ppb_2fal ?? '—'}</td>
+        <td>${p.calif_fur_actual ?? '—'}</td>
+        <td>${p.dp_estimado != null ? p.dp_estimado.toFixed(0) : '—'}</td>
+        <td>${p.vida_remanente_pct != null ? p.vida_remanente_pct.toFixed(0) + ' %' : '—'}</td>
+        <td>${p.hi_propuesto ?? '—'}</td>
+        <td><span class="est-pill est-${p.estado}">${p.estado.replace(/_/g, ' ')}</span></td>
+        <td>${pendiente ? `
+          <div class="btn-row">
+            <button class="btn-rep" data-dec="aprobar_reemplazo" data-id="${p.id}">APROBAR REEMPLAZO</button>
+            <button class="btn-otc" data-dec="aprobar_otc"       data-id="${p.id}">APROBAR OTC</button>
+            <button class="btn-rej" data-dec="rechazar"          data-id="${p.id}">RECHAZAR</button>
+          </div>
+        ` : `<span class="detalle-chip">${p.resolucion || 'resuelto'}</span>`}</td>
+      </tr>`;
+    }).join('');
+  } catch (err) {
+    setMsg('Error al cargar: ' + err.message, 'err');
+  }
+}
+
+$('fEstado').addEventListener('change', cargar);
+
+document.addEventListener('click', async (ev) => {
+  const btn = ev.target.closest('button[data-dec]');
+  if (!btn) return;
+  const decision = btn.dataset.dec;
+  const id = btn.dataset.id;
+  const nota = prompt(
+    `Decisión: ${decision}\n\nNota del experto (obligatoria):`
+  );
+  if (!nota) return;
+  try {
+    const session = window.__sgmSession;
+    await resolverPropuestaFUR(id, {
+      decision,
+      experto_uid: session && session.user && session.user.uid,
+      nota
+    });
+    setMsg(`✓ Propuesta ${id} resuelta (${decision}).`, 'ok');
+    await cargar();
+  } catch (err) {
+    setMsg('Error: ' + err.message, 'err');
+  }
+});
+
+document.addEventListener('sgm:session-ready', cargar);
+if (window.__sgmSession) cargar();
+</script>
+</body>
+</html>

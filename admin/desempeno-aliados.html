@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Desempeño Aliados</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
+  <script type="module" src="../assets/js/auth/admin-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css"/>
+  <link rel="stylesheet" href="../assets/css/app.css"/>
+  <style>
+    .wrap { max-width: 1080px; margin: 1rem auto; padding: 0 1rem; }
+    .ref-note { font-family: var(--font-mono); font-size: .72rem; color: var(--text-soft); margin-bottom: 1rem; }
+    table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: .74rem; }
+    th, td { padding: .5rem .65rem; border-bottom: 1px solid rgba(255,255,255,.08); text-align: left; }
+    th { color: var(--accent); }
+    .score-cell { font-size: 1rem; font-weight: 600; }
+    .s-alto   { color: var(--accent3); }
+    .s-medio  { color: var(--accent2); }
+    .s-bajo   { color: #EF7820; }
+    .s-critico{ color: #E53935; }
+    .bar { display: inline-block; width: 100px; height: 6px; background: rgba(255,255,255,.1); border-radius: 3px; overflow: hidden; vertical-align: middle; margin-left: .5rem; }
+    .bar span { display: block; height: 100%; }
+    .bar .g { background: var(--accent3); }
+    .bar .y { background: var(--accent2); }
+    .bar .o { background: #EF7820; }
+    .bar .r { background: #E53935; }
+    .chip { display: inline-block; padding: 1px 6px; border-radius: 2px; background: rgba(255,255,255,.06); font-size: .64rem; }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="topbar-brand">SGM · <span>TRANSPOWER</span> · ADMIN</a>
+  <nav class="main-nav">
+    <a href="index.html"             class="nav-link">Panel</a>
+    <a href="contratos.html"         class="nav-link">Contratos</a>
+    <a href="desempeno-aliados.html" class="nav-link active">Desempeño Aliados</a>
+    <a href="ordenes.html"           class="nav-link">Órdenes</a>
+    <a href="../home.html"           class="nav-link">Zona interna</a>
+  </nav>
+</header>
+
+<main id="main" class="wrap">
+  <h1>Desempeño de aliados/contratistas · F33</h1>
+  <p class="ref-note">
+    Score 0–100 calculado sobre órdenes cerradas: penaliza
+    desviación de costo (hasta −30), tiempo medio &gt;48 h (hasta −20),
+    reincidencias al mismo TX en &lt;90 días (−5 c/u), y cancelaciones
+    (hasta −15). Fuente: prompt v2.2 F33 + datos reales de
+    <code>/ordenes</code>.
+  </p>
+
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Aliado</th>
+        <th scope="col">Órdenes totales</th>
+        <th scope="col">Cerradas</th>
+        <th scope="col">Canceladas</th>
+        <th scope="col">T. medio (h)</th>
+        <th scope="col">Δ costo (%)</th>
+        <th scope="col">Reincidencias</th>
+        <th scope="col">Score</th>
+      </tr>
+    </thead>
+    <tbody id="tbody">
+      <tr><td colspan="8" style="font-family:var(--font-mono); font-size:.72rem; color:var(--text-soft); padding:1rem;">⋯ Analizando órdenes...</td></tr>
+    </tbody>
+  </table>
+</main>
+
+<script type="module">
+import { listar as listarOrdenes } from '../assets/js/data/ordenes.js';
+import { rankingAliados } from '../assets/js/domain/desempeno_aliados.js';
+import { ALIADOS } from '../assets/js/domain/contrato_schema.js';
+
+const $ = (id) => document.getElementById(id);
+
+function claseScore(s) {
+  if (s == null) return '';
+  if (s >= 80) return 's-alto';
+  if (s >= 60) return 's-medio';
+  if (s >= 40) return 's-bajo';
+  return 's-critico';
+}
+function colorBar(s) {
+  if (s >= 80) return 'g';
+  if (s >= 60) return 'y';
+  if (s >= 40) return 'o';
+  return 'r';
+}
+const fmt = (v, d = 2) => v == null ? '—' : (+v).toFixed(d);
+
+async function cargar() {
+  try {
+    const ordenes = await listarOrdenes({ limite: 1000 });
+    const aliadosCod = ALIADOS.map((a) => a.value);
+    const rk = rankingAliados(aliadosCod, ordenes);
+
+    // Oculta aliados sin órdenes
+    const activos = rk.filter((r) => r.ordenes_total > 0);
+
+    if (activos.length === 0) {
+      $('tbody').innerHTML = `<tr><td colspan="8" style="padding:1rem;">Sin órdenes registradas con aliado ejecutor.</td></tr>`;
+      return;
+    }
+
+    $('tbody').innerHTML = activos.map((r) => `
+      <tr>
+        <td><span class="chip">${r.aliado}</span></td>
+        <td>${r.ordenes_total}</td>
+        <td>${r.cerradas}</td>
+        <td>${r.canceladas}</td>
+        <td>${fmt(r.tiempo_medio_h, 1)}</td>
+        <td>${r.desviacion_costo_pct != null ? fmt(r.desviacion_costo_pct, 1) + ' %' : '—'}</td>
+        <td>${r.reincidencias}</td>
+        <td class="score-cell ${claseScore(r.score)}">${r.score != null ? r.score.toFixed(0) : '—'}
+          <span class="bar"><span class="${colorBar(r.score)}" style="width:${Math.max(0, Math.min(100, r.score || 0))}%"></span></span>
+        </td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    $('tbody').innerHTML = `<tr><td colspan="8" style="color:#ff5577; padding:1rem;">Error: ${err.message}</td></tr>`;
+  }
+}
+
+document.addEventListener('sgm:session-ready', cargar);
+if (window.__sgmSession) cargar();
+</script>
+</body>
+</html>

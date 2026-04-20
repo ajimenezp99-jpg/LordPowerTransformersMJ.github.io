@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Plan de Inversión</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
+  <script type="module" src="../assets/js/auth/admin-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css"/>
+  <link rel="stylesheet" href="../assets/css/app.css"/>
+  <style>
+    .wrap { max-width: 1200px; margin: 1rem auto; padding: 0 1rem; }
+    .ref-note { font-family: var(--font-mono); font-size: .72rem; color: var(--text-soft); margin-bottom: 1rem; }
+    .sum-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .sum { background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.1); border-radius: 4px; padding: .9rem 1.1rem; }
+    .sum h3 { font-family: var(--font-mono); font-size: .65rem; color: var(--text-soft); letter-spacing: .1em; margin: 0 0 .3rem; }
+    .sum .v { font-family: var(--font-mono); font-size: 1.6rem; color: var(--accent); }
+    .toolbar { display: flex; gap: .6rem; margin-bottom: .8rem; align-items: center; }
+    .btn-export { margin-left: auto; padding: .55rem 1rem; background: var(--accent); color: #000; border: none; font-family: var(--font-mono); font-size: .74rem; cursor: pointer; border-radius: 3px; }
+    table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: .72rem; }
+    th, td { padding: .4rem .55rem; border-bottom: 1px solid rgba(255,255,255,.08); text-align: left; }
+    th { color: var(--accent); }
+    tr.forzoso { background: rgba(229,57,53,.05); }
+    tr.forzoso td:first-child { border-left: 3px solid #E53935; }
+    .score-bar { display: inline-block; width: 90px; height: 5px; background: rgba(255,255,255,.1); border-radius: 2px; overflow: hidden; vertical-align: middle; margin-left: .4rem; }
+    .score-bar span { display: block; height: 100%; background: var(--accent3); }
+    .chip { display: inline-block; padding: 1px 5px; border-radius: 2px; background: rgba(255,255,255,.06); font-size: .6rem; margin: 0 .2rem; }
+    .forzoso-badge { padding: 2px 6px; background: #E53935; color: #fff; font-size: .6rem; border-radius: 2px; letter-spacing: .08em; }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="topbar-brand">SGM · <span>TRANSPOWER</span> · ADMIN</a>
+  <nav class="main-nav">
+    <a href="index.html"          class="nav-link">Panel</a>
+    <a href="inventario.html"     class="nav-link">Inventario</a>
+    <a href="plan-inversion.html" class="nav-link active">Plan Inversión</a>
+    <a href="propuestas-fur.html" class="nav-link">Propuestas FUR</a>
+    <a href="umbrales-salud.html" class="nav-link">Umbrales</a>
+    <a href="../home.html"        class="nav-link">Zona interna</a>
+  </nav>
+</header>
+
+<main id="main" class="wrap">
+  <h1>Plan de Inversión · scoring multicriterio</h1>
+  <p class="ref-note">
+    MO.00418 §4.3 C5 (Condición 5 → Propuesta PI) + §A5 (FUR≥4 aprobado
+    → candidato forzoso). Score =
+    0.40·HI + 0.25·criticidad + 0.15·vida_utilizada +
+    0.10·costo_reemplazo_inv + 0.10·fallas_recientes.
+  </p>
+
+  <section class="sum-grid">
+    <div class="sum"><h3>Forzosos</h3><div class="v" id="cForz">—</div></div>
+    <div class="sum"><h3>Alta (≥ 0.70)</h3><div class="v" id="cAlta">—</div></div>
+    <div class="sum"><h3>Media (0.50–0.70)</h3><div class="v" id="cMed">—</div></div>
+    <div class="sum"><h3>Baja (&lt; 0.50)</h3><div class="v" id="cBaja">—</div></div>
+    <div class="sum"><h3>Universo</h3><div class="v" id="cTotal">—</div></div>
+  </section>
+
+  <div class="toolbar">
+    <select id="fNivel">
+      <option value="">Todos</option>
+      <option value="forzosos">Solo forzosos</option>
+      <option value="alta">Alta</option>
+      <option value="media">Media</option>
+      <option value="baja">Baja</option>
+    </select>
+    <button class="btn-export" id="btnExport">EXPORTAR XLSX</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">#</th>
+        <th scope="col">Código</th>
+        <th scope="col">Score</th>
+        <th scope="col">HI</th>
+        <th scope="col">Criticidad</th>
+        <th scope="col">Vida utilizada</th>
+        <th scope="col">Razones</th>
+      </tr>
+    </thead>
+    <tbody id="tbody">
+      <tr><td colspan="7" style="font-family:var(--font-mono); font-size:.72rem; color:var(--text-soft); padding:1rem;">⋯ Calculando ranking...</td></tr>
+    </tbody>
+  </table>
+</main>
+
+<script type="module">
+import { listar as listarTrafos } from '../assets/js/data/transformadores.js';
+import { rankearPlanInversion, clasificarPropuestas }
+  from '../assets/js/domain/plan_inversion.js';
+import { exportarPlanInversion } from '../assets/js/exports/xlsx.js';
+
+const $ = (id) => document.getElementById(id);
+let rankingGlobal = [];
+
+async function cargar() {
+  try {
+    const txs = await listarTrafos();
+    const rk = rankearPlanInversion(txs);
+    const cls = clasificarPropuestas(rk);
+    rankingGlobal = rk;
+
+    $('cForz').textContent = cls.forzosos.length;
+    $('cAlta').textContent = cls.alta.length;
+    $('cMed').textContent  = cls.media.length;
+    $('cBaja').textContent = cls.baja.length;
+    $('cTotal').textContent = rk.length;
+
+    renderTabla();
+  } catch (err) {
+    $('tbody').innerHTML = `<tr><td colspan="7" style="color:#ff5577; padding:1rem;">Error: ${err.message}</td></tr>`;
+  }
+}
+
+function renderTabla() {
+  const nivel = $('fNivel').value;
+  let items = rankingGlobal;
+  const cls = clasificarPropuestas(rankingGlobal);
+  if (nivel === 'forzosos') items = cls.forzosos;
+  else if (nivel === 'alta') items = cls.alta;
+  else if (nivel === 'media') items = cls.media;
+  else if (nivel === 'baja')  items = cls.baja;
+
+  if (items.length === 0) {
+    $('tbody').innerHTML = `<tr><td colspan="7" style="padding:1rem;">Sin candidatos.</td></tr>`;
+    return;
+  }
+
+  $('tbody').innerHTML = items.map((r, i) => {
+    const pct = (r.score * 100).toFixed(0);
+    return `<tr class="${r.candidato_forzoso ? 'forzoso' : ''}">
+      <td>${i + 1}</td>
+      <td><strong>${r.codigo || r.id}</strong>
+        ${r.candidato_forzoso ? '<span class="forzoso-badge">FORZOSO</span>' : ''}</td>
+      <td>${r.score.toFixed(3)}
+        <span class="score-bar"><span style="width:${pct}%"></span></span></td>
+      <td><span class="chip">${(r.detalle.hi * 100).toFixed(0)}%</span></td>
+      <td><span class="chip">${(r.detalle.criticidad * 100).toFixed(0)}%</span></td>
+      <td><span class="chip">${(r.detalle.vida_utilizada * 100).toFixed(0)}%</span></td>
+      <td style="font-size:.68rem;">${(r.razones || []).join(' · ') || '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+$('fNivel').addEventListener('change', renderTabla);
+$('btnExport').addEventListener('click', () => {
+  if (rankingGlobal.length === 0) return;
+  exportarPlanInversion(rankingGlobal,
+    'sgm-plan-inversion-' + new Date().toISOString().slice(0, 10));
+});
+
+document.addEventListener('sgm:session-ready', cargar);
+if (window.__sgmSession) cargar();
+</script>
+</body>
+</html>
