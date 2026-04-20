@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Contramuestras</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
+  <script type="module" src="../assets/js/auth/admin-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css"/>
+  <link rel="stylesheet" href="../assets/css/app.css"/>
+  <style>
+    .wrap { max-width: 1100px; margin: 1rem auto; padding: 0 1rem; }
+    .ref-note { font-family: var(--font-mono); font-size: .72rem; color: var(--text-soft); margin-bottom: 1rem; }
+    .toolbar { display: flex; gap: .6rem; margin-bottom: 1rem; }
+    .toolbar select, .toolbar input {
+      padding: .45rem .6rem; background: rgba(0,0,0,.3);
+      border: 1px solid rgba(255,255,255,.15); color: var(--text);
+      font-family: var(--font-mono); font-size: .8rem; border-radius: 3px;
+    }
+    .btn-new {
+      margin-left: auto; padding: .6rem 1.1rem;
+      background: var(--accent2); color: #000; border: none;
+      font-family: var(--font-mono); font-size: .78rem; cursor: pointer;
+      border-radius: 3px;
+    }
+    table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: .73rem; }
+    th, td { padding: .45rem .6rem; border-bottom: 1px solid rgba(255,255,255,.08); text-align: left; }
+    th { color: var(--accent); }
+    .tipo-pill { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: .62rem; letter-spacing: .08em; text-transform: uppercase; }
+    .t-cargabilidad { background: rgba(245,197,24,.18); color: #F5C518; }
+    .t-dga          { background: rgba(0,255,153,.15); color: var(--accent3); }
+    .t-adfq         { background: rgba(0,170,255,.15); color: #0af; }
+    .t-fur          { background: rgba(239,120,32,.18); color: #EF7820; }
+    .t-c2h2         { background: rgba(229,57,53,.18); color: #E53935; }
+    .t-otro         { background: rgba(255,255,255,.08); color: var(--text-soft); }
+    .est-pendiente { color: var(--accent2); }
+    .est-tomada    { color: var(--accent3); }
+    .est-vencida   { color: #E53935; }
+    .auto-chip { display: inline-block; padding: 1px 5px; border-radius: 2px; background: rgba(0,255,153,.1); color: var(--accent3); font-size: .58rem; letter-spacing: .08em; }
+    .modal-bg { display: none; position: fixed; inset: 0; z-index: 100;
+      background: rgba(0,0,0,.75); align-items: center; justify-content: center; }
+    .modal-bg.open { display: flex; }
+    .modal { background: #0d1418; border: 1px solid rgba(255,255,255,.15);
+      border-radius: 5px; max-width: 560px; width: 96%; padding: 1.4rem; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .5rem; }
+    .grid label, label.full { font-family: var(--font-mono); font-size: .7rem; color: var(--text-soft); display: block; }
+    .grid input, .grid select, label.full input, label.full textarea {
+      width: 100%; padding: .4rem .5rem; background: rgba(0,0,0,.3);
+      border: 1px solid rgba(255,255,255,.12); color: var(--text);
+      font-family: var(--font-mono); font-size: .78rem; border-radius: 3px;
+      box-sizing: border-box;
+    }
+    .actions { display: flex; gap: .5rem; justify-content: flex-end; padding-top: 1rem; }
+    .btn { padding: .55rem 1rem; border: none; font-family: var(--font-mono);
+      font-size: .74rem; cursor: pointer; border-radius: 3px; }
+    .btn-cancel { background: rgba(255,255,255,.1); color: var(--text); }
+    .btn-save { background: var(--accent); color: #000; }
+    #msg { font-family: var(--font-mono); font-size: .75rem; min-height: 1.2rem; padding-top: .4rem; }
+    #msg.ok  { color: var(--accent3); }
+    #msg.err { color: #ff5577; }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="topbar-brand">SGM · <span>TRANSPOWER</span> · ADMIN</a>
+  <nav class="main-nav">
+    <a href="index.html"          class="nav-link">Panel</a>
+    <a href="muestras.html"       class="nav-link">Muestras</a>
+    <a href="contramuestras.html" class="nav-link active">Contramuestras</a>
+    <a href="propuestas-fur.html" class="nav-link">Propuestas FUR</a>
+    <a href="../home.html"        class="nav-link">Zona interna</a>
+  </nav>
+</header>
+
+<main id="main" class="wrap">
+  <h1>Contramuestras · seguimiento reforzado</h1>
+  <p class="ref-note">
+    Muestras programadas adicionales tras una calificación crítica
+    (CRG≥4, humedad+RD, C₂H₂=5 §A9.1, FUR≥4 §A9.2). Las
+    contramuestras pueden generarse automáticamente por triggers
+    o registrarse manualmente desde aquí.
+  </p>
+
+  <div class="toolbar">
+    <select id="fEstado">
+      <option value="">Todos</option>
+      <option value="pendiente">Pendientes</option>
+      <option value="tomada">Tomadas</option>
+      <option value="vencida">Vencidas</option>
+    </select>
+    <input type="text" id="fTrafo" placeholder="Código TX (filtro)">
+    <button class="btn-new" id="btnNew">+ NUEVA CONTRAMUESTRA</button>
+  </div>
+
+  <div id="msg"></div>
+
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">TX</th>
+        <th scope="col">Tipo</th>
+        <th scope="col">Motivo</th>
+        <th scope="col">Fecha programada</th>
+        <th scope="col">Frecuencia</th>
+        <th scope="col">Estado</th>
+        <th scope="col">Origen</th>
+      </tr>
+    </thead>
+    <tbody id="tbody">
+      <tr><td colspan="7" style="font-family:var(--font-mono); font-size:.72rem; color:var(--text-soft); padding:1rem;">⋯ Cargando...</td></tr>
+    </tbody>
+  </table>
+</main>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h2 style="font-family:var(--font-mono); color:var(--accent); margin-top:0;">Nueva contramuestra</h2>
+    <form id="formC">
+      <div class="grid">
+        <label>TX código* <input type="text" id="cTx" required></label>
+        <label>Tipo*
+          <select id="cTipo" required>
+            <option value="cargabilidad">Cargabilidad</option>
+            <option value="dga">DGA</option>
+            <option value="adfq">ADFQ</option>
+            <option value="fur">FUR</option>
+            <option value="c2h2">C₂H₂ intensiva</option>
+            <option value="otro">Otro</option>
+          </select>
+        </label>
+        <label>Fecha programada* <input type="date" id="cFecha" required></label>
+        <label>Frecuencia (días) <input type="number" id="cFreq" min="1" value="30"></label>
+      </div>
+      <label class="full">Motivo (calificación que la disparó)
+        <input type="text" id="cMotivo" placeholder="ej. CalifCRG=4 sostenida; humedad+RD ≥ 36">
+      </label>
+      <div class="actions">
+        <button type="button" class="btn btn-cancel" id="btnCancel">CANCELAR</button>
+        <button type="submit" class="btn btn-save">GUARDAR</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script type="module">
+import { listarContramuestras, crearContramuestra }
+  from '../assets/js/data/monitoreo_fur.js';
+
+const $ = (id) => document.getElementById(id);
+const setMsg = (t, cls) => { $('msg').textContent = t; $('msg').className = cls || ''; };
+
+function estadoEfectivo(c) {
+  if (c.estado === 'tomada') return 'tomada';
+  if (!c.fecha_programada)   return c.estado || 'pendiente';
+  const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  const fp = new Date(c.fecha_programada);
+  if (!isNaN(fp) && fp < hoy) return 'vencida';
+  return 'pendiente';
+}
+
+async function cargar() {
+  try {
+    const filtros = {};
+    if ($('fEstado').value) filtros.estado = $('fEstado').value;
+    const items = await listarContramuestras(filtros);
+    const trafo = $('fTrafo').value.trim().toUpperCase();
+    const filt = trafo
+      ? items.filter((c) => (c.transformadorId || '').toUpperCase().includes(trafo))
+      : items;
+    if (filt.length === 0) {
+      $('tbody').innerHTML = `<tr><td colspan="7" style="padding:1rem; font-family:var(--font-mono); font-size:.72rem;">Sin contramuestras.</td></tr>`;
+      return;
+    }
+    $('tbody').innerHTML = filt.map((c) => {
+      const est = estadoEfectivo(c);
+      return `<tr>
+        <td>${c.transformadorId || '—'}</td>
+        <td><span class="tipo-pill t-${c.tipo}">${c.tipo}</span></td>
+        <td style="max-width:240px;">${c.motivo || '—'}</td>
+        <td>${c.fecha_programada || '—'}</td>
+        <td>${c.frecuencia_dias} d</td>
+        <td class="est-${est}">${est}</td>
+        <td>${c.generada_automatica ? '<span class="auto-chip">AUTO</span>' : 'manual'}</td>
+      </tr>`;
+    }).join('');
+  } catch (err) { setMsg('Error: ' + err.message, 'err'); }
+}
+
+$('fEstado').addEventListener('change', cargar);
+$('fTrafo').addEventListener('input', () => { clearTimeout(window._t); window._t = setTimeout(cargar, 300); });
+
+$('btnNew').addEventListener('click', () => {
+  $('formC').reset();
+  $('cFreq').value = 30;
+  $('modalBg').classList.add('open');
+});
+$('btnCancel').addEventListener('click', () => $('modalBg').classList.remove('open'));
+
+$('formC').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  try {
+    const session = window.__sgmSession;
+    await crearContramuestra({
+      transformadorId: $('cTx').value.trim().toUpperCase(),
+      tipo: $('cTipo').value,
+      motivo: $('cMotivo').value,
+      fecha_programada: $('cFecha').value,
+      frecuencia_dias: +$('cFreq').value || 30,
+      generada_automatica: false
+    }, session && session.user && session.user.uid);
+    $('modalBg').classList.remove('open');
+    setMsg('✓ Contramuestra registrada.', 'ok');
+    await cargar();
+  } catch (err) { alert('Error: ' + err.message); }
+});
+
+document.addEventListener('sgm:session-ready', cargar);
+if (window.__sgmSession) cargar();
+</script>
+</body>
+</html>
