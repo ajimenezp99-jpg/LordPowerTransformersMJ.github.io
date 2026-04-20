@@ -8,18 +8,36 @@ Caribe Colombiano (Bolívar, Córdoba, Sucre, Cesar y 11 municipios de Magdalena
 
 ## Estado
 
-Plataforma v1.0.0 cerrada (F0–F14 · 14/14 fases). Evolución v2.0 en
-curso conforme al procedimiento interno **MO.00418.DE-GAC-AX.01 Ed. 02**
-(CARIBEMAR DE LA COSTA S.A.S E.S.P · Afinia · Grupo EPM):
+**v2.0.0 cerrada** — 22 microfases F16→F37 implementadas conforme al
+procedimiento interno **MO.00418.DE-GAC-AX.01 Ed. 02** (CARIBEMAR DE
+LA COSTA S.A.S E.S.P · Afinia · Grupo EPM).
 
 - **F15** ✅ Realtime con `onSnapshot`.
-- **F16** ✅ Refactor del modelo de datos al schema v2 (secciones,
-  `salud_actual`, subestaciones, subcolecciones append-only).
+- **F16** ✅ Refactor al schema v2 (secciones + `salud_actual`).
   Ver [`docs/MODELO-DATOS-v2.md`](./docs/MODELO-DATOS-v2.md).
-- **F17–F37** 🔜 Importador, motor de salud, muestras DGA/ADFQ/FUR,
-  matriz criticidad × salud, estrategias por condición, etc.
+- **F17** ✅ Importador Excel → Firestore con recálculo HI oficial.
+- **F18** ✅ Motor de Salud (7 calificadores + HI ponderado Tabla 10
+  + overrides §A5/§A9 + Duval/Rogers/Doernenburg + sobrecarga IEEE
+  C57.91 + monitoreo intensivo C₂H₂ + juicio experto FUR).
+- **F19** ✅ Muestras DGA/ADFQ/FUR time-series con contexto §A9.6.
+- **F20–F22** ✅ Subestaciones · Contratos · Catálogos (subactividades
+  + macroactividades + causantes, seed baseline §A7).
+- **F23** ✅ Refactor Órdenes v2 con FKs a macroactividad/contrato
+  y workflow de 11 estados.
+- **F24–F26** ✅ TPT/Respaldo (IEEE C57.91) · Fallados + RCA (5 Porqués
+  / Ishikawa / FMEA) · Contramuestras + Monitoreo intensivo + FUR.
+- **F27** ✅ Dashboards ejecutivos por rol.
+- **F28–F30** ✅ RBAC granular (6 roles + ámbito geográfico) ·
+  Workflow aprobaciones + estados especiales (OTC §A9.3) ·
+  Plan de Inversión con scoring multicriterio.
+- **F31–F35** ✅ Reportes PDF/XLSX · Cloud Functions + email cron ·
+  Desempeño aliados · PWA offline · Audit log global.
+- **F36** ✅ Matriz Criticidad × Salud (5×5 semáforo Tabla 11).
+- **F37** ✅ Motor de Estrategias por condición (catálogo §A7).
 
-Plan completo en [`CLAUDE.md`](./CLAUDE.md).
+Plan completo y diccionario de cambios en [`CLAUDE.md`](./CLAUDE.md).
+
+**Tag actual:** `v2.0.0` · **Tests:** 266/266 verdes · **Lint:** HTML limpio.
 
 ## Stack
 
@@ -39,9 +57,24 @@ npm test           # lint + tests
 npm run serve      # sirve el sitio en http://localhost:8080
 ```
 
-Los tests cubren el schema v2 (pesos oficiales del HI, enums, UUCC,
-buckets), el sanitizador/validador de transformadores y subestaciones,
-y la migración v1 → v2 (63 tests al cierre de F16).
+Los tests (266 al cierre de v2.0.0) cubren:
+
+- Schema v2 (pesos oficiales Tabla 10, enums, UUCC CREG 085, buckets HI).
+- Sanitizadores/validadores: transformadores · subestaciones · muestras ·
+  contratos · órdenes v2 · fallados.
+- Motor de Salud conforme MO.00418: 7 calificadores con bordes §A3,
+  overrides §A5 (FUR/CRG/C₂H₂), Chedong, snapshot completo.
+- Diagnóstico DGA: Duval Triangle 1, Rogers Ratios, Doernenburg.
+- Sobrecarga IEEE C57.91 + Arrhenius FAA.
+- Monitoreo intensivo C₂H₂ (§A9.1 R1/R2/R3) + batería ETU.
+- Juicio experto FUR (§A9.2) con 3 decisiones y banderas permanentes.
+- Importador Excel: hojas → tipo_activo, fechas dd/mm/yyyy, comas
+  decimales, recálculo HI vs condicion_excel.
+- Matriz Criticidad × Salud (Tabla 11) + rangos §A9.9.
+- Motor de estrategias F37 (condición → macroactividad).
+- RBAC granular + workflow con 21 transiciones permitidas por rol.
+- Plan de Inversión (scoring multicriterio + candidatos forzosos).
+- Desempeño aliados + audit trail.
 
 ## CI/CD
 
