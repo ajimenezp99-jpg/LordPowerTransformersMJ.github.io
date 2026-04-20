@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Fallados + RCA</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
+  <script type="module" src="../assets/js/auth/admin-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css"/>
+  <link rel="stylesheet" href="../assets/css/app.css"/>
+  <style>
+    .wrap { max-width: 1200px; margin: 1rem auto; padding: 0 1rem; }
+    .ref-note { font-family: var(--font-mono); font-size: .72rem; color: var(--text-soft); margin-bottom: 1rem; }
+    .toolbar { display: flex; gap: .6rem; margin-bottom: 1rem; align-items: center; }
+    .toolbar select, .toolbar input { padding: .45rem .6rem; background: rgba(0,0,0,.3);
+      border: 1px solid rgba(255,255,255,.15); color: var(--text);
+      font-family: var(--font-mono); font-size: .8rem; border-radius: 3px; }
+    .btn-new { margin-left: auto; padding: .6rem 1.1rem; background: #E53935;
+      color: #fff; border: none; font-family: var(--font-mono);
+      font-size: .78rem; cursor: pointer; border-radius: 3px; }
+    table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: .72rem; }
+    th, td { padding: .5rem .6rem; border-bottom: 1px solid rgba(255,255,255,.08); text-align: left; vertical-align: top; }
+    th { color: var(--accent); }
+    .tipo-pill { padding: 2px 8px; border-radius: 3px; font-size: .62rem; letter-spacing: .08em; text-transform: uppercase; }
+    .tipo-termica    { background: rgba(239,120,32,.2); color: #EF7820; }
+    .tipo-electrica  { background: rgba(245,197,24,.2); color: #F5C518; }
+    .tipo-mecanica   { background: rgba(100,150,255,.2); color: #6af; }
+    .tipo-quimica    { background: rgba(200,100,255,.2); color: #c6f; }
+    .tipo-externa    { background: rgba(229,57,53,.2); color: #E53935; }
+    .tipo-desconocida{ background: rgba(100,100,100,.2); color: var(--text-soft); }
+    .rpn-bajo    { color: var(--accent3); }
+    .rpn-medio   { color: var(--accent2); }
+    .rpn-alto    { color: #EF7820; }
+    .rpn-critico { color: #E53935; font-weight: 600; }
+    .modal-bg { display: none; position: fixed; inset: 0; z-index: 100;
+      background: rgba(0,0,0,.75); align-items: center; justify-content: center; }
+    .modal-bg.open { display: flex; }
+    .modal { background: #0d1418; border: 1px solid rgba(255,255,255,.15);
+      border-radius: 5px; max-width: 840px; width: 96%;
+      max-height: 92vh; overflow-y: auto; padding: 1.4rem; }
+    .modal h2 { font-family: var(--font-mono); letter-spacing: .1em; color: var(--accent); margin-top: 0; }
+    .modal h3 { font-family: var(--font-mono); color: var(--accent3); font-size: .8rem;
+      margin-top: 1rem; letter-spacing: .08em; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .5rem; }
+    .grid label, label.full { font-family: var(--font-mono); font-size: .68rem; color: var(--text-soft); display: block; }
+    .grid input, .grid select, label.full input, label.full textarea {
+      width: 100%; padding: .4rem .5rem; background: rgba(0,0,0,.3);
+      border: 1px solid rgba(255,255,255,.12); color: var(--text);
+      font-family: var(--font-mono); font-size: .78rem; border-radius: 3px;
+      box-sizing: border-box; }
+    label.full textarea { min-height: 60px; resize: vertical; }
+    .fmea-row { display: grid;
+      grid-template-columns: 1fr 1fr 1fr 60px 60px 60px 70px 1fr auto;
+      gap: .35rem; margin-bottom: .35rem; align-items: center; }
+    .fmea-row input, .fmea-row select {
+      padding: .3rem .4rem; background: rgba(0,0,0,.3);
+      border: 1px solid rgba(255,255,255,.12); color: var(--text);
+      font-family: var(--font-mono); font-size: .7rem; border-radius: 2px;
+      box-sizing: border-box; width: 100%; }
+    .fmea-row .rpn-out { text-align: center; font-weight: 600; padding: .3rem; }
+    .btn-remove { padding: .3rem .5rem; background: rgba(229,57,53,.2);
+      color: #E53935; border: none; cursor: pointer; font-size: .62rem; border-radius: 2px; }
+    .btn-add { padding: .45rem .9rem; background: rgba(0,255,153,.15);
+      color: var(--accent3); border: none; cursor: pointer;
+      font-family: var(--font-mono); font-size: .7rem; border-radius: 3px; margin-top: .4rem; }
+    .actions { display: flex; gap: .5rem; justify-content: flex-end; padding-top: 1rem; }
+    .btn { padding: .55rem 1rem; border: none; font-family: var(--font-mono);
+      font-size: .74rem; cursor: pointer; border-radius: 3px; }
+    .btn-cancel { background: rgba(255,255,255,.1); color: var(--text); }
+    .btn-save { background: var(--accent); color: #000; }
+    .rca-section[data-metodo] { display: none; }
+    .rca-section[data-metodo].active { display: block; }
+    #msg { font-family: var(--font-mono); font-size: .75rem; margin-top: .5rem; min-height: 1.2rem; }
+    #msg.ok  { color: var(--accent3); }
+    #msg.err { color: #ff5577; }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="topbar-brand">SGM · <span>TRANSPOWER</span> · ADMIN</a>
+  <nav class="main-nav">
+    <a href="index.html"        class="nav-link">Panel</a>
+    <a href="inventario.html"   class="nav-link">Inventario</a>
+    <a href="fallados.html"     class="nav-link active">Fallados</a>
+    <a href="ordenes.html"      class="nav-link">Órdenes</a>
+    <a href="motor-salud.html"  class="nav-link">Motor Salud</a>
+    <a href="../home.html"      class="nav-link">Zona interna</a>
+  </nav>
+</header>
+
+<main id="main" class="wrap">
+  <h1>Fallados + Análisis Causa Raíz</h1>
+  <p class="ref-note">
+    Registro post-mortem con metodología RCA conforme buenas
+    prácticas (5 Porqués · Ishikawa 6M · FMEA con RPN =
+    Severidad×Ocurrencia×Detección). MO.00418 §4.3 C5 → reemplazo;
+    cada falla alimenta el causante histórico y el Plan de Inversión.
+  </p>
+
+  <div class="toolbar">
+    <select id="fTipo">
+      <option value="">Todos los tipos</option>
+      <option value="termica">Térmica</option>
+      <option value="electrica">Eléctrica/Dieléctrica</option>
+      <option value="mecanica">Mecánica</option>
+      <option value="quimica">Química</option>
+      <option value="externa">Externa</option>
+      <option value="desconocida">Desconocida</option>
+    </select>
+    <input type="text" id="fTrafo" placeholder="Código TX (filtro)">
+    <button class="btn-new" id="btnNew">+ REGISTRAR FALLA</button>
+  </div>
+
+  <div id="msg"></div>
+
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Fecha</th>
+        <th scope="col">TX</th>
+        <th scope="col">Tipo</th>
+        <th scope="col">Causa raíz</th>
+        <th scope="col">Método RCA</th>
+        <th scope="col">RPN máx.</th>
+        <th scope="col">Horas fuera</th>
+        <th scope="col">Costo rep.</th>
+      </tr>
+    </thead>
+    <tbody id="tbody">
+      <tr><td colspan="8" style="font-family:var(--font-mono); font-size:.72rem; color:var(--text-soft); padding:1rem;">⋯ Cargando...</td></tr>
+    </tbody>
+  </table>
+</main>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h2>Registrar falla post-mortem</h2>
+    <form id="formF">
+      <div class="grid">
+        <label>TX código* <input type="text" id="fTxCod" required></label>
+        <label>TX ID (FK) <input type="text" id="fTxId"></label>
+        <label>Fecha falla* <input type="date" id="fFecha" required></label>
+        <label>Fecha retiro <input type="date" id="fRetiro"></label>
+        <label>Tipo falla*
+          <select id="fTipoSel" required>
+            <option value="termica">Térmica</option>
+            <option value="electrica">Eléctrica/Dieléctrica</option>
+            <option value="mecanica">Mecánica</option>
+            <option value="quimica">Química (aceite/papel)</option>
+            <option value="externa">Externa</option>
+            <option value="desconocida">Desconocida</option>
+          </select>
+        </label>
+        <label>Horas fuera servicio <input type="number" id="fHoras" min="0"></label>
+        <label>Costo reposición (COP) <input type="number" id="fCosto" min="0"></label>
+      </div>
+      <label class="full">Descripción de la falla
+        <textarea id="fDesc"></textarea>
+      </label>
+      <label class="full">Consecuencias (usuarios afectados, daño a equipos, etc.)
+        <textarea id="fCons"></textarea>
+      </label>
+
+      <h3>Análisis Causa Raíz</h3>
+      <div class="grid">
+        <label>Método RCA
+          <select id="fMetodo">
+            <option value="5_porques">5 Porqués</option>
+            <option value="ishikawa">Ishikawa (6M)</option>
+            <option value="fmea">FMEA</option>
+          </select>
+        </label>
+      </div>
+
+      <!-- 5 Porqués -->
+      <div class="rca-section active" data-metodo="5_porques" id="secPorques">
+        <label class="full">Por qué 1 <input type="text" id="p1"></label>
+        <label class="full">Por qué 2 <input type="text" id="p2"></label>
+        <label class="full">Por qué 3 <input type="text" id="p3"></label>
+        <label class="full">Por qué 4 <input type="text" id="p4"></label>
+        <label class="full">Por qué 5 <input type="text" id="p5"></label>
+      </div>
+
+      <!-- Ishikawa -->
+      <div class="rca-section" data-metodo="ishikawa" id="secIshikawa">
+        <div class="grid">
+          <label>Método <input type="text" id="iMetodo"></label>
+          <label>Mano de obra <input type="text" id="iMano"></label>
+          <label>Maquinaria <input type="text" id="iMaq"></label>
+          <label>Materiales <input type="text" id="iMat"></label>
+          <label>Medio ambiente <input type="text" id="iAmb"></label>
+          <label>Medición <input type="text" id="iMed"></label>
+        </div>
+      </div>
+
+      <!-- FMEA -->
+      <div class="rca-section" data-metodo="fmea" id="secFmea">
+        <p style="font-family:var(--font-mono); font-size:.7rem; color:var(--text-soft);">
+          RPN = Severidad × Ocurrencia × Detección (cada uno 1–10).
+        </p>
+        <div class="fmea-row" style="font-weight:600; font-size:.65rem;">
+          <div>Modo falla</div><div>Efecto</div><div>Causa</div>
+          <div>Sev</div><div>Ocur</div><div>Det</div><div>RPN</div>
+          <div>Acción</div><div></div>
+        </div>
+        <div id="fmeaRows"></div>
+        <button type="button" class="btn-add" id="btnAddFmea">+ LÍNEA FMEA</button>
+      </div>
+
+      <h3>Conclusión</h3>
+      <div class="grid">
+        <label>Causa raíz final <input type="text" id="fCausa"></label>
+      </div>
+      <label class="full">Lecciones aprendidas
+        <textarea id="fLecc"></textarea>
+      </label>
+
+      <div class="actions">
+        <button type="button" class="btn btn-cancel" id="btnCancel">CANCELAR</button>
+        <button type="submit" class="btn btn-save">GUARDAR</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script type="module">
+import { listar, crear } from '../assets/js/data/fallados.js';
+import { calcularRPN, nivelRiesgoRPN, TIPOS_FALLA } from '../assets/js/domain/fallados_schema.js';
+
+const $ = (id) => document.getElementById(id);
+const setMsg = (t, cls) => { $('msg').textContent = t; $('msg').className = cls || ''; };
+
+function tipoLabel(v) {
+  const t = TIPOS_FALLA.find((x) => x.value === v);
+  return t ? t.label : v || '—';
+}
+function nivelClase(n) { return 'rpn-' + (n || 'bajo'); }
+
+async function cargar() {
+  try {
+    const filtros = {};
+    if ($('fTipo').value) filtros.tipo_falla = $('fTipo').value;
+    const items = await listar(filtros);
+    const trafo = $('fTrafo').value.trim().toUpperCase();
+    const filt = trafo
+      ? items.filter((f) => (f.transformadorCodigo || f.transformadorId || '').toUpperCase().includes(trafo))
+      : items;
+    if (filt.length === 0) {
+      $('tbody').innerHTML = `<tr><td colspan="8" style="padding:1rem; font-family:var(--font-mono); font-size:.72rem;">Sin fallas registradas.</td></tr>`;
+      return;
+    }
+    $('tbody').innerHTML = filt.map((f) => {
+      const rpnMax = (f.rca_fmea || []).reduce((m, l) => l.rpn > m ? l.rpn : m, 0);
+      const nivel = nivelRiesgoRPN(rpnMax);
+      return `<tr>
+        <td>${f.fecha_falla || '—'}</td>
+        <td>${f.transformadorCodigo || f.transformadorId}</td>
+        <td><span class="tipo-pill tipo-${f.tipo_falla}">${tipoLabel(f.tipo_falla)}</span></td>
+        <td style="max-width:280px;">${f.causa_raiz || '—'}</td>
+        <td>${f.metodo_rca || '—'}</td>
+        <td class="${nivelClase(nivel)}">${rpnMax > 0 ? rpnMax : '—'}</td>
+        <td>${f.horas_fuera_servicio ?? '—'}</td>
+        <td>${f.costo_reposicion ? new Intl.NumberFormat('es-CO').format(f.costo_reposicion) : '—'}</td>
+      </tr>`;
+    }).join('');
+  } catch (err) { setMsg('Error al cargar: ' + err.message, 'err'); }
+}
+
+// RCA method switching
+$('fMetodo').addEventListener('change', () => {
+  const m = $('fMetodo').value;
+  document.querySelectorAll('.rca-section').forEach((s) => {
+    s.classList.toggle('active', s.dataset.metodo === m);
+  });
+});
+
+// FMEA rows
+let fmeaCounter = 0;
+function addFmeaRow() {
+  fmeaCounter += 1;
+  const id = 'fmea-' + fmeaCounter;
+  const div = document.createElement('div');
+  div.className = 'fmea-row';
+  div.dataset.rowId = id;
+  div.innerHTML = `
+    <input type="text" data-f="modo_falla" placeholder="modo">
+    <input type="text" data-f="efecto"     placeholder="efecto">
+    <input type="text" data-f="causa"      placeholder="causa">
+    <input type="number" data-f="severidad"  min="1" max="10" placeholder="S">
+    <input type="number" data-f="ocurrencia" min="1" max="10" placeholder="O">
+    <input type="number" data-f="deteccion"  min="1" max="10" placeholder="D">
+    <div class="rpn-out">—</div>
+    <input type="text" data-f="accion_recomendada" placeholder="acción">
+    <button type="button" class="btn-remove">✕</button>
+  `;
+  $('fmeaRows').appendChild(div);
+
+  const update = () => {
+    const s = +div.querySelector('[data-f=severidad]').value;
+    const o = +div.querySelector('[data-f=ocurrencia]').value;
+    const d = +div.querySelector('[data-f=deteccion]').value;
+    const rpn = calcularRPN({ severidad: s, ocurrencia: o, deteccion: d });
+    const cell = div.querySelector('.rpn-out');
+    cell.textContent = rpn ?? '—';
+    cell.className = 'rpn-out ' + nivelClase(nivelRiesgoRPN(rpn));
+  };
+  div.querySelectorAll('input[type=number]').forEach((inp) => inp.addEventListener('input', update));
+  div.querySelector('.btn-remove').addEventListener('click', () => div.remove());
+}
+$('btnAddFmea').addEventListener('click', addFmeaRow);
+
+$('fTipo').addEventListener('change', cargar);
+$('fTrafo').addEventListener('input', () => { clearTimeout(window._ft); window._ft = setTimeout(cargar, 300); });
+
+$('btnNew').addEventListener('click', () => {
+  $('formF').reset();
+  $('fmeaRows').innerHTML = '';
+  document.querySelectorAll('.rca-section').forEach((s) =>
+    s.classList.toggle('active', s.dataset.metodo === '5_porques')
+  );
+  $('modalBg').classList.add('open');
+});
+$('btnCancel').addEventListener('click', () => $('modalBg').classList.remove('open'));
+
+$('formF').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const metodo = $('fMetodo').value;
+  const data = {
+    transformadorCodigo: $('fTxCod').value.trim().toUpperCase(),
+    transformadorId:     $('fTxId').value.trim() || $('fTxCod').value.trim().toUpperCase(),
+    fecha_falla:         $('fFecha').value,
+    fecha_retiro:        $('fRetiro').value,
+    tipo_falla:          $('fTipoSel').value,
+    descripcion_falla:   $('fDesc').value,
+    consecuencias:       $('fCons').value,
+    horas_fuera_servicio: +$('fHoras').value || null,
+    costo_reposicion:     +$('fCosto').value || null,
+    metodo_rca:           metodo,
+    causa_raiz:           $('fCausa').value,
+    lecciones_aprendidas: $('fLecc').value
+  };
+  if (metodo === '5_porques') {
+    data.rca_porques = [1, 2, 3, 4, 5].map((i) => $('p' + i).value).filter(Boolean);
+  } else if (metodo === 'ishikawa') {
+    data.rca_ishikawa = {
+      metodo:         $('iMetodo').value,
+      mano_obra:      $('iMano').value,
+      maquinaria:     $('iMaq').value,
+      materiales:     $('iMat').value,
+      medio_ambiente: $('iAmb').value,
+      medicion:       $('iMed').value
+    };
+  } else if (metodo === 'fmea') {
+    data.rca_fmea = [...document.querySelectorAll('#fmeaRows .fmea-row')].map((row) => ({
+      modo_falla: row.querySelector('[data-f=modo_falla]').value,
+      efecto:     row.querySelector('[data-f=efecto]').value,
+      causa:      row.querySelector('[data-f=causa]').value,
+      severidad:  +row.querySelector('[data-f=severidad]').value || null,
+      ocurrencia: +row.querySelector('[data-f=ocurrencia]').value || null,
+      deteccion:  +row.querySelector('[data-f=deteccion]').value || null,
+      accion_recomendada: row.querySelector('[data-f=accion_recomendada]').value
+    }));
+  }
+  try {
+    const session = window.__sgmSession;
+    await crear(data, session && session.user && session.user.uid);
+    $('modalBg').classList.remove('open');
+    setMsg('✓ Falla registrada.', 'ok');
+    await cargar();
+  } catch (err) { alert('Error: ' + err.message); }
+});
+
+document.addEventListener('sgm:session-ready', cargar);
+if (window.__sgmSession) cargar();
+</script>
+</body>
+</html>
