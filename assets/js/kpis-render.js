@@ -102,6 +102,32 @@ function renderRam(ram) {
   }
 }
 
+function renderSaludV2(s) {
+  if (!s) return;
+  const set = (id, v) => { const e = $(id); if (e) e.textContent = v; };
+  set('hiPromedio', s.hi_promedio == null ? '—' : s.hi_promedio.toFixed(2));
+  set('vidaRemanenteProm', s.vida_remanente_promedio == null ? '—'
+      : s.vida_remanente_promedio.toFixed(0) + ' %');
+  set('propFurPend', s.propuestas_fur_pendientes ?? '—');
+  set('monC2H2', s.monitoreos_c2h2_activos ?? '—');
+  set('finVidaPapel', s.fin_vida_util_papel ?? '—');
+  // Bucket cards (opcional, por si la UI los expone)
+  const orden = ['muy_bueno', 'bueno', 'medio', 'pobre', 'muy_pobre'];
+  for (const k of orden) {
+    const e = $('bucket_' + k);
+    if (e) e.textContent = (s.por_bucket && s.por_bucket[k]) || 0;
+  }
+  // Render del chart-bar de buckets, si hay canvas dedicado.
+  const canvasId = 'chBucket';
+  if (document.getElementById(canvasId)) {
+    barChart(canvasId,
+      orden.map((k) => k.replace('_', ' ')),
+      orden.map((k) => (s.por_bucket && s.por_bucket[k]) || 0),
+      ['#1B8E3F','#4CB050','#F5C518','#EF7820','#E53935']
+    );
+  }
+}
+
 // ── Charts ──
 function doughnut(id, labels, values, colors) {
   const ctx = document.getElementById(id);
@@ -235,6 +261,7 @@ export async function loadDashboard() {
     destroyCharts();
     renderTotales(snap.totales);
     renderRam(snap.ram);
+    renderSaludV2(snap.saludV2);
     renderSello(snap.ts);
 
     // Órdenes por estado
