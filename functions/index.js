@@ -1,105 +1,141 @@
 // ══════════════════════════════════════════════════════════════
-// SGM · TRANSPOWER — Cloud Functions entry (F32)
+// SGM · TRANSPOWER — Cloud Functions (F32)
 // ──────────────────────────────────────────────────────────────
-// Stubs para Firebase Cloud Functions v2. El despliegue requiere
-// `firebase deploy --only functions` con las credenciales de
-// servicio configuradas.
+// Despliegue:
+//   cd functions && npm install
+//   firebase deploy --only functions
 //
-// Se mantiene como referencia arquitectónica; la activación
-// real queda sujeta a permisos del proyecto (Blaze requerido
-// para funciones programadas y salida a red externa).
+// Requiere:
+//   · firebase-admin v12 + firebase-functions v5
+//   · Variable ENV `RESEND_API_KEY` para notificaciones (cron).
+//
+// Triggers exportados:
+//   · onMuestraCreate  — recálculo salud_actual + historial_hi
+//                        cuando se escribe en /muestras/{id}.
+//   · cronAlertasDiarias — Pub/Sub schedule diario que envía email
+//                          de alertas críticas no reconocidas.
 // ══════════════════════════════════════════════════════════════
 
-/* eslint-disable */
+import { initializeApp } from 'firebase-admin/app';
+import { getFirestore }   from 'firebase-admin/firestore';
+import { onDocumentCreated } from 'firebase-functions/v2/firestore';
+import { onSchedule }        from 'firebase-functions/v2/scheduler';
+import { defineSecret }      from 'firebase-functions/params';
 
-// NOTE: estos módulos solo se importan cuando se instala
-// firebase-functions + firebase-admin + resend en el directorio
-// functions/. En desarrollo local permanecen como placeholders.
+// Lógica pura del dominio (módulos sin imports de Firebase SDK).
+import { snapshotSaludCompleto } from '../assets/js/domain/salud_activos.js';
 
-const EMAIL_SUBJECT = 'SGM · TRANSPOWER — Resumen de alertas críticas';
-
-/**
- * Handler shared — se adapta a onDocumentCreated de Firebase v2.
- * Recalcula salud_actual del transformador y registra historial_hi.
- */
-export async function onMuestraCreateHandler(event, deps) {
-  const { db, snapshotSaludCompleto } = deps;
-  const data = event.data && event.data.data();
-  if (!data || !data.transformadorId) return;
-
-  const txRef = db.collection('transformadores').doc(data.transformadorId);
-  const txSnap = await txRef.get();
-  if (!txSnap.exists) return;
-  const tx = { id: txSnap.id, ...txSnap.data() };
-
-  // Últimas muestras por tipo
-  const muestrasRef = db.collection('muestras')
-    .where('transformadorId', '==', data.transformadorId)
-    .orderBy('fecha_muestra', 'desc')
-    .limit(10);
-  const msSnap = await muestrasRef.get();
-  const muestras = msSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
-
-  const dga  = muestras.find((m) => m.tipo === 'DGA' || m.tipo === 'COMBO');
-  const adfq = muestras.find((m) => m.tipo === 'ADFQ' || m.tipo === 'COMBO');
-  const fur  = muestras.find((m) => m.tipo === 'FURANOS' || m.tipo === 'COMBO');
-
-  const snap = snapshotSaludCompleto({
-    transformador: tx,
-    muestraDGA: dga, muestraADFQ: adfq, muestraFUR: fur,
-    cargaActual: {
-      cp: tx.salud_actual && tx.salud_actual.cp,
-      ap: tx.electrico && tx.electrico.corriente_nominal_primaria_a
-    },
-    her: tx.salud_actual && tx.salud_actual.ubicacion_fuga_dominante,
-    pyt: tx.salud_actual && tx.salud_actual.calif_pyt
-  });
-
-  await txRef.update({ salud_actual: snap });
-  await txRef.collection('historial_hi').add({
-    trigger: 'muestra_nueva',
-    muestra_origen_ref: data.id,
-    ...snap,
-    createdAt: new Date()
-  });
+// Compute mínimo de alertas críticas para el cron (subconjunto v2).
+// Las reglas v1 ricas viven en assets/js/data/alertas.js (browser).
+function computarAlertasCriticas(transformadores, ordenes) {
+  const out = [];
+  const hoy = new Date();
+  for (const t of transformadores || []) {
+    const s = t.salud_actual || {};
+    const especiales = t.estados_especiales || [];
+    if (s.hi_final != null && s.hi_final >= 4.5) {
+      out.push({ tipo: 'hi_degradado', titulo: `${t.codigo} HI ${s.hi_final.toFixed(2)} (muy_pobre)` });
+    }
+    if (especiales.includes('propuesta_fur_pendiente')) {
+      out.push({ tipo: 'propuesta_fur_pendiente', titulo: `${t.codigo} propuesta FUR pendiente experto` });
+    }
+    if (s.vida_remanente_pct != null && s.vida_remanente_pct < 10) {
+      out.push({ tipo: 'vida_util_remanente_baja', titulo: `${t.codigo} vida útil ${s.vida_remanente_pct.toFixed(0)}%` });
+    }
+  }
+  for (const o of ordenes || []) {
+    if ((o.estado === 'planificada' || o.estado_v2 === 'programada') &&
+        o.fecha_programada && new Date(o.fecha_programada) < hoy &&
+        o.prioridad === 'critica') {
+      out.push({ tipo: 'orden_critica_vencida', titulo: `${o.codigo} crítica vencida` });
+    }
+  }
+  return out;
 }
 
-/**
- * Cron diario de resumen de alertas por email.
- * Requiere: Resend API key + destinatario en alertas_config/global.
- */
-export async function cronAlertasDiariasHandler(_event, deps) {
-  const { db, computarAlertas, sendEmail } = deps;
-  const cfgSnap = await db.doc('alertas_config/global').get();
-  const cfg = cfgSnap.exists ? cfgSnap.data() : {};
-  if (!cfg.notificaciones_enabled || !cfg.destinatario_email) return;
+initializeApp();
+const db = getFirestore();
 
-  const alertas = await computarAlertas();
-  const criticas = (alertas || []).filter((a) => a.severidad === 'critica');
-  if (criticas.length === 0) return;
+const RESEND_KEY = defineSecret('RESEND_API_KEY');
 
-  const htmlBody = `<h2>Resumen diario — ${new Date().toLocaleDateString('es-CO')}</h2>
-    <p>Alertas críticas activas: <strong>${criticas.length}</strong>.</p>
-    <ul>${criticas.slice(0, 20).map((a) =>
-      `<li>${a.tipo}: ${a.descripcion || a.recurso_codigo}</li>`
-    ).join('')}</ul>
-    <p style="color:#888; font-size: 11px;">MO.00418.DE-GAC-AX.01 Ed. 02</p>`;
+// ── onMuestraCreate ───────────────────────────────────────────
+export const onMuestraCreate = onDocumentCreated(
+  { document: 'muestras/{id}', region: 'southamerica-east1' },
+  async (event) => {
+    const data = event.data && event.data.data();
+    if (!data || !data.transformadorId) return;
 
-  await sendEmail({
-    to: cfg.destinatario_email,
-    subject: EMAIL_SUBJECT,
-    html: htmlBody
-  });
+    const txRef = db.collection('transformadores').doc(data.transformadorId);
+    const txSnap = await txRef.get();
+    if (!txSnap.exists) return;
+    const tx = { id: txSnap.id, ...txSnap.data() };
 
-  await db.doc('alertas_config/global').update({
-    ultima_notificacion_ts: new Date(),
-    ultima_notificacion_count: criticas.length
-  });
-}
+    // Últimas 10 muestras del transformador para reconstruir snapshot.
+    const ms = await db.collection('muestras')
+      .where('transformadorId', '==', data.transformadorId)
+      .orderBy('fecha_muestra', 'desc')
+      .limit(10).get();
+    const muestras = ms.docs.map((d) => ({ id: d.id, ...d.data() }));
+    const dga  = muestras.find((m) => m.tipo === 'DGA'   || m.tipo === 'COMBO');
+    const adfq = muestras.find((m) => m.tipo === 'ADFQ'  || m.tipo === 'COMBO');
+    const fur  = muestras.find((m) => m.tipo === 'FURANOS' || m.tipo === 'COMBO');
 
-// Export de metadata para el deploy.
-export const FUNCTION_METADATA = {
-  version: 'v2.0.0',
-  triggers: ['onMuestraCreate', 'cronAlertasDiarias'],
-  notes: 'Requiere firebase-admin + resend + (opcional) firebase-functions v2.'
-};
+    const snap = snapshotSaludCompleto({
+      transformador: tx,
+      muestraDGA: dga, muestraADFQ: adfq, muestraFUR: fur,
+      her: tx.salud_actual && tx.salud_actual.ubicacion_fuga_dominante,
+      pyt: tx.salud_actual && tx.salud_actual.calif_pyt
+    });
+
+    await txRef.update({ salud_actual: snap });
+    await txRef.collection('historial_hi').add({
+      trigger: 'muestra_nueva',
+      muestra_origen_ref: event.params.id,
+      ...snap, createdAt: new Date()
+    });
+  }
+);
+
+// ── cronAlertasDiarias ────────────────────────────────────────
+export const cronAlertasDiarias = onSchedule(
+  { schedule: '0 7 * * *', timeZone: 'America/Bogota',
+    region: 'southamerica-east1', secrets: [RESEND_KEY] },
+  async () => {
+    const cfgSnap = await db.doc('alertas_config/global').get();
+    const cfg = cfgSnap.exists ? cfgSnap.data() : {};
+    if (!cfg.notificaciones_enabled || !cfg.destinatario_email) return;
+
+    const [trafosSnap, ordsSnap] = await Promise.all([
+      db.collection('transformadores').get(),
+      db.collection('ordenes').get()
+    ]);
+    const trafos = trafosSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    const ords   = ordsSnap.docs.map((d)   => ({ id: d.id, ...d.data() }));
+
+    const criticas = computarAlertasCriticas(trafos, ords);
+    if (criticas.length === 0) return;
+
+    // Resend API
+    const { Resend } = await import('resend');
+    const resend = new Resend(RESEND_KEY.value());
+    const html = `
+      <h2>SGM · TRANSPOWER — Resumen diario</h2>
+      <p><strong>${criticas.length}</strong> alerta(s) crítica(s) sin reconocer.</p>
+      <ul>${criticas.slice(0, 30).map((a) =>
+        `<li>${a.tipo} — ${a.titulo}</li>`).join('')}</ul>
+      <p style="color:#888; font-size:12px">
+        MO.00418.DE-GAC-AX.01 Ed. 02 · CARIBEMAR DE LA COSTA S.A.S E.S.P · Afinia · Grupo EPM
+      </p>`;
+    await resend.emails.send({
+      from: 'sgm-transpower@no-reply.afinia.com.co',
+      to:   cfg.destinatario_email,
+      subject: `[SGM] ${criticas.length} alerta(s) crítica(s)`,
+      html
+    });
+
+    await db.doc('alertas_config/global').update({
+      ultima_notificacion_ts: new Date(),
+      ultima_notificacion_count: criticas.length
+    });
+  }
+);

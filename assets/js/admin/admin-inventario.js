@@ -34,6 +34,11 @@ const fFi      = $('fFi');
 const fLat     = $('fLat');
 const fLng     = $('fLng');
 const fObs     = $('fObs');
+// v2 fields (F16+)
+const fTipoActivo = $('fTipoActivo');
+const fUUCC       = $('fUUCC');
+const fGrupo      = $('fGrupo');
+const fZona       = $('fZona');
 const formMsg  = $('formMsg');
 const btnSave  = $('btnSave');
 const fDeptFilter  = $('fDept');
@@ -72,26 +77,50 @@ function escHtml(s) {
   }[c]));
 }
 
+function bucketColor(b) {
+  switch (b) {
+    case 'muy_bueno': return '#1B8E3F';
+    case 'bueno':     return '#4CB050';
+    case 'medio':     return '#F5C518';
+    case 'pobre':     return '#EF7820';
+    case 'muy_pobre': return '#E53935';
+    default:          return 'rgba(255,255,255,.1)';
+  }
+}
+
 function render(rows) {
   if (!rows || rows.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="8" class="td-empty">Sin transformadores registrados.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="td-empty">Sin transformadores registrados.</td></tr>';
     return;
   }
-  tbody.innerHTML = rows.map((t) => `
+  tbody.innerHTML = rows.map((t) => {
+    const id    = t.identificacion || {};
+    const ub    = t.ubicacion || {};
+    const salud = t.salud_actual || {};
+    const tipo  = id.tipo_activo || 'POTENCIA';
+    const zona  = ub.zona || '—';
+    const hi    = salud.hi_final;
+    const bucket = salud.bucket || '';
+    const vidaRem = salud.vida_remanente_pct;
+    return `
     <tr data-id="${t.id}">
       <td><code>${escHtml(t.codigo)}</code></td>
+      <td><small style="opacity:.7">${escHtml(tipo)}</small></td>
       <td>${escHtml(t.nombre)}<br><small style="opacity:.6">${escHtml(t.subestacion || '')}</small></td>
-      <td>${escHtml(departamentoLabel(t.departamento))}</td>
-      <td>${escHtml(t.municipio || '—')}</td>
-      <td>${formatoPotencia(t)}</td>
-      <td>${formatoTension(t)}</td>
+      <td>${escHtml(zona)}<br><small style="opacity:.6">${escHtml(departamentoLabel(t.departamento))}</small></td>
+      <td>${formatoPotencia(t)}<br><small style="opacity:.6">${formatoTension(t)}</small></td>
       <td><span class="estado-pill ${escHtml(t.estado)}">${escHtml(estadoLabel(t.estado))}</span></td>
+      <td>${hi != null
+        ? `<strong style="color:${bucketColor(bucket)}">${hi.toFixed(2)}</strong><br><small style="opacity:.7">${escHtml(bucket || '—')}</small>`
+        : '—'}</td>
+      <td>${vidaRem != null ? vidaRem.toFixed(0) + ' %' : '—'}</td>
       <td class="col-actions">
         <button class="row-btn" data-act="edit" data-id="${t.id}">Editar</button>
         <button class="row-btn danger" data-act="del" data-id="${t.id}">Eliminar</button>
       </td>
     </tr>
-  `).join('');
+  `;
+  }).join('');
 }
 
 // ── Modal ──
@@ -126,6 +155,13 @@ function fillForm(t) {
   fLat.value    = t.latitud ?? '';
   fLng.value    = t.longitud ?? '';
   fObs.value    = t.observaciones || '';
+  // v2 fields
+  const id = t.identificacion || {};
+  const ub = t.ubicacion || {};
+  fTipoActivo.value = id.tipo_activo || 'POTENCIA';
+  fUUCC.value       = id.uucc || '';
+  fGrupo.value      = id.grupo || '';
+  fZona.value       = ub.zona || '';
 }
 function readForm() {
   return {
@@ -133,6 +169,7 @@ function readForm() {
     nombre: fNombre.value,
     departamento: fDeptMain.value,
     estado: fEstadoMain.value,
+    estado_servicio: fEstadoMain.value,
     municipio: fMun.value,
     subestacion: fSub.value,
     potencia_kva: fPot.value,
@@ -145,7 +182,23 @@ function readForm() {
     fecha_instalacion: fFi.value,
     latitud: fLat.value,
     longitud: fLng.value,
-    observaciones: fObs.value
+    observaciones: fObs.value,
+    // v2 explicit sections (sanitizer reconcilia con flat)
+    identificacion: {
+      codigo:      fCodigo.value,
+      nombre:      fNombre.value,
+      tipo_activo: fTipoActivo.value,
+      uucc:        fUUCC.value,
+      grupo:       fGrupo.value
+    },
+    ubicacion: {
+      departamento: fDeptMain.value,
+      zona:         fZona.value,
+      municipio:    fMun.value,
+      subestacion_nombre: fSub.value,
+      latitud:      fLat.value,
+      longitud:     fLng.value
+    }
   };
 }
 
@@ -153,12 +206,12 @@ function readForm() {
 async function cargar() {
   if (!isReady()) {
     showInfo('⚠ Firebase no configurado. Completa assets/js/firebase-config.js para habilitar el inventario.', 'err');
-    tbody.innerHTML = '<tr><td colspan="8" class="td-empty">Sin conexión con Firestore.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="td-empty">Sin conexión con Firestore.</td></tr>';
     return;
   }
   try {
     showInfo('');
-    tbody.innerHTML = '<tr><td colspan="8" class="td-empty">Cargando…</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="td-empty">Cargando…</td></tr>';
     const rows = await listar({
       departamento: fDeptFilter.value || undefined,
       estado:       fEstadoFilter.value || undefined
@@ -167,7 +220,7 @@ async function cargar() {
   } catch (err) {
     console.error(err);
     showInfo('Error al listar: ' + (err.message || err), 'err');
-    tbody.innerHTML = '<tr><td colspan="8" class="td-empty">Error de carga.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="td-empty">Error de carga.</td></tr>';
   }
 }
 
