@@ -62,14 +62,14 @@
         <input class="form-input" id="cMant" type="number" min="1" max="365" step="1" value="14"/>
       </div>
       <div>
-        <label for="cEmail">Destinatario correo (F12)</label>
+        <label for="cEmail">Destinatario correo (cron F32)</label>
         <input class="form-input" id="cEmail" type="email" placeholder="admin@ejemplo.com"/>
       </div>
       <div>
-        <label for="cEnabled">Notificaciones email</label>
+        <label for="cEnabled">Cron diario de alertas críticas</label>
         <select class="form-select" id="cEnabled">
-          <option value="false">Deshabilitadas</option>
-          <option value="true">Habilitadas (preparación F12)</option>
+          <option value="false">Deshabilitado</option>
+          <option value="true">Habilitado (Cloud Functions F32 · Resend)</option>
         </select>
       </div>
     </div>
