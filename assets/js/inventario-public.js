@@ -3,6 +3,7 @@
 // Vista de solo lectura + KPIs + filtros + búsqueda local.
 // ══════════════════════════════════════════════════════════════
 
+import { bucketColor } from './ui-helpers.js';
 import {
   listar, ESTADOS, DEPARTAMENTOS,
   estadoLabel, departamentoLabel, isReady
@@ -43,17 +44,6 @@ function fmtPot(t) { return (t.potencia_kva != null) ? `${t.potencia_kva} kVA` :
 function fmtTen(t) {
   if (t.tension_primaria_kv == null && t.tension_secundaria_kv == null) return '—';
   return `${t.tension_primaria_kv ?? '—'} / ${t.tension_secundaria_kv ?? '—'} kV`;
-}
-
-function bucketColor(b) {
-  switch (b) {
-    case 'muy_bueno': return '#1B8E3F';
-    case 'bueno':     return '#4CB050';
-    case 'medio':     return '#F5C518';
-    case 'pobre':     return '#EF7820';
-    case 'muy_pobre': return '#E53935';
-    default:          return 'rgba(255,255,255,.1)';
-  }
 }
 
 function render(rows) {

@@ -17,6 +17,7 @@ import {
 } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js';
 
 import { getDbSafe, getStorageSafe, isFirebaseConfigured } from '../firebase-init.js';
+import { auditar } from '../domain/audit.js';
 
 const COL_NAME = 'documentos';
 const STORAGE_PREFIX = 'documentos';
@@ -177,6 +178,14 @@ export async function subir(metadata, file, onProgress, uid) {
       status:      'listo',
       updatedAt:   serverTimestamp()
     });
+    try {
+      await addDoc(collection(getDbSafe(), 'auditoria'),
+        { ...auditar({
+            accion: 'subir_documento', coleccion: 'documentos', docId: id,
+            uid, nota: `${payload.categoria}: ${payload.titulo} (${payload.filename})`
+          }),
+          at: serverTimestamp() });
+    } catch (_) { /* ignore */ }
     return id;
   } catch (err) {
     // Dejar rastro del fallo para limpieza manual.
@@ -190,13 +199,21 @@ export async function subir(metadata, file, onProgress, uid) {
   }
 }
 
-export async function actualizarMetadata(id, data) {
+export async function actualizarMetadata(id, data, opts = {}) {
   const payload = sanitize(data);
   payload.updatedAt = serverTimestamp();
   await updateDoc(docRef(id), payload);
+  try {
+    await addDoc(collection(getDbSafe(), 'auditoria'),
+      { ...auditar({
+          accion: 'actualizar', coleccion: 'documentos', docId: id,
+          uid: opts.uid, nota: `metadata ${payload.titulo || ''}`
+        }),
+        at: serverTimestamp() });
+  } catch (_) { /* ignore */ }
 }
 
-export async function eliminar(id) {
+export async function eliminar(id, opts = {}) {
   const d = await obtener(id);
   if (d && d.storagePath) {
     try {
@@ -209,6 +226,14 @@ export async function eliminar(id) {
     }
   }
   await deleteDoc(docRef(id));
+  try {
+    await addDoc(collection(getDbSafe(), 'auditoria'),
+      { ...auditar({
+          accion: 'eliminar', coleccion: 'documentos', docId: id,
+          uid: opts.uid, nota: d ? `Eliminado: ${d.titulo}` : ''
+        }),
+        at: serverTimestamp() });
+  } catch (_) { /* ignore */ }
 }
 
 // ── Utilidades de formato ──
