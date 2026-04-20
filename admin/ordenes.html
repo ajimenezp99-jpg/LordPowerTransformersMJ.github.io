@@ -172,6 +172,58 @@
         <textarea class="form-textarea" id="fObs" rows="2"></textarea>
       </div>
 
+      <!-- v2 (F23) — FKs catálogo + workflow + RBAC -->
+      <div class="form-row-2">
+        <div class="form-group">
+          <label class="form-label" for="fEstadoV2">Estado workflow v2</label>
+          <select class="form-select" id="fEstadoV2">
+            <option value="borrador">borrador</option>
+            <option value="propuesta">propuesta</option>
+            <option value="revisada">revisada</option>
+            <option value="autorizada">autorizada</option>
+            <option value="programada">programada</option>
+            <option value="en_ejecucion">en ejecución</option>
+            <option value="ejecutada">ejecutada</option>
+            <option value="verificada">verificada</option>
+            <option value="cerrada">cerrada</option>
+            <option value="rechazada">rechazada</option>
+            <option value="cancelada">cancelada</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="fAliado">Aliado ejecutor</label>
+          <select class="form-select" id="fAliado">
+            <option value="">— sin asignar —</option>
+            <option value="BRIGADA_TX">Brigada TX</option>
+            <option value="CDM">CDM</option>
+            <option value="TYS">TyS</option>
+            <option value="TYS_G3">TyS G3</option>
+            <option value="CDM_TYS">CDM-TyS</option>
+            <option value="OTRO">Otro</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row-2">
+        <div class="form-group">
+          <label class="form-label" for="fMacro">Macroactividad (catálogo §A7)</label>
+          <select class="form-select" id="fMacro">
+            <option value="">— ninguna —</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="fContrato">Contrato</label>
+          <select class="form-select" id="fContrato">
+            <option value="">— ninguno —</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="fCausantes">Causantes (multi-select Ctrl+click)</label>
+        <select class="form-select" id="fCausantes" multiple size="5"></select>
+      </div>
+
       <!-- Historial (solo en edición) -->
       <div id="historialWrap" class="historial-wrap" style="display:none">
         <h4>▸ Historial de la orden</h4>
