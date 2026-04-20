@@ -46,7 +46,7 @@ function escHtml(s) {
 
 function render(rows) {
   if (!rows.length) {
-    tbody.innerHTML = '<tr><td colspan="7" class="td-empty">Sin órdenes que coincidan con los filtros.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="td-empty">Sin órdenes que coincidan con los filtros.</td></tr>';
     counter.textContent = '0 registros';
     return;
   }
@@ -56,9 +56,11 @@ function render(rows) {
       <td>${escHtml(o.titulo)}<br><small style="opacity:.6">${escHtml(o.transformadorCodigo || '—')}</small></td>
       <td><span class="tipo-pill ${escHtml(o.tipo)}">${escHtml(tipoLabel(o.tipo))}</span></td>
       <td><span class="prioridad-pill ${escHtml(o.prioridad)}">${escHtml(prioridadLabel(o.prioridad))}</span></td>
+      <td>${escHtml(o.macroactividad_codigo || '—')}</td>
+      <td>${escHtml(o.contrato_codigo || '—')}</td>
       <td>${escHtml(o.fecha_programada || '—')}</td>
-      <td>${escHtml(o.tecnico || '—')}</td>
-      <td><span class="estado-pill ${escHtml(o.estado)}">${escHtml(estadoOrdenLabel(o.estado))}</span></td>
+      <td>${escHtml(o.tecnico || '—')}${o.aliado_ejecutor ? `<br><small style="opacity:.6">${escHtml(o.aliado_ejecutor)}</small>` : ''}</td>
+      <td><span class="estado-pill ${escHtml(o.estado)}">${escHtml(estadoOrdenLabel(o.estado_v2 || o.estado))}</span></td>
     </tr>
   `).join('');
   counter.textContent = `${rows.length} registro${rows.length === 1 ? '' : 's'}`;
@@ -90,7 +92,7 @@ let unsubscribe = null;
 function cargar() {
   if (!isReady()) {
     showInfo('⚠ Firebase aún no configurado — órdenes no disponibles.', 'err');
-    tbody.innerHTML = '<tr><td colspan="7" class="td-empty">Órdenes no disponibles.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" class="td-empty">Órdenes no disponibles.</td></tr>';
     counter.textContent = '—';
     $('kTotal').textContent = '—';
     $('kPlan').textContent  = '—';
