@@ -11,6 +11,7 @@ import {
   collection, doc, addDoc, setDoc, getDoc, writeBatch, serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
 import { getDbSafe, isFirebaseConfigured } from '../firebase-init.js';
+import { auditar } from '../domain/audit.js';
 
 const COL_TX    = 'transformadores';
 const COL_JOBS  = 'importaciones';
@@ -121,6 +122,16 @@ export async function persistirImportacion(resultados, reporte, opts = {}) {
   if (!dryRun) {
     const jobRef = await addDoc(colJobsRef(), jobPayload);
     jobId = jobRef.id;
+    // Audit (F35) best-effort
+    try {
+      await addDoc(collection(db, 'auditoria'),
+        { ...auditar({
+            accion: 'importar_excel', coleccion: 'importaciones',
+            docId: jobId, uid,
+            nota: `${nombre_archivo} — creados=${creados}, actualizados=${actualizados}, fallidos=${fallidos}`
+          }),
+          at: serverTimestamp() });
+    } catch (_) { /* ignore */ }
   }
 
   return { jobId, creados, actualizados, fallidos, dryRun };
