@@ -144,6 +144,29 @@ export function computeFromDatasets(trafos, ords) {
   const denom = mtbf_horas + mttr_horas;
   const disponibilidad_pct = denom > 0 ? (mtbf_horas / denom) * 100 : null;
 
+  // ── KPIs v2 (MO.00418) — distribución por bucket HI ──
+  const porBucket = {
+    muy_bueno: 0, bueno: 0, medio: 0, pobre: 0, muy_pobre: 0, sin_dato: 0
+  };
+  let hiSum = 0; let hiCount = 0;
+  let vidaSum = 0; let vidaCount = 0;
+  let propFurPendientes = 0;
+  let monitoreoC2H2Activos = 0;
+  let finVidaPapel = 0;
+  for (const t of trafos) {
+    const s = t.salud_actual || {};
+    const especiales = t.estados_especiales || [];
+    if (s.bucket && porBucket[s.bucket] != null) porBucket[s.bucket] += 1;
+    else porBucket.sin_dato += 1;
+    if (typeof s.hi_final === 'number') { hiSum += s.hi_final; hiCount += 1; }
+    if (typeof s.vida_remanente_pct === 'number') { vidaSum += s.vida_remanente_pct; vidaCount += 1; }
+    if (especiales.includes('propuesta_fur_pendiente')) propFurPendientes += 1;
+    if (especiales.includes('monitoreo_intensivo_c2h2')) monitoreoC2H2Activos += 1;
+    if (s.fin_vida_util_papel) finVidaPapel += 1;
+  }
+  const hi_promedio = hiCount > 0 ? hiSum / hiCount : null;
+  const vida_remanente_promedio = vidaCount > 0 ? vidaSum / vidaCount : null;
+
   return {
     totales,
     porEstado, porTipo, porPrioridad, porDepartamento,
@@ -154,6 +177,14 @@ export function computeFromDatasets(trafos, ords) {
       disponibilidad_pct,
       muestra_fallos: correctivasCerradas.length,
       parque_dias_servicio: Math.round(totalDiasServicio)
+    },
+    saludV2: {
+      hi_promedio,
+      vida_remanente_promedio,
+      por_bucket: porBucket,
+      propuestas_fur_pendientes: propFurPendientes,
+      monitoreos_c2h2_activos:   monitoreoC2H2Activos,
+      fin_vida_util_papel:       finVidaPapel
     },
     ts: Date.now()
   };

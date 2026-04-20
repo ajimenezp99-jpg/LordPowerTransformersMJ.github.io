@@ -16,6 +16,9 @@ import {
   departamentoLabel
 } from '../data/transformadores.js';
 
+import { listarMacroactividades, listarCausantes } from '../data/catalogos.js';
+import { listar as listarContratos } from '../data/contratos.js';
+
 import { logoutAdmin, ADMIN_ROUTES } from './admin-auth.js';
 
 // ── Elementos ──
@@ -39,6 +42,12 @@ const fFechaIni  = $('fFechaIni');
 const fFechaCierre = $('fFechaCierre');
 const fDuracion = $('fDuracion');
 const fObs      = $('fObs');
+// v2 selectores
+const fEstadoV2 = $('fEstadoV2');
+const fAliado   = $('fAliado');
+const fMacro    = $('fMacro');
+const fContrato = $('fContrato');
+const fCausantes = $('fCausantes');
 const formMsg   = $('formMsg');
 const btnSave   = $('btnSave');
 const histWrap  = $('historialWrap');
@@ -125,6 +134,7 @@ function openModal(editing) {
   formMsg.className = 'msg';
   formMsg.textContent = '';
   modal.style.display = 'flex';
+  cargarCatalogos();
   setTimeout(() => fCodigo.focus(), 50);
 }
 function closeModal() {
@@ -149,10 +159,21 @@ function fillForm(o) {
   fFechaCierre.value = o.fecha_cierre || '';
   fDuracion.value  = o.duracion_horas ?? '';
   fObs.value       = o.observaciones || '';
+  // v2
+  fEstadoV2.value = o.estado_v2 || 'borrador';
+  fAliado.value   = o.aliado_ejecutor || '';
+  fMacro.value    = o.macroactividad_codigo || '';
+  fContrato.value = o.contrato_codigo || '';
+  // Multi-select de causantes
+  const set = new Set(o.causantes || []);
+  for (const opt of fCausantes.options) opt.selected = set.has(opt.value);
 }
 function readForm() {
   const sel = fTransformador.selectedOptions[0];
   const trCodigo = sel ? (sel.dataset.codigo || '') : '';
+  const causantesSel = [...fCausantes.selectedOptions].map((o) => o.value);
+  const macroSel = fMacro.selectedOptions[0];
+  const contratoSel = fContrato.selectedOptions[0];
   return {
     codigo: fCodigo.value,
     titulo: fTitulo.value,
@@ -162,6 +183,13 @@ function readForm() {
     tipo: fTipoMain.value,
     prioridad: fPrioridadMain.value,
     estado: fEstadoMain.value,
+    estado_v2: fEstadoV2.value,
+    aliado_ejecutor: fAliado.value,
+    macroactividadId: macroSel ? (macroSel.dataset.id || '') : '',
+    macroactividad_codigo: fMacro.value,
+    contratoId: contratoSel ? (contratoSel.dataset.id || '') : '',
+    contrato_codigo: fContrato.value,
+    causantes: causantesSel,
     tecnico: fTecnico.value,
     fecha_programada: fFechaProg.value,
     fecha_inicio: fFechaIni.value,
@@ -169,6 +197,33 @@ function readForm() {
     duracion_horas: fDuracion.value,
     observaciones: fObs.value
   };
+}
+
+// Cargar catálogos v2 una sola vez al abrir el modal por primera vez.
+let catalogosCargados = false;
+async function cargarCatalogos() {
+  if (catalogosCargados) return;
+  try {
+    const [macros, contratos, causantes] = await Promise.all([
+      listarMacroactividades({ activo: true }).catch(() => []),
+      listarContratos({ estado: 'vigente' }).catch(() => []),
+      listarCausantes().catch(() => [])
+    ]);
+    fMacro.innerHTML = '<option value="">— ninguna —</option>' +
+      macros.map((m) =>
+        `<option value="${m.codigo}" data-id="${m.id || m.codigo}">${m.codigo} · ${m.nombre}</option>`
+      ).join('');
+    fContrato.innerHTML = '<option value="">— ninguno —</option>' +
+      contratos.map((c) =>
+        `<option value="${c.codigo}" data-id="${c.id}">${c.codigo} · ${c.aliado}</option>`
+      ).join('');
+    fCausantes.innerHTML = causantes.map((c) =>
+      `<option value="${c.codigo}">${c.codigo} · ${c.nombre}</option>`
+    ).join('');
+    catalogosCargados = true;
+  } catch (err) {
+    console.warn('[admin-ordenes] error cargando catálogos v2:', err);
+  }
 }
 
 async function renderHistorial(ordenId) {

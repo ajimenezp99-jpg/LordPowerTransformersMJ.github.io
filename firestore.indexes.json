@@ -140,6 +140,30 @@
       "collectionGroup": "ordenes",
       "queryScope": "COLLECTION",
       "fields": [
+        { "fieldPath": "estado_v2", "order": "ASCENDING" },
+        { "fieldPath": "codigo",    "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "ordenes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "contratoId", "order": "ASCENDING" },
+        { "fieldPath": "codigo",     "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "ordenes",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "macroactividadId", "order": "ASCENDING" },
+        { "fieldPath": "codigo",           "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "ordenes",
+      "queryScope": "COLLECTION",
+      "fields": [
         { "fieldPath": "transformadorId", "order": "ASCENDING" },
         { "fieldPath": "codigo",          "order": "DESCENDING" }
       ]

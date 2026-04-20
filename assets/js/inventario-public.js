@@ -45,23 +45,44 @@ function fmtTen(t) {
   return `${t.tension_primaria_kv ?? '—'} / ${t.tension_secundaria_kv ?? '—'} kV`;
 }
 
+function bucketColor(b) {
+  switch (b) {
+    case 'muy_bueno': return '#1B8E3F';
+    case 'bueno':     return '#4CB050';
+    case 'medio':     return '#F5C518';
+    case 'pobre':     return '#EF7820';
+    case 'muy_pobre': return '#E53935';
+    default:          return 'rgba(255,255,255,.1)';
+  }
+}
+
 function render(rows) {
   if (!rows.length) {
     tbody.innerHTML = '<tr><td colspan="7" class="td-empty">Sin transformadores que coincidan con los filtros.</td></tr>';
     counter.textContent = '0 registros';
     return;
   }
-  tbody.innerHTML = rows.map((t) => `
+  tbody.innerHTML = rows.map((t) => {
+    const id    = t.identificacion || {};
+    const ub    = t.ubicacion || {};
+    const salud = t.salud_actual || {};
+    const tipo  = id.tipo_activo || 'POTENCIA';
+    const zona  = ub.zona || '—';
+    const hi    = salud.hi_final;
+    const bucket = salud.bucket || '';
+    return `
     <tr>
       <td><code>${escHtml(t.codigo)}</code></td>
+      <td><small style="opacity:.7">${escHtml(tipo)}</small></td>
       <td>${escHtml(t.nombre)}<br><small style="opacity:.6">${escHtml(t.subestacion || '')}</small></td>
-      <td>${escHtml(departamentoLabel(t.departamento))}</td>
-      <td>${escHtml(t.municipio || '—')}</td>
-      <td>${fmtPot(t)}</td>
-      <td>${fmtTen(t)}</td>
+      <td>${escHtml(zona)}<br><small style="opacity:.6">${escHtml(departamentoLabel(t.departamento))}</small></td>
+      <td>${fmtPot(t)}<br><small style="opacity:.6">${fmtTen(t)}</small></td>
       <td><span class="estado-pill ${escHtml(t.estado)}">${escHtml(estadoLabel(t.estado))}</span></td>
-    </tr>
-  `).join('');
+      <td>${hi != null
+        ? `<strong style="color:${bucketColor(bucket)}">${hi.toFixed(2)}</strong><br><small style="opacity:.7">${escHtml(bucket || '—')}</small>`
+        : '—'}</td>
+    </tr>`;
+  }).join('');
   counter.textContent = `${rows.length} registro${rows.length === 1 ? '' : 's'}`;
 }
 

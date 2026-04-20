@@ -240,6 +240,52 @@
     </div>
   </div>
 
+  <!-- ASISTENTE DE PUESTA EN MARCHA v2 -->
+  <div class="section-head">▸ PUESTA EN MARCHA v2</div>
+  <div class="content-card" style="margin-top: .5rem;">
+    <p style="font-family: var(--font-mono); font-size: .8rem; line-height: 1.5;">
+      Pasos de bootstrap recomendados para arrancar el sistema:
+    </p>
+    <ol style="font-family: var(--font-mono); font-size: .78rem; line-height: 1.7; padding-left: 1.5rem;">
+      <li>
+        <a href="catalogos.html" style="color: var(--accent3)">Catálogos §A7</a>
+        → click <strong>CARGAR BASELINE OFICIAL</strong>.
+        Crea las 31 subactividades, 7 macroactividades y 12 causantes.
+      </li>
+      <li>
+        <a href="usuarios.html" style="color: var(--accent3)">Usuarios</a>
+        → alta de los miembros del equipo con rol F28
+        (director_proyectos, analista_tx, gestor_contractual,
+        brigadista, auditor_campo) + zonas[] de ámbito.
+      </li>
+      <li>
+        <a href="contratos.html" style="color: var(--accent3)">Contratos</a>
+        → registro de los 8 contratos macro vigentes con
+        presupuesto comprometido / ejecutado.
+      </li>
+      <li>
+        <a href="subestaciones.html" style="color: var(--accent3)">Subestaciones</a>
+        → registro de subestaciones (FK que apuntará desde cada TX).
+      </li>
+      <li>
+        <a href="importar.html" style="color: var(--accent3)">Importador</a>
+        → carga del Excel oficial 296 TX. SIMULAR primero, revisar
+        discrepancias, luego IMPORTAR.
+      </li>
+      <li>
+        <a href="umbrales-salud.html" style="color: var(--accent3)">Umbrales</a>
+        → confirmar/ajustar baselines MO.00418 si el Profesional
+        de Tx solicita una calibración local.
+      </li>
+      <li>
+        <a href="alertas.html" style="color: var(--accent3)">Alertas</a>
+        → activar cron F32 con email del director (requiere
+        despliegue previo de Cloud Functions, ver
+        <code>docs/DEPLOY-FUNCTIONS.md</code>).
+      </li>
+    </ol>
+  </div>
+
 </main>
 
 <footer class="page-foot">

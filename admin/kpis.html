@@ -98,6 +98,37 @@
     </div>
   </div>
 
+  <!-- ── KPIs v2 (MO.00418) ── -->
+  <div class="section-head">▸ SALUD DEL PARQUE · MO.00418</div>
+  <div class="ram-grid">
+    <div class="ram-card">
+      <div class="ram-head">HI promedio del parque</div>
+      <div><span class="ram-value" id="hiPromedio">—</span><span class="ram-unit">/ 5</span></div>
+      <div class="ram-desc">Promedio HI con overrides §A5.</div>
+    </div>
+    <div class="ram-card">
+      <div class="ram-head">Vida útil remanente</div>
+      <div><span class="ram-value" id="vidaRemanenteProm">—</span></div>
+      <div class="ram-desc">Promedio %vida (Chedong CIGRÉ 445).</div>
+    </div>
+    <div class="ram-card">
+      <div class="ram-head">Activos en régimen especial</div>
+      <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+        <div><span class="ram-value" id="propFurPend">—</span><br><small>FUR pendiente</small></div>
+        <div><span class="ram-value" id="monC2H2">—</span><br><small>C₂H₂ intensivo</small></div>
+        <div><span class="ram-value" id="finVidaPapel">—</span><br><small>Fin vida papel</small></div>
+      </div>
+      <div class="ram-desc">§A9.1 / §A9.2 — protocolos operativos activos.</div>
+    </div>
+  </div>
+
+  <div class="charts-grid" style="margin-top: 1rem;">
+    <div class="chart-card">
+      <div class="chart-title">Distribución por bucket HI · §A9.7</div>
+      <canvas id="chBucket" height="180"></canvas>
+    </div>
+  </div>
+
   <div class="section-head">▸ DISTRIBUCIÓN DE ÓRDENES</div>
   <div class="charts-grid">
     <div class="chart-card">
