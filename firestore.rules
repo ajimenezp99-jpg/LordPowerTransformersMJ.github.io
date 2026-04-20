@@ -250,7 +250,14 @@ service cloud.firestore {
                        ]
                     && request.resource.data.prioridad in [
                         'baja','media','alta','critica'
-                       ];
+                       ]
+                    // v2: si estado_v2 viene, debe ser válido (F23)
+                    && (!('estado_v2' in request.resource.data)
+                        || request.resource.data.estado_v2 in [
+                            'borrador','propuesta','revisada','autorizada',
+                            'programada','en_ejecucion','ejecutada','verificada',
+                            'cerrada','rechazada','cancelada'
+                           ]);
       allow update: if isAdmin()
                     && request.resource.data.estado in [
                         'planificada','en_curso','cerrada','cancelada'
@@ -261,7 +268,13 @@ service cloud.firestore {
                        ]
                     && request.resource.data.prioridad in [
                         'baja','media','alta','critica'
-                       ];
+                       ]
+                    && (!('estado_v2' in request.resource.data)
+                        || request.resource.data.estado_v2 in [
+                            'borrador','propuesta','revisada','autorizada',
+                            'programada','en_ejecucion','ejecutada','verificada',
+                            'cerrada','rechazada','cancelada'
+                           ]);
       allow delete: if isAdmin();
 
       match /historial/{evt} {
