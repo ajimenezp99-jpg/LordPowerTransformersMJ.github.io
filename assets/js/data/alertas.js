@@ -43,7 +43,13 @@ export const TIPOS_ALERTA = [
   { value: 'orden_critica_abierta',label: 'Orden crítica abierta' },
   { value: 'mantenimiento_largo', label: 'Mantenimiento prolongado' },
   { value: 'sin_coordenadas',      label: 'Transformador sin coordenadas' },
-  { value: 'sin_fecha_instalacion',label: 'Sin fecha de instalación' }
+  { value: 'sin_fecha_instalacion',label: 'Sin fecha de instalación' },
+  // Reglas v2 (MO.00418)
+  { value: 'hi_degradado',            label: 'HI degradado (≥ 4)' },
+  { value: 'propuesta_fur_pendiente', label: 'Propuesta FUR pendiente de juicio experto (§A9.2)' },
+  { value: 'monitoreo_c2h2_activo',   label: 'Monitoreo intensivo C₂H₂ activo (§A9.1)' },
+  { value: 'otc_vencimiento_proximo', label: 'OTC próxima a vencer (§A9.3)' },
+  { value: 'vida_util_remanente_baja',label: 'Vida útil remanente baja (Chedong)' }
 ];
 
 export function severidadLabel(v) {
@@ -327,6 +333,84 @@ export function computarFromDatasets(transformadores, ordenes, config, recs, hoy
           titulo:    `${t.codigo} sin fecha de instalación`,
           detalle:   `${t.nombre || '—'} · ${departamentoLabel(t.departamento)} · impacta cálculo de MTBF`,
           fecha_ref: '',
+          recurso:   { clase: 'transformador', id: t.id, codigo: t.codigo }
+        });
+      }
+
+      // ── Reglas v2 (MO.00418) ──────────────────────────────
+      const salud = t.salud_actual || {};
+      const especiales = t.estados_especiales || [];
+
+      // hi_degradado: HI final ≥ 4 (pobre o muy pobre)
+      if (salud.hi_final != null && salud.hi_final >= 4) {
+        const severidad = salud.hi_final >= 4.5 ? 'critica' : 'warning';
+        pushAlert(alertas, {
+          id:        buildAlertId('hi_degradado', t.id, 'na'),
+          tipo:      'hi_degradado',
+          severidad,
+          titulo:    `${t.codigo} · HI ${salud.hi_final.toFixed(2)} (${salud.bucket || 'pobre'})`,
+          detalle:   `MO.00418 §4.2 · overrides: ${(salud.overrides_aplicados || []).join(' · ') || 'ninguno'}`,
+          fecha_ref: salud.ts_calculo || '',
+          recurso:   { clase: 'transformador', id: t.id, codigo: t.codigo }
+        });
+      }
+
+      // propuesta_fur_pendiente: bandera estado especial
+      if (especiales.includes('propuesta_fur_pendiente')) {
+        pushAlert(alertas, {
+          id:        buildAlertId('propuesta_fur_pendiente', t.id, 'na'),
+          tipo:      'propuesta_fur_pendiente',
+          severidad: 'critica',
+          titulo:    `${t.codigo} · propuesta FUR pendiente de juicio experto`,
+          detalle:   `MO.00418 §A9.2 · Profesional de Tx debe aprobar reemplazo/OTC o rechazar.`,
+          fecha_ref: '',
+          recurso:   { clase: 'transformador', id: t.id, codigo: t.codigo }
+        });
+      }
+
+      // monitoreo_c2h2_activo: informativo, operativo en curso
+      if (especiales.includes('monitoreo_intensivo_c2h2')) {
+        pushAlert(alertas, {
+          id:        buildAlertId('monitoreo_c2h2_activo', t.id, 'na'),
+          tipo:      'monitoreo_c2h2_activo',
+          severidad: 'warning',
+          titulo:    `${t.codigo} · monitoreo intensivo C₂H₂ activo`,
+          detalle:   `MO.00418 §A9.1 · muestreo semanal/quincenal + ETU pre-cargada.`,
+          fecha_ref: '',
+          recurso:   { clase: 'transformador', id: t.id, codigo: t.codigo }
+        });
+      }
+
+      // otc_vencimiento_proximo: OTC con fecha_fin_prevista < 30 días
+      if (especiales.includes('operacion_temporal_controlada') &&
+          t.restricciones_operativas && t.restricciones_operativas.fecha_fin_prevista) {
+        const finOTC = new Date(t.restricciones_operativas.fecha_fin_prevista);
+        if (!isNaN(finOTC)) {
+          const diasRestantes = Math.floor((finOTC - hoy) / (1000 * 60 * 60 * 24));
+          if (diasRestantes <= 30) {
+            const severidad = diasRestantes <= 7 ? 'critica' : 'warning';
+            pushAlert(alertas, {
+              id:        buildAlertId('otc_vencimiento_proximo', t.id, finOTC.toISOString().slice(0, 10)),
+              tipo:      'otc_vencimiento_proximo',
+              severidad,
+              titulo:    `${t.codigo} · OTC vence en ${diasRestantes} días`,
+              detalle:   `MO.00418 §A9.3 · ¿ejecutar reemplazo o renovar autorización?`,
+              fecha_ref: t.restricciones_operativas.fecha_fin_prevista,
+              recurso:   { clase: 'transformador', id: t.id, codigo: t.codigo }
+            });
+          }
+        }
+      }
+
+      // vida_util_remanente_baja: Chedong < 10%
+      if (salud.vida_remanente_pct != null && salud.vida_remanente_pct < 10) {
+        pushAlert(alertas, {
+          id:        buildAlertId('vida_util_remanente_baja', t.id, 'na'),
+          tipo:      'vida_util_remanente_baja',
+          severidad: 'critica',
+          titulo:    `${t.codigo} · vida útil remanente ${salud.vida_remanente_pct.toFixed(0)} %`,
+          detalle:   `MO.00418 §A3.3 · Chedong DP=${salud.dp_estimado != null ? salud.dp_estimado.toFixed(0) : '—'} · candidato a Plan de Inversión.`,
+          fecha_ref: salud.ts_calculo || '',
           recurso:   { clase: 'transformador', id: t.id, codigo: t.codigo }
         });
       }

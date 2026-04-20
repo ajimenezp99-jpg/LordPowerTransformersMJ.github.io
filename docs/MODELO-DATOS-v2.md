@@ -298,10 +298,72 @@ npm run test:unit # solo tests (node --test)
 
 ---
 
-## 9. Próximos pasos (F17+)
+## 9. Colecciones añadidas F17→F37 (v2.0 completa)
 
-1. **F17 — Importador Excel → Firestore.** Reutiliza `migrarDocV1aV2` como sub-rutina y añade corrección de `tipo_activo` por hoja. Genera reporte de auditoría con las 17 discrepancias documentadas en §A del prompt v2.2.
-2. **F18 — Motor de salud.** Puebla `salud_actual` aplicando pesos Tabla 10 + overrides §A5/A9.1/A9.2.
-3. **F19 — Muestras.** Time-series DGA/ADFQ/FUR que actualizan `salud_actual` vía trigger.
-4. **F20 — Subestaciones UI.** Interfaz admin sobre la colección reservada en F16.
-5. **F36 — Matriz Criticidad × Salud.** Puebla el sub-objeto `criticidad`.
+El modelo nuclear descrito en §2–§3 se extiende con las siguientes
+colecciones/subcolecciones que entregaron las microfases posteriores:
+
+### 9.1 Time-series y monitoreo
+
+| Colección | Fase | Propósito | Reglas |
+|---|---|---|---|
+| `/muestras/{id}` | F19 | Time-series DGA/ADFQ/FUR con contexto §A9.6 (eventos externos, intervención previa, observación del analista). | read team; create/update admin valida enum `tipo ∈ {DGA, ADFQ, FURANOS, COMBO}` |
+| `/contramuestras/{id}` | F26 | Seguimiento reforzado generado por reglas automáticas (CRG≥4, humedad+RD…). | admin CRUD |
+| `/monitoreo_intensivo/{id}` | F26/§A9.1 | Régimen semanal/quincenal cuando CalifC₂H₂ = 5. Guarda velocidad_ppm_dia y evaluación de override R1/R2/R3. | read team; create admin valida `tipo=='C2H2'`; update admin; delete false |
+| `/propuestas_reclasificacion_fur/{id}` | F26/§A9.2 | Cola de juicio experto cuando CalifFUR ≥ 4. Shape: `{transformadorId, muestra_id, ppb_2fal, dp_estimado, vida_remanente_pct, hi_propuesto, estado, resolucion}`. | read team; create admin con `estado=='pendiente_revision_experto'`; update admin; delete false |
+
+### 9.2 Gobernanza operativa
+
+| Colección | Fase | Propósito | Reglas |
+|---|---|---|---|
+| `/contratos/{id}` | F21 | 8 contratos macro con control presupuestario (`monto_total`, `comprometido`, `ejecutado`, `disponible`). Enum `estado ∈ {vigente, suspendido, finalizado, en_liquidacion}`. | read team; create/update admin valida enum `estado` |
+| `/subactividades/{codigo}` | F22/§A7 | 31 subactividades oficiales por condición objetivo (PSM/ST/CM/CMA/REP + mitigaciones). docId = `codigo`. | read team; write admin |
+| `/macroactividades/{codigo}` | F22 | 7 macroactividades que agrupan subactividades por condición. | read team; write admin |
+| `/causantes/{codigo}` | F22 | 12 causantes con origen (DGA/ADFQ/FUR/EDAD/CRG/PYT/HER/EXT/MULTI). | read team; write admin |
+| `/fallados/{id}` | F25 | Histórico post-mortem con RCA (5 Porqués, Ishikawa, FMEA). Calcula RPN = Severidad × Ocurrencia × Detección. | read team; create/update admin valida enum `tipo_falla` y `metodo_rca`; delete admin |
+
+### 9.3 Parámetros del sistema
+
+| Colección | Fase | Propósito |
+|---|---|---|
+| `/umbrales_salud/global` | F18 | Umbrales activos del motor con subcolección `historial/{evt}` append-only. Fallback al `BASELINE_UMBRALES_SALUD` si no existe. |
+| `/parametros_sistema/criticidad` | F36 | Tope `max_usuarios` dinámico que recalcula los 5 rangos con `calcularRangosCriticidad(max, min=1)`. Baseline 48 312. |
+
+### 9.4 Auditoría e importación
+
+| Colección | Fase | Propósito |
+|---|---|---|
+| `/importaciones/{jobId}` | F17 | Log append-only de cada carga Excel con reporte reducido: filas por hoja, exitosos/errores, primeras 30 discrepancias Excel ↔ MO.00418. |
+| `/auditoria/{id}` | F35 | Append-only global (ISO 55001 §9.1). 18 acciones catalogadas. Lectura restringida a admin + auditor_campo. |
+
+### 9.5 Triggers y funciones (F32)
+
+- `onMuestraCreateHandler(event, deps)` — recalcula `salud_actual` usando `snapshotSaludCompleto` + añade entrada en `historial_hi` del transformador.
+- `cronAlertasDiariasHandler(event, deps)` — lee `/alertas_config/global`; si `notificaciones_enabled`, computa alertas críticas y envía email vía Resend.
+- `/api/health` (Vercel) — sonda de availability pública con `version: 'v2.0.0'`.
+
+### 9.6 Roles F28 aceptados en `/usuarios/{uid}`
+
+| rol | Uso |
+|---|---|
+| `admin` | Administrador del sistema (control total). |
+| `director_proyectos` | Ingeniero Director de Proyectos. |
+| `analista_tx` | Ingeniero Analista de Transformadores de Potencia (= Profesional de Tx para §A9.2). |
+| `gestor_contractual` | Gestión administrativa y contractual (ámbito filtrable por `contratos[]`). |
+| `brigadista` | Ejecución en campo. |
+| `auditor_campo` | Auditor en campo de aliados estratégicos. |
+| `tecnico` (legacy F14) | Se acepta durante la migración; debe reasignarse a `analista_tx` o `brigadista`. |
+
+Ámbito geográfico: campo `zonas[]` filtra `[BOLIVAR, ORIENTE, OCCIDENTE]`. Zonas vacías = sin restricción.
+
+### 9.7 Reglas de alerta v2 (motor F11+)
+
+| tipo | Severidad | Disparador |
+|---|---|---|
+| `hi_degradado` | crítica ≥4.5, warning ≥4.0 | `salud_actual.hi_final` |
+| `propuesta_fur_pendiente` | crítica | bandera en `estados_especiales` |
+| `monitoreo_c2h2_activo` | warning | bandera en `estados_especiales` |
+| `otc_vencimiento_proximo` | crítica ≤7d, warning ≤30d | `restricciones_operativas.fecha_fin_prevista` |
+| `vida_util_remanente_baja` | crítica | `salud_actual.vida_remanente_pct < 10 %` |
+
+Todas reutilizan `/alertas_reconocidas/{alertId}` existente con id determinista.
