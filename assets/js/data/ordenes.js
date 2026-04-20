@@ -22,7 +22,7 @@ import {
   sanitizarOrden, validarOrden, transicionValida,
   ESTADOS_ORDEN_V2, TIPOS_ORDEN as TIPOS_ORDEN_V2, PRIORIDADES as PRIORIDADES_V2
 } from '../domain/orden_schema.js';
-import { auditar } from '../domain/audit.js';
+import { auditar, persistirAuditoria } from '../domain/audit.js';
 
 const COL_NAME = 'ordenes';
 
@@ -156,13 +156,11 @@ export async function obtener(id) {
   return s.exists() ? { id: s.id, ...s.data() } : null;
 }
 
-async function auditarSeguro(entry) {
-  try {
-    await addDoc(
-      collection(getDbSafe(), 'auditoria'),
-      { ...entry, at: serverTimestamp() }
-    );
-  } catch (_) { /* best-effort */ }
+function auditarSeguro(entry) {
+  return persistirAuditoria(
+    { db: getDbSafe(), addDoc, collection, serverTimestamp },
+    entry
+  );
 }
 
 export async function crear(data, uid) {

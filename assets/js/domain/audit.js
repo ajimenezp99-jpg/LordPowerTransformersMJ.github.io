@@ -58,3 +58,27 @@ export function diffSimple(antes, despues) {
   }
   return d;
 }
+
+/**
+ * Persiste una entrada de auditoría en Firestore de forma
+ * best-effort: si falla, no rompe la operación principal.
+ *
+ * Consumido por los data layers (usuarios, transformadores,
+ * ordenes, documentos, umbrales_salud, importar, monitoreo_fur).
+ *
+ * @param {object} deps — `{ db, addDoc, collection, serverTimestamp }`
+ *   inyectados por el caller (evita bindings cruzados con
+ *   el SDK en este módulo puro).
+ * @param {object} entry — resultado de `auditar({...})`.
+ */
+export async function persistirAuditoria(deps, entry) {
+  if (!deps || !deps.db || !deps.addDoc || !deps.collection || !deps.serverTimestamp) {
+    return;
+  }
+  try {
+    await deps.addDoc(
+      deps.collection(deps.db, 'auditoria'),
+      { ...entry, at: deps.serverTimestamp() }
+    );
+  } catch (_) { /* best-effort */ }
+}
