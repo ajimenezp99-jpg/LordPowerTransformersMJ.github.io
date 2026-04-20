@@ -37,15 +37,15 @@
 <header class="topbar">
   <a href="index.html" class="topbar-brand">SGM · <span>TRANSPOWER</span> · ADMIN</a>
   <nav class="main-nav">
-    <a href="index.html"       class="nav-link active">Panel</a>
-    <a href="inventario.html"  class="nav-link">Inventario</a>
-    <a href="ordenes.html"     class="nav-link">Órdenes</a>
-    <a href="kpis.html"        class="nav-link">KPIs</a>
-    <a href="documentos.html"  class="nav-link">Documentos</a>
-    <a href="mapa.html"        class="nav-link">Mapa</a>
-    <a href="alertas.html"     class="nav-link">Alertas</a>
-    <a href="usuarios.html"    class="nav-link">Usuarios</a>
-    <a href="../home.html"     class="nav-link">Zona interna</a>
+    <a href="index.html"            class="nav-link active">Panel</a>
+    <a href="inventario.html"       class="nav-link">Inventario</a>
+    <a href="ordenes.html"          class="nav-link">Órdenes</a>
+    <a href="muestras.html"         class="nav-link">Muestras</a>
+    <a href="motor-salud.html"      class="nav-link">Motor Salud</a>
+    <a href="plan-inversion.html"   class="nav-link">PI</a>
+    <a href="alertas.html"          class="nav-link">Alertas</a>
+    <a href="usuarios.html"         class="nav-link">Usuarios</a>
+    <a href="../home.html"          class="nav-link">Zona interna</a>
   </nav>
   <button class="btn-logout" id="btnLogout">CERRAR SESIÓN</button>
 </header>
@@ -61,8 +61,10 @@
     <div class="breadcrumb">Admin / Panel principal</div>
     <h1 class="page-title">Panel <em>Administrativo</em></h1>
     <p class="page-subtitle">
-      Zona de gestión completa del sistema SGM · TRANSPOWER.
-      Los módulos CRUD se habilitan progresivamente a partir de la Fase 6.
+      Zona de gestión completa del sistema SGM · TRANSPOWER ·
+      <strong style="color:var(--accent3)">v2.0.1</strong>.
+      22 microfases F16–F37 implementadas conforme al procedimiento
+      MO.00418.DE-GAC-AX.01 Ed. 02 (CARIBEMAR · Afinia · Grupo EPM).
     </p>
   </div>
 
@@ -108,8 +110,73 @@
     <a href="usuarios.html" class="module-card" style="text-decoration:none">
       <div class="module-icon">👥</div>
       <div class="module-name">Usuarios &amp; Roles</div>
-      <div class="module-desc">Alta, baja y asignación de rol (admin / técnico) sobre los miembros del equipo.</div>
-      <span class="status-badge done">ACTIVO · F14</span>
+      <div class="module-desc">Alta, baja y asignación de rol sobre los miembros del equipo. Ahora con 6 roles F28 + ámbito geográfico.</div>
+      <span class="status-badge done">ACTIVO · F14/F28</span>
+    </a>
+  </div>
+
+  <!-- MÓDULOS v2.0 (MO.00418) -->
+  <div class="section-head">▸ MÓDULOS v2.0 · MO.00418.DE-GAC-AX.01 Ed. 02</div>
+  <div class="modules-grid">
+    <a href="importar.html" class="module-card" style="text-decoration:none">
+      <div class="module-icon">⬆️</div>
+      <div class="module-name">Importador Excel</div>
+      <div class="module-desc">Carga masiva desde "Salud de Activos 2026.xlsx" con recálculo HI oficial + reporte de discrepancias.</div>
+      <span class="status-badge done">F17</span>
+    </a>
+    <a href="motor-salud.html" class="module-card" style="text-decoration:none">
+      <div class="module-icon">🧪</div>
+      <div class="module-name">Motor de Salud (sandbox)</div>
+      <div class="module-desc">Calculadora de HI ponderado (Tabla 10) con Duval/Rogers/Doernenburg y overrides §A5/§A9.</div>
+      <span class="status-badge done">F18</span>
+    </a>
+    <a href="umbrales-salud.html" class="module-card" style="text-decoration:none">
+      <div class="module-icon">⚙️</div>
+      <div class="module-name">Umbrales de Salud</div>
+      <div class="module-desc">Editor del documento <code>/umbrales_salud/global</code> con baseline MO.00418 restaurable.</div>
+      <span class="status-badge done">F18</span>
+    </a>
+    <a href="muestras.html" class="module-card" style="text-decoration:none">
+      <div class="module-icon">🧫</div>
+      <div class="module-name">Muestras Laboratorio</div>
+      <div class="module-desc">Time-series DGA/ADFQ/FUR con contexto operativo §A9.6 obligatorio para TDGC&gt;201 o C₂H₂≥5.</div>
+      <span class="status-badge done">F19</span>
+    </a>
+    <a href="subestaciones.html" class="module-card" style="text-decoration:none">
+      <div class="module-icon">🏭</div>
+      <div class="module-name">Subestaciones</div>
+      <div class="module-desc">Entidad FK referenciada por cada transformador v2.</div>
+      <span class="status-badge done">F20</span>
+    </a>
+    <a href="contratos.html" class="module-card" style="text-decoration:none">
+      <div class="module-icon">📑</div>
+      <div class="module-name">Contratos macro</div>
+      <div class="module-desc">Los 8 contratos con control presupuestario (comprometido / ejecutado / disponible).</div>
+      <span class="status-badge done">F21</span>
+    </a>
+    <a href="catalogos.html" class="module-card" style="text-decoration:none">
+      <div class="module-icon">🗂️</div>
+      <div class="module-name">Catálogos §A7</div>
+      <div class="module-desc">Subactividades · macroactividades · causantes. Seed oficial cargable con un click.</div>
+      <span class="status-badge done">F22</span>
+    </a>
+    <a href="propuestas-fur.html" class="module-card" style="text-decoration:none">
+      <div class="module-icon">⚖️</div>
+      <div class="module-name">Propuestas FUR</div>
+      <div class="module-desc">Cola de juicio experto §A9.2. Aprobar reemplazo/OTC o rechazar con audit trail.</div>
+      <span class="status-badge done">F26</span>
+    </a>
+    <a href="plan-inversion.html" class="module-card" style="text-decoration:none">
+      <div class="module-icon">💰</div>
+      <div class="module-name">Plan de Inversión</div>
+      <div class="module-desc">Scoring multicriterio (HI+criticidad+vida+costo+fallas). Candidatos forzosos destacados. Export XLSX.</div>
+      <span class="status-badge done">F30</span>
+    </a>
+    <a href="desempeno-aliados.html" class="module-card" style="text-decoration:none">
+      <div class="module-icon">🏆</div>
+      <div class="module-name">Desempeño Aliados</div>
+      <div class="module-desc">Score 0–100 por aliado con desviación de costo, reincidencias y tiempo medio.</div>
+      <span class="status-badge done">F33</span>
     </a>
   </div>
 
@@ -119,32 +186,39 @@
     <div class="content-card">
       <h3>🔥 Firebase</h3>
       <ul>
-        <li>Authentication · activo</li>
-        <li>Firestore · DENY-ALL hasta F6</li>
-        <li>Storage · activo (documentos/)</li>
+        <li>Auth · activo (6 roles F28)</li>
+        <li>Firestore · rules v2 activas</li>
+        <li>Storage · activo</li>
+        <li>Cloud Functions · stubs F32</li>
       </ul>
     </div>
     <div class="content-card">
-      <h3>🛡️ Seguridad</h3>
+      <h3>🛡️ RBAC F28</h3>
       <ul>
-        <li>Login unificado · Firebase Auth</li>
-        <li>Roles: <strong>admin</strong> · <strong>técnico</strong></li>
-        <li>Perfiles en <code>/usuarios/{uid}</code></li>
+        <li><strong>admin</strong> · sistema</li>
+        <li><strong>director_proyectos</strong></li>
+        <li><strong>analista_tx</strong></li>
+        <li><strong>gestor_contractual</strong></li>
+        <li><strong>brigadista</strong> · <strong>auditor_campo</strong></li>
+        <li>Ámbito por zonas[] + contratos[]</li>
       </ul>
     </div>
     <div class="content-card">
-      <h3>📦 Despliegue</h3>
+      <h3>📐 Normativa</h3>
       <ul>
-        <li>GitHub Pages · main → auto</li>
-        <li>Vercel · Hobby (futuro)</li>
-        <li>CI · lint HTML en push/PR</li>
+        <li>MO.00418.DE-GAC-AX.01 Ed. 02</li>
+        <li>IEEE C57.91/104/109/125</li>
+        <li>IEC 60076/60599/60567</li>
+        <li>ASTM D1816/D5837/D974</li>
+        <li>NTC 3284 · CREG 085/2018</li>
+        <li>CIGRÉ 445 · ISO 55001/50001</li>
       </ul>
     </div>
     <div class="content-card">
       <h3>📈 Progreso</h3>
-      <p>Plataforma lista · <strong style="color:var(--accent3)">v1.0.0</strong>.
-         14 de 14 fases completadas. Siguiente ciclo: mejoras funcionales
-         y nuevos módulos según prioridad operativa.</p>
+      <p>Plataforma <strong style="color:var(--accent3)">v2.0.1</strong>.
+         F0–F15 (v1) + F16–F37 (v2) completas · 22 microfases cerradas ·
+         266 tests verdes · lint HTML limpio.</p>
     </div>
   </div>
 
