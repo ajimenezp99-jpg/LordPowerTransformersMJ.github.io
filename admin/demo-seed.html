@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Demo Seed</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
+  <script type="module" src="../assets/js/auth/admin-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css"/>
+  <link rel="stylesheet" href="../assets/css/app.css"/>
+  <style>
+    .wrap { max-width: 920px; margin: 1rem auto; padding: 0 1rem; }
+    .banner {
+      background: rgba(240,165,0,.08); border: 1px solid rgba(240,165,0,.3);
+      border-left: 3px solid var(--accent2); padding: .8rem 1rem; border-radius: 3px;
+      font-family: var(--font-mono); font-size: .74rem; color: var(--accent2);
+      margin-bottom: 1rem;
+    }
+    .card {
+      background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 4px; padding: 1rem 1.2rem; margin-bottom: 1rem;
+    }
+    .card h3 { font-family: var(--font-mono); color: var(--accent); margin: 0 0 .5rem; font-size: .84rem; letter-spacing: .1em; }
+    .card p  { font-family: var(--font-mono); font-size: .75rem; line-height: 1.5; color: var(--text-soft); }
+    .btn-run { padding: .7rem 1.2rem; background: var(--accent3); color: #000;
+      border: none; font-family: var(--font-mono); font-size: .78rem;
+      cursor: pointer; border-radius: 3px; }
+    .btn-run[disabled] { background: rgba(255,255,255,.1); color: var(--text-soft); cursor: not-allowed; }
+    #log {
+      margin-top: 1rem; background: rgba(0,0,0,.4); padding: 1rem;
+      font-family: var(--font-mono); font-size: .72rem; border-radius: 4px;
+      max-height: 320px; overflow-y: auto; white-space: pre-wrap; line-height: 1.5;
+    }
+    .ok  { color: var(--accent3); }
+    .err { color: #ff5577; }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="topbar-brand">SGM · <span>TRANSPOWER</span> · ADMIN</a>
+  <nav class="main-nav">
+    <a href="index.html"        class="nav-link">Panel</a>
+    <a href="catalogos.html"    class="nav-link">Catálogos</a>
+    <a href="importar.html"     class="nav-link">Importar</a>
+    <a href="demo-seed.html"    class="nav-link active">Demo Seed</a>
+    <a href="../home.html"      class="nav-link">Zona interna</a>
+  </nav>
+</header>
+
+<main id="main" class="wrap">
+  <h1>Demo Seed · datos de prueba</h1>
+  <div class="banner">
+    ⚠ USO SOLO EN ENTORNO DE PRUEBAS. Este asistente crea
+    6 transformadores ficticios con perfiles de salud variados
+    (bucket muy_bueno, bueno, medio, pobre, muy_pobre, y uno con
+    fin_vida_util_papel) + 3 muestras DGA + 2 órdenes de ejemplo.
+    Sirve para validar el motor F18, la matriz F36 y el PI F30
+    sin esperar a cargar los 296 TX reales. Idempotente por
+    `codigo` (re-ejecutar sobrescribe los mismos).
+  </div>
+
+  <div class="card">
+    <h3>Qué crea el seed</h3>
+    <p>
+      · TX-DEMO-01 · Muy bueno (HI 1.2 · Cartagena)<br>
+      · TX-DEMO-02 · Bueno (HI 2.1 · Montería)<br>
+      · TX-DEMO-03 · Medio (HI 3.0 · Sincelejo)<br>
+      · TX-DEMO-04 · Pobre (HI 4.1 · Valledupar) con C₂H₂ alto<br>
+      · TX-DEMO-05 · Muy pobre (HI 4.9 · Santa Ana)<br>
+      · TX-DEMO-06 · Fin vida útil papel (FUR≥4 aprobado · reemplazo)
+    </p>
+    <p>
+      Cada uno lleva salud_actual pre-poblado con calificaciones
+      coherentes (del motor F18). Las órdenes demo apuntan a
+      TX-DEMO-04 y TX-DEMO-05 como candidatos a intervención.
+    </p>
+  </div>
+
+  <div class="card">
+    <h3>Ejecución</h3>
+    <button class="btn-run" id="btnRun">EJECUTAR DEMO SEED</button>
+    <button class="btn-run" id="btnClean" style="background:rgba(229,57,53,.3); color:#E53935;">
+      LIMPIAR TX-DEMO-*
+    </button>
+    <pre id="log"></pre>
+  </div>
+</main>
+
+<script type="module">
+import { crear as crearTrafo, listar as listarTrafos, eliminar as eliminarTrafo }
+  from '../assets/js/data/transformadores.js';
+import { crear as crearMuestra } from '../assets/js/data/muestras.js';
+import { crear as crearOrden, eliminar as eliminarOrden, listar as listarOrdenes }
+  from '../assets/js/data/ordenes.js';
+import { snapshotSaludCompleto } from '../assets/js/domain/salud_activos.js';
+
+const $ = (id) => document.getElementById(id);
+const log = (t, cls = '') => {
+  const line = document.createElement('div');
+  if (cls) line.className = cls;
+  line.textContent = `[${new Date().toLocaleTimeString()}] ${t}`;
+  $('log').appendChild(line);
+  $('log').scrollTop = $('log').scrollHeight;
+};
+
+const hoy = new Date();
+
+// Fixtures: definición declarativa de los 6 TX demo.
+const FIXTURES = [
+  { codigo: 'TX-DEMO-01', nombre: 'Demo Cartagena (Muy Bueno)',
+    depto: 'bolivar', zona: 'BOLIVAR', anoFab: 2023,
+    gases: { H2: 10, CH4: 10, C2H4: 5, C2H6: 5, C2H2: 0, CO: 80, CO2: 600 },
+    rd: 45, ti: 2200, nn: 1, ppb: 400, crg: { cp: 30, ap: 100 },
+    pyt: 'integral_scada', her: 'sin_fugas' },
+
+  { codigo: 'TX-DEMO-02', nombre: 'Demo Montería (Bueno)',
+    depto: 'cordoba', zona: 'OCCIDENTE', anoFab: 2018,
+    gases: { H2: 50, CH4: 50, C2H4: 30, C2H6: 30, C2H2: 2, CO: 150, CO2: 1200 },
+    rd: 38, ti: 1800, nn: 1, ppb: 1500, crg: { cp: 45, ap: 100 },
+    pyt: 'integral_scada_parc', her: 'sin_fugas' },
+
+  { codigo: 'TX-DEMO-03', nombre: 'Demo Sincelejo (Medio)',
+    depto: 'sucre', zona: 'OCCIDENTE', anoFab: 2010,
+    gases: { H2: 80, CH4: 80, C2H4: 50, C2H6: 50, C2H2: 3, CO: 300, CO2: 2500 },
+    rd: 30, ti: 1200, nn: 1, ppb: 2500, crg: { cp: 65, ap: 100 },
+    pyt: 'integral_sin_scada', her: 'laterales' },
+
+  { codigo: 'TX-DEMO-04', nombre: 'Demo Valledupar (Pobre C2H2)',
+    depto: 'cesar', zona: 'ORIENTE', anoFab: 2005,
+    gases: { H2: 100, CH4: 100, C2H4: 100, C2H6: 50, C2H2: 6, CO: 550, CO2: 4500 },
+    rd: 22, ti: 900, nn: 1, ppb: 3500, crg: { cp: 78, ap: 100 },
+    pyt: 'parcial_sin_scada', her: 'junction_block' },
+
+  { codigo: 'TX-DEMO-05', nombre: 'Demo Santa Ana (Muy Pobre)',
+    depto: 'magdalena', zona: 'ORIENTE', anoFab: 1995,
+    gases: { H2: 200, CH4: 200, C2H4: 200, C2H6: 100, C2H2: 12, CO: 800, CO2: 7500 },
+    rd: 17, ti: 500, nn: 1, ppb: 5200, crg: { cp: 92, ap: 100 },
+    pyt: 'sin_proteccion', her: 'superiores' },
+
+  { codigo: 'TX-DEMO-06', nombre: 'Demo Fin Vida Útil (FUR aprobado)',
+    depto: 'bolivar', zona: 'BOLIVAR', anoFab: 1990,
+    gases: { H2: 60, CH4: 60, C2H4: 60, C2H6: 30, C2H2: 4, CO: 400, CO2: 3500 },
+    rd: 28, ti: 1000, nn: 1, ppb: 6200, crg: { cp: 55, ap: 100 },
+    pyt: 'integral_sin_scada', her: 'accesorios',
+    finVidaPapel: true,
+    estadosEspeciales: ['fin_vida_util_papel', 'pendiente_reemplazo'] }
+];
+
+function buildDoc(fx) {
+  const tempTx = {
+    fabricacion: { ano_fabricacion: fx.anoFab }
+  };
+  const snap = snapshotSaludCompleto({
+    transformador: { ...tempTx, salud_actual: { fin_vida_util_papel: !!fx.finVidaPapel } },
+    muestraDGA: { gases: fx.gases },
+    muestraADFQ: { rigidez_kv: fx.rd, ti: fx.ti, nn: fx.nn },
+    muestraFUR: { ppb: fx.ppb },
+    cargaActual: fx.crg,
+    pyt: fx.pyt,
+    her: fx.her,
+    hoy
+  });
+  return {
+    codigo: fx.codigo, nombre: fx.nombre,
+    departamento: fx.depto, zona: fx.zona,
+    estado: 'operativo', estado_servicio: 'operativo',
+    estados_especiales: fx.estadosEspeciales || [],
+    identificacion: {
+      codigo: fx.codigo, nombre: fx.nombre,
+      tipo_activo: 'POTENCIA', uucc: 'N4T1', grupo: 'G1'
+    },
+    ubicacion: {
+      departamento: fx.depto, zona: fx.zona,
+      municipio: fx.nombre.split(' ')[1] || '',
+      subestacion_nombre: 'SE-DEMO-' + fx.codigo
+    },
+    placa: { marca: 'DEMO', modelo: 'FX-100', serial: fx.codigo, potencia_kva: 20000 },
+    electrico: { tension_primaria_kv: 115, tension_secundaria_kv: 13.8 },
+    fabricacion: { ano_fabricacion: fx.anoFab },
+    servicio: { fecha_instalacion: `${fx.anoFab}-06-01` },
+    salud_actual: snap
+  };
+}
+
+async function eliminarPorCodigo(prefix) {
+  const list = await listarTrafos();
+  const matches = list.filter((t) => (t.codigo || '').startsWith(prefix));
+  for (const t of matches) {
+    await eliminarTrafo(t.id, { uid: (window.__sgmSession || {}).user?.uid });
+    log(`   · eliminado ${t.codigo}`);
+  }
+  return matches.length;
+}
+
+$('btnRun').addEventListener('click', async () => {
+  $('btnRun').disabled = true;
+  $('log').innerHTML = '';
+  try {
+    const session = window.__sgmSession || {};
+    const uid = session.user && session.user.uid;
+
+    log('Creando 6 transformadores demo...');
+    const idsPorCodigo = {};
+    for (const fx of FIXTURES) {
+      // Si existe, lo elimino primero (idempotencia)
+      const existing = (await listarTrafos())
+        .filter((t) => t.codigo === fx.codigo);
+      for (const e of existing) await eliminarTrafo(e.id, { uid });
+
+      const doc = buildDoc(fx);
+      const id = await crearTrafo(doc, uid);
+      idsPorCodigo[fx.codigo] = id;
+      log(`   · ${fx.codigo} → HI ${doc.salud_actual.hi_final.toFixed(2)} (${doc.salud_actual.bucket})`, 'ok');
+    }
+
+    log('\nCreando 3 muestras DGA de ejemplo...');
+    for (const cod of ['TX-DEMO-03', 'TX-DEMO-04', 'TX-DEMO-05']) {
+      const fx = FIXTURES.find((f) => f.codigo === cod);
+      const mid = await crearMuestra({
+        transformadorId: idsPorCodigo[cod],
+        transformadorCodigo: cod,
+        tipo: 'DGA',
+        fecha_muestra: hoy.toISOString().slice(0, 10),
+        laboratorio: 'LAB DEMO',
+        tecnico_muestrista: 'Demo Seed',
+        gases: fx.gases,
+        observacion_contextual_analista: 'Seed de demostración.'
+      }, uid);
+      log(`   · muestra ${mid} para ${cod}`, 'ok');
+    }
+
+    log('\nCreando 2 órdenes demo...');
+    const o1 = await crearOrden({
+      codigo: 'OT-DEMO-001',
+      titulo: 'Inspección urgente TX-DEMO-04',
+      transformadorId: idsPorCodigo['TX-DEMO-04'],
+      transformadorCodigo: 'TX-DEMO-04',
+      tipo: 'correctivo', prioridad: 'alta', estado: 'planificada',
+      fecha_programada: hoy.toISOString().slice(0, 10)
+    }, uid);
+    const o2 = await crearOrden({
+      codigo: 'OT-DEMO-002',
+      titulo: 'Reemplazo programado TX-DEMO-06',
+      transformadorId: idsPorCodigo['TX-DEMO-06'],
+      transformadorCodigo: 'TX-DEMO-06',
+      tipo: 'reemplazo', prioridad: 'critica', estado: 'planificada',
+      fecha_programada: hoy.toISOString().slice(0, 10)
+    }, uid);
+    log(`   · órdenes creadas: ${o1}, ${o2}`, 'ok');
+
+    log('\n✓ DEMO SEED COMPLETADO.', 'ok');
+    log('  Abre /admin/inventario.html, /pages/matriz-riesgo.html o /admin/plan-inversion.html para ver los datos.');
+  } catch (err) {
+    log('ERROR: ' + err.message, 'err');
+  } finally {
+    $('btnRun').disabled = false;
+  }
+});
+
+$('btnClean').addEventListener('click', async () => {
+  if (!confirm('¿Eliminar todos los TX-DEMO-* y OT-DEMO-* del Firestore?')) return;
+  $('log').innerHTML = '';
+  try {
+    log('Limpiando TX-DEMO-*...');
+    const n = await eliminarPorCodigo('TX-DEMO-');
+    log(`   · ${n} transformadores eliminados.`);
+    log('Limpiando OT-DEMO-*...');
+    const ords = (await listarOrdenes()).filter((o) => (o.codigo || '').startsWith('OT-DEMO-'));
+    const session = window.__sgmSession || {};
+    const uid = session.user && session.user.uid;
+    for (const o of ords) {
+      await eliminarOrden(o.id, { uid });
+      log(`   · eliminada ${o.codigo}`);
+    }
+    log(`\n✓ Limpieza completa: ${n} TX + ${ords.length} órdenes.`, 'ok');
+  } catch (err) {
+    log('ERROR: ' + err.message, 'err');
+  }
+});
+</script>
+</body>
+</html>
