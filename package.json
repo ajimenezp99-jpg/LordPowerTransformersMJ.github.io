@@ -1,6 +1,6 @@
 {
   "name": "sgm-transpower",
-  "version": "2.0.0-f16",
+  "version": "2.0.8",
   "private": true,
   "type": "module",
   "description": "SGM · TRANSPOWER — Sistema de Gestión de Mantenimiento Especializado de Transformadores de Potencia (Caribe Colombiano).",
