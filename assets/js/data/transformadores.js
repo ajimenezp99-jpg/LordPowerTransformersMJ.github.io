@@ -33,7 +33,7 @@ import {
   ESTADOS_SERVICIO, DEPARTAMENTOS,
   estadoServicioLabel, departamentoLabel
 } from '../domain/schema.js';
-import { auditar, diffSimple } from '../domain/audit.js';
+import { auditar, diffSimple, persistirAuditoria } from '../domain/audit.js';
 
 const COL_NAME = 'transformadores';
 
@@ -138,13 +138,11 @@ export async function obtener(id) {
   return s.exists() ? { id: s.id, ...s.data() } : null;
 }
 
-async function auditarSeguro(entry) {
-  try {
-    await addDoc(
-      collection(getDbSafe(), 'auditoria'),
-      { ...entry, at: serverTimestamp() }
-    );
-  } catch (_) { /* best-effort */ }
+function auditarSeguro(entry) {
+  return persistirAuditoria(
+    { db: getDbSafe(), addDoc, collection, serverTimestamp },
+    entry
+  );
 }
 
 export async function crear(data, uid) {
