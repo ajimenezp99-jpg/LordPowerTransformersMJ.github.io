@@ -13,6 +13,7 @@ import {
 
 import { getDbSafe, isFirebaseConfigured } from '../firebase-init.js';
 import { BASELINE_UMBRALES_SALUD, mergeConBaseline } from '../domain/umbrales_salud_baseline.js';
+import { auditar } from '../domain/audit.js';
 
 const DOC_PATH   = ['umbrales_salud', 'global'];
 
@@ -85,6 +86,17 @@ export async function guardarUmbrales(payload, { uid, razon } = {}) {
   } catch (err) {
     console.warn('[umbrales_salud.historial] no se pudo registrar:', err);
   }
+  // Audit global (F35)
+  try {
+    const { collection } = await import('https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js');
+    await addDoc(collection(getDbSafe(), 'auditoria'),
+      { ...auditar({
+          accion: 'cambiar_umbrales', coleccion: 'umbrales_salud',
+          docId: 'global', uid, nota: razon,
+          referencia: 'MO.00418 §A3'
+        }),
+        at: now });
+  } catch (_) { /* ignore */ }
 }
 
 /**

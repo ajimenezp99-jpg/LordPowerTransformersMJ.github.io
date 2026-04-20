@@ -22,6 +22,7 @@ import {
   sanitizarOrden, validarOrden, transicionValida,
   ESTADOS_ORDEN_V2, TIPOS_ORDEN as TIPOS_ORDEN_V2, PRIORIDADES as PRIORIDADES_V2
 } from '../domain/orden_schema.js';
+import { auditar } from '../domain/audit.js';
 
 const COL_NAME = 'ordenes';
 
@@ -155,6 +156,15 @@ export async function obtener(id) {
   return s.exists() ? { id: s.id, ...s.data() } : null;
 }
 
+async function auditarSeguro(entry) {
+  try {
+    await addDoc(
+      collection(getDbSafe(), 'auditoria'),
+      { ...entry, at: serverTimestamp() }
+    );
+  } catch (_) { /* best-effort */ }
+}
+
 export async function crear(data, uid) {
   const payload = preparar(data);
   payload.createdAt = serverTimestamp();
@@ -167,6 +177,10 @@ export async function crear(data, uid) {
     nota: 'Orden creada (schema v2).',
     uid: uid || null
   });
+  await auditarSeguro(auditar({
+    accion: 'crear', coleccion: 'ordenes', docId: ref.id,
+    uid, nota: `Alta de ${payload.codigo} (${payload.tipo}/${payload.prioridad})`
+  }));
   return ref.id;
 }
 
@@ -193,11 +207,23 @@ export async function actualizar(id, data, uid) {
       nota: 'Cambio de estado.',
       uid: uid || null
     });
+    await auditarSeguro(auditar({
+      accion: 'cambiar_estado_orden', coleccion: 'ordenes', docId: id,
+      uid,
+      diff: { estado_v2: { antes: prev.estado_v2, despues: payload.estado_v2 } }
+    }));
+  } else {
+    await auditarSeguro(auditar({
+      accion: 'actualizar', coleccion: 'ordenes', docId: id, uid
+    }));
   }
 }
 
-export async function eliminar(id) {
+export async function eliminar(id, opts = {}) {
   await deleteDoc(docRef(id));
+  await auditarSeguro(auditar({
+    accion: 'eliminar', coleccion: 'ordenes', docId: id, uid: opts.uid
+  }));
 }
 
 export async function registrarEvento(ordenId, evento) {
