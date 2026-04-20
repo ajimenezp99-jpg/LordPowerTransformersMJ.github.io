@@ -67,17 +67,18 @@
       <thead>
         <tr>
           <th scope="col">Código</th>
+          <th scope="col">Tipo</th>
           <th scope="col">Nombre / Subestación</th>
-          <th scope="col">Departamento</th>
-          <th scope="col">Municipio</th>
-          <th scope="col">Potencia</th>
-          <th scope="col">Tensión</th>
+          <th scope="col">Zona / Depto</th>
+          <th scope="col">Potencia · Tensión</th>
           <th scope="col">Estado</th>
+          <th scope="col">HI · Bucket</th>
+          <th scope="col">Vida rem.</th>
           <th scope="col" class="col-actions">Acciones</th>
         </tr>
       </thead>
       <tbody id="tbody">
-        <tr><td colspan="8" class="td-empty">Cargando…</td></tr>
+        <tr><td colspan="9" class="td-empty">Cargando…</td></tr>
       </tbody>
     </table>
   </div>
@@ -112,10 +113,44 @@
         <input class="form-input" type="text" id="fNombre" required>
       </div>
 
-      <div class="form-row-2">
+      <!-- Identificación v2 (MO.00418) -->
+      <div class="form-row-3">
+        <div class="form-group">
+          <label class="form-label" for="fTipoActivo">Tipo activo</label>
+          <select class="form-select" id="fTipoActivo">
+            <option value="POTENCIA">POTENCIA</option>
+            <option value="TPT">TPT (Servicios Propios)</option>
+            <option value="RESPALDO">RESPALDO</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="fUUCC">UUCC (CREG 085)</label>
+          <input class="form-input" type="text" id="fUUCC" placeholder="N4T1, N5T10…">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="fGrupo">Grupo</label>
+          <select class="form-select" id="fGrupo">
+            <option value="">—</option>
+            <option value="G1">G1</option>
+            <option value="G2">G2</option>
+            <option value="G3">G3</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row-3">
         <div class="form-group">
           <label class="form-label" for="fDeptMain">Departamento *</label>
           <select class="form-select" id="fDeptMain" required></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="fZona">Zona</label>
+          <select class="form-select" id="fZona">
+            <option value="">— auto desde depto —</option>
+            <option value="BOLIVAR">BOLIVAR</option>
+            <option value="ORIENTE">ORIENTE</option>
+            <option value="OCCIDENTE">OCCIDENTE</option>
+          </select>
         </div>
         <div class="form-group">
           <label class="form-label" for="fMun">Municipio</label>

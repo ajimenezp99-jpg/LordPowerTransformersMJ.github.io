@@ -33,6 +33,7 @@ import {
   ESTADOS_SERVICIO, DEPARTAMENTOS,
   estadoServicioLabel, departamentoLabel
 } from '../domain/schema.js';
+import { auditar, diffSimple } from '../domain/audit.js';
 
 const COL_NAME = 'transformadores';
 
@@ -137,29 +138,47 @@ export async function obtener(id) {
   return s.exists() ? { id: s.id, ...s.data() } : null;
 }
 
+async function auditarSeguro(entry) {
+  try {
+    await addDoc(
+      collection(getDbSafe(), 'auditoria'),
+      { ...entry, at: serverTimestamp() }
+    );
+  } catch (_) { /* best-effort */ }
+}
+
 export async function crear(data, uid) {
   const payload = prepararDoc(data, uid);
   payload.createdAt = serverTimestamp();
   payload.updatedAt = serverTimestamp();
   const ref = await addDoc(collRef(), payload);
+  await auditarSeguro(auditar({
+    accion: 'crear', coleccion: 'transformadores', docId: ref.id,
+    uid, nota: `Alta de ${payload.codigo || ref.id}`
+  }));
   return ref.id;
 }
 
-export async function actualizar(id, data) {
+export async function actualizar(id, data, opts = {}) {
   // `actualizar` en v1 era un full replace del sanitizador v1;
   // en v2 hacemos lo mismo: rehidrata el documento canónico y
   // escribe todo. Los callers que quieran updates parciales
   // (p.ej. solo `estado_servicio`) deben usar `actualizarParcial`.
+  const prev = opts.prev || (await obtener(id));
   const payload = prepararDoc(data);
-  // `createdBy` y `createdAt` no se tocan aquí (full update, pero
-  // no se tiene al uid original). Se usa updateDoc (merge
-  // implícito no — Firestore hace replace parcial de campos
-  // presentes). Para preservar createdAt/By, se podría hacer un
-  // getDoc previo; por simplicidad se conservan del doc existente
-  // porque updateDoc no los remueve si no están en payload.
   delete payload.createdBy;
   payload.updatedAt = serverTimestamp();
   await updateDoc(docRef(id), payload);
+  // Audit con diff de campos relevantes (raíz)
+  const camposClave = ['codigo','estado','potencia_kva','tension_primaria_kv',
+                        'tension_secundaria_kv','marca','modelo','serial',
+                        'fecha_fabricacion','fecha_instalacion'];
+  const a = {}; const b = {};
+  for (const k of camposClave) { if (prev) a[k] = prev[k]; b[k] = payload[k]; }
+  await auditarSeguro(auditar({
+    accion: 'actualizar', coleccion: 'transformadores', docId: id,
+    uid: opts.uid, diff: diffSimple(a, b)
+  }));
 }
 
 /**
@@ -171,8 +190,13 @@ export async function actualizarParcial(id, parches) {
   await updateDoc(docRef(id), payload);
 }
 
-export async function eliminar(id) {
+export async function eliminar(id, opts = {}) {
+  const prev = opts.prev || (await obtener(id));
   await deleteDoc(docRef(id));
+  await auditarSeguro(auditar({
+    accion: 'eliminar', coleccion: 'transformadores', docId: id,
+    uid: opts.uid, nota: prev ? `Codigo eliminado: ${prev.codigo}` : ''
+  }));
 }
 
 // ── Stats para KPIs (compat v1) ────────────────────────────────
