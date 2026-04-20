@@ -10,6 +10,7 @@ import { crearEstadoMonitoreoIntensivo, calcularVelocidadC2H2, evaluarOverrideC2
   from '../domain/monitoreo_intensivo.js';
 import { crearPropuestaReclasificacionFUR, aplicarDecisionExperto }
   from '../domain/juicio_experto_fur.js';
+import { auditar } from '../domain/audit.js';
 
 const COL_MI  = 'monitoreo_intensivo';
 const COL_FUR = 'propuestas_reclasificacion_fur';
@@ -121,6 +122,16 @@ export async function resolverPropuestaFUR(id, { decision, experto_uid, nota }) 
     fin_vida_util_papel: p2.fin_vida_util_papel,
     bloqueo_ordenes_no_reemplazo: p2.bloqueo_ordenes_no_reemplazo
   });
+  // Audit (F35) — best-effort
+  try {
+    const accion = decision === 'rechazar' ? 'rechazar_fur' : 'aprobar_fur';
+    await addDoc(collection(getDbSafe(), 'auditoria'),
+      { ...auditar({
+          accion, coleccion: COL_FUR, docId: id, uid: experto_uid,
+          nota, referencia: 'MO.00418 §A9.2'
+        }),
+        at: serverTimestamp() });
+  } catch (_) { /* ignore */ }
   return p2;
 }
 
