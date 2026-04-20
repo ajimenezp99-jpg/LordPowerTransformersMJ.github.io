@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Auditoría</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
+  <script type="module" src="../assets/js/auth/admin-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/base.css"/>
+  <link rel="stylesheet" href="../assets/css/app.css"/>
+  <style>
+    .wrap { max-width: 1200px; margin: 1rem auto; padding: 0 1rem; }
+    .ref-note { font-family: var(--font-mono); font-size: .72rem; color: var(--text-soft); margin-bottom: 1rem; }
+    .toolbar { display: flex; gap: .6rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .toolbar select, .toolbar input { padding: .45rem .6rem; background: rgba(0,0,0,.3);
+      border: 1px solid rgba(255,255,255,.15); color: var(--text);
+      font-family: var(--font-mono); font-size: .76rem; border-radius: 3px; }
+    table { width: 100%; border-collapse: collapse; font-family: var(--font-mono); font-size: .7rem; }
+    th, td { padding: .4rem .55rem; border-bottom: 1px solid rgba(255,255,255,.08); text-align: left; vertical-align: top; }
+    th { color: var(--accent); }
+    .accion-pill { display: inline-block; padding: 1px 6px; border-radius: 2px; font-size: .6rem; letter-spacing: .06em; text-transform: uppercase; }
+    .a-crear      { background: rgba(0,255,153,.12); color: var(--accent3); }
+    .a-actualizar { background: rgba(0,170,255,.12); color: #0af; }
+    .a-eliminar   { background: rgba(229,57,53,.15); color: #E53935; }
+    .a-aprobar_fur { background: rgba(245,197,24,.18); color: #F5C518; }
+    .a-rechazar_fur { background: rgba(100,100,100,.15); color: var(--text-soft); }
+    .a-default     { background: rgba(255,255,255,.05); color: var(--text-soft); }
+    .diff-block { font-size: .65rem; color: var(--text-soft); margin-top: .2rem;
+      background: rgba(0,0,0,.25); padding: .3rem .5rem; border-radius: 2px;
+      max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .stats-row { display: flex; gap: 1rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .stat { font-family: var(--font-mono); font-size: .72rem; color: var(--text-soft); }
+    .stat strong { font-size: 1.1rem; color: var(--accent); display: block; }
+    #msg { font-family: var(--font-mono); font-size: .75rem; min-height: 1.2rem; }
+    #msg.err { color: #ff5577; }
+  </style>
+</head>
+<body>
+
+<header class="topbar">
+  <a href="index.html" class="topbar-brand">SGM · <span>TRANSPOWER</span> · ADMIN</a>
+  <nav class="main-nav">
+    <a href="index.html"        class="nav-link">Panel</a>
+    <a href="usuarios.html"     class="nav-link">Usuarios</a>
+    <a href="auditoria.html"    class="nav-link active">Auditoría</a>
+    <a href="propuestas-fur.html" class="nav-link">Propuestas FUR</a>
+    <a href="../home.html"      class="nav-link">Zona interna</a>
+  </nav>
+</header>
+
+<main id="main" class="wrap">
+  <h1>Bitácora de auditoría · ISO 55001 §9.1</h1>
+  <p class="ref-note">
+    Registro append-only de mutaciones críticas. Lectura restringida
+    a <code>admin</code> y <code>auditor_campo</code>. Cada entrada
+    lleva uid + timestamp + diff. Catálogo completo de acciones
+    en <code>assets/js/domain/audit.js</code>.
+  </p>
+
+  <div class="stats-row">
+    <div class="stat"><strong id="kTotal">—</strong>entradas (últimas 200)</div>
+    <div class="stat"><strong id="kCrear">—</strong>creaciones</div>
+    <div class="stat"><strong id="kActualizar">—</strong>actualizaciones</div>
+    <div class="stat"><strong id="kEliminar">—</strong>eliminaciones</div>
+  </div>
+
+  <div class="toolbar">
+    <select id="fAccion">
+      <option value="">Todas las acciones</option>
+      <option value="crear">crear</option>
+      <option value="actualizar">actualizar</option>
+      <option value="eliminar">eliminar</option>
+      <option value="aprobar_fur">aprobar_fur</option>
+      <option value="rechazar_fur">rechazar_fur</option>
+      <option value="abrir_monitoreo_c2h2">abrir_monitoreo_c2h2</option>
+      <option value="cerrar_monitoreo_c2h2">cerrar_monitoreo_c2h2</option>
+      <option value="cambiar_umbrales">cambiar_umbrales</option>
+      <option value="importar_excel">importar_excel</option>
+    </select>
+    <input type="text" id="fColeccion" placeholder="colección (e.g. usuarios)">
+    <input type="text" id="fUid"       placeholder="uid del actor">
+  </div>
+
+  <div id="msg"></div>
+
+  <table>
+    <thead>
+      <tr>
+        <th scope="col">Timestamp</th>
+        <th scope="col">Acción</th>
+        <th scope="col">Colección</th>
+        <th scope="col">Doc ID</th>
+        <th scope="col">Actor</th>
+        <th scope="col">Cambio</th>
+      </tr>
+    </thead>
+    <tbody id="tbody">
+      <tr><td colspan="6" style="font-family:var(--font-mono); font-size:.72rem; color:var(--text-soft); padding:1rem;">⋯ Cargando...</td></tr>
+    </tbody>
+  </table>
+</main>
+
+<script type="module">
+import { listar } from '../assets/js/data/auditoria.js';
+
+const $ = (id) => document.getElementById(id);
+const setMsg = (t, cls) => { $('msg').textContent = t; $('msg').className = cls || ''; };
+
+function fmtTs(at) {
+  if (!at) return '—';
+  if (typeof at.toDate === 'function') {
+    return at.toDate().toLocaleString('es-CO', { hour12: false });
+  }
+  if (at.at_iso) return new Date(at.at_iso).toLocaleString('es-CO', { hour12: false });
+  if (typeof at === 'string') return at;
+  return '—';
+}
+
+function pillClass(accion) {
+  if (['crear', 'actualizar', 'eliminar', 'aprobar_fur', 'rechazar_fur'].includes(accion))
+    return 'accion-pill a-' + accion;
+  return 'accion-pill a-default';
+}
+
+async function cargar() {
+  try {
+    setMsg('⋯ Consultando auditoría...');
+    const filtros = {
+      accion:    $('fAccion').value || undefined,
+      coleccion: $('fColeccion').value.trim() || undefined,
+      uid:       $('fUid').value.trim() || undefined
+    };
+    const items = await listar(filtros);
+    setMsg('');
+
+    $('kTotal').textContent      = items.length;
+    $('kCrear').textContent      = items.filter((i) => i.accion === 'crear').length;
+    $('kActualizar').textContent = items.filter((i) => i.accion === 'actualizar').length;
+    $('kEliminar').textContent   = items.filter((i) => i.accion === 'eliminar').length;
+
+    if (items.length === 0) {
+      $('tbody').innerHTML = `<tr><td colspan="6" style="padding:1rem; font-family:var(--font-mono); font-size:.72rem; color:var(--text-soft);">Sin entradas. La bitácora se puebla cuando hay mutaciones (alta de usuarios, edición, etc.).</td></tr>`;
+      return;
+    }
+    $('tbody').innerHTML = items.map((it) => `
+      <tr>
+        <td>${fmtTs(it.at || it)}</td>
+        <td><span class="${pillClass(it.accion)}">${it.accion}</span></td>
+        <td>${it.coleccion || '—'}</td>
+        <td>${it.docId || '—'}</td>
+        <td>${it.uid || '—'}${it.email ? ' · ' + it.email : ''}</td>
+        <td>${it.diff
+          ? '<div class="diff-block" title="' + escapeAttr(JSON.stringify(it.diff)) + '">' +
+            escapeHtml(JSON.stringify(it.diff)).slice(0, 90) + '…</div>'
+          : (it.nota ? '<em>' + escapeHtml(it.nota) + '</em>' : '—')}</td>
+      </tr>
+    `).join('');
+  } catch (err) {
+    setMsg('Error: ' + err.message + ' (¿tienes rol admin o auditor_campo?)', 'err');
+  }
+}
+
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (c) => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]
+  ));
+}
+function escapeAttr(s) { return escapeHtml(s); }
+
+['fAccion', 'fColeccion', 'fUid'].forEach((id) =>
+  $(id).addEventListener('change', cargar)
+);
+$('fColeccion').addEventListener('input', () => { clearTimeout(window._t); window._t = setTimeout(cargar, 300); });
+$('fUid').addEventListener('input',       () => { clearTimeout(window._u); window._u = setTimeout(cargar, 300); });
+
+document.addEventListener('sgm:session-ready', cargar);
+if (window.__sgmSession) cargar();
+</script>
+</body>
+</html>
