@@ -1,0 +1,275 @@
+/* ═══════════════════════════════════════════════════════════════
+   SGM · TRANSPOWER — Capa de compatibilidad v3
+   Traduce clases/variables legacy (F6–F37) al sistema de diseño
+   corporativo sin tocar el HTML ni la lógica JS. Este archivo se
+   carga al final, SIEMPRE después de theme.css, base.css y app.css.
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Vars faltantes en theme.css ──────────────────────────── */
+:root {
+  --text-soft: var(--ink-secondary);
+}
+
+/* ── Contenedor legacy .wrap ──────────────────────────────── */
+.wrap {
+  position: relative; z-index: 1;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6) var(--space-12);
+}
+.wrap > h1,
+.wrap > h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-5);
+  color: var(--ink-primary);
+}
+.wrap > h1 { font-size: clamp(1.65rem, 3vw, 2.2rem); }
+
+/* ── Toolbar legacy ───────────────────────────────────────── */
+.toolbar {
+  display: flex; flex-wrap: wrap; gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-1);
+  border: 1px solid var(--edge-muted);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--space-5);
+}
+.toolbar input,
+.toolbar select {
+  height: 40px;
+  padding: 0 var(--space-3);
+  background: var(--surface-2);
+  border: 1px solid var(--edge-muted);
+  color: var(--ink-primary);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  border-radius: var(--radius-md);
+  min-width: 180px;
+}
+.toolbar input:focus,
+.toolbar select:focus {
+  border-color: var(--brand-500);
+  box-shadow: 0 0 0 3px rgba(79,140,255,.18);
+  outline: none;
+}
+
+/* ── Botones legacy ───────────────────────────────────────── */
+.btn-new,
+.btn-save {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: var(--space-2);
+  height: 40px;
+  padding: 0 var(--space-5);
+  margin-left: auto;
+  background: var(--gradient-brand);
+  color: #04111f;
+  border: none;
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  letter-spacing: .01em;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: filter var(--dur-fast), box-shadow var(--dur-fast), transform var(--dur-fast);
+  box-shadow: 0 6px 20px rgba(79,140,255,.30);
+}
+.btn-new:hover, .btn-save:hover { filter: brightness(1.08); box-shadow: 0 10px 30px rgba(79,140,255,.42); transform: translateY(-1px); }
+
+.btn-cancel {
+  display: inline-flex; align-items: center; justify-content: center;
+  gap: var(--space-2);
+  height: 40px;
+  padding: 0 var(--space-4);
+  background: transparent;
+  color: var(--ink-secondary);
+  border: 1px solid var(--edge-muted);
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: var(--text-sm);
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  transition: all var(--dur-fast);
+}
+.btn-cancel:hover { color: var(--ink-primary); border-color: var(--edge-strong); background: rgba(255,255,255,.03); }
+
+/* ── Tablas legacy (sin class data-table) ─────────────────── */
+.wrap > table,
+.wrap table:not(.data-table) {
+  width: 100%; border-collapse: collapse;
+  background: var(--surface-1);
+  border: 1px solid var(--edge-muted);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  font-size: var(--text-sm);
+}
+.wrap table:not(.data-table) th,
+.wrap table:not(.data-table) td {
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--edge-subtle);
+  text-align: left;
+  vertical-align: middle;
+}
+.wrap table:not(.data-table) thead tr {
+  background: var(--surface-2);
+}
+.wrap table:not(.data-table) th {
+  font-family: var(--font-mono-v3);
+  font-size: .7rem;
+  font-weight: 500;
+  letter-spacing: .12em;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+}
+.wrap table:not(.data-table) td {
+  color: var(--ink-primary);
+}
+.wrap table:not(.data-table) tbody tr:hover td {
+  background: rgba(79,140,255,.05);
+}
+.wrap table:not(.data-table) tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* ── Pills legacy genérica .pill ──────────────────────────── */
+.pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: .22rem .6rem;
+  border-radius: var(--radius-full);
+  font-family: var(--font-mono-v3);
+  font-size: .66rem;
+  font-weight: 500;
+  letter-spacing: .06em;
+  border: 1px solid;
+  text-transform: uppercase;
+}
+.pill.t-DGA,
+.pill.t-dga     { background: rgba(0,217,192,.12); border-color: rgba(0,217,192,.3); color: var(--teal-400); }
+.pill.t-ADFQ,
+.pill.t-adfq    { background: rgba(79,140,255,.12); border-color: rgba(79,140,255,.3); color: var(--brand-400); }
+.pill.t-FURANOS,
+.pill.t-furanos { background: rgba(255,169,77,.12); border-color: rgba(255,169,77,.3); color: var(--warm-500); }
+.pill.t-COMBO,
+.pill.t-combo   { background: rgba(198,130,255,.12); border-color: rgba(198,130,255,.3); color: #c682ff; }
+
+/* ── Modal legacy (.modal-bg .modal) ──────────────────────── */
+.modal-bg {
+  position: fixed; inset: 0; z-index: 200;
+  background: rgba(5, 8, 16, 0.75);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: none; align-items: center; justify-content: center;
+  padding: var(--space-6) var(--space-4);
+}
+.modal-bg.open { display: flex; animation: modalFade var(--dur-med) var(--ease-out); }
+
+.modal-bg .modal {
+  background: var(--surface-2);
+  border: 1px solid var(--edge-muted);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-xl);
+  max-width: 780px; width: 96%;
+  max-height: 92vh; overflow-y: auto;
+  padding: var(--space-6);
+  animation: modalSlide var(--dur-slow) var(--ease-spring);
+}
+.modal-bg .modal h2 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-xl);
+  letter-spacing: -0.01em;
+  color: var(--ink-primary);
+  margin-bottom: var(--space-4);
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--edge-subtle);
+}
+.modal-bg .modal h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-base);
+  color: var(--teal-400);
+  margin-top: var(--space-4);
+  margin-bottom: var(--space-2);
+  letter-spacing: -0.005em;
+}
+.modal-bg .modal label {
+  font-family: var(--font-mono-v3);
+  font-size: .7rem;
+  letter-spacing: .1em;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+}
+.modal-bg .modal input,
+.modal-bg .modal select,
+.modal-bg .modal textarea {
+  background: var(--surface-sunken);
+  border: 1px solid var(--edge-muted);
+  color: var(--ink-primary);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  border-radius: var(--radius-md);
+  padding: .5rem .7rem;
+  transition: border-color var(--dur-fast), box-shadow var(--dur-fast);
+}
+.modal-bg .modal input:focus,
+.modal-bg .modal select:focus,
+.modal-bg .modal textarea:focus {
+  border-color: var(--brand-500);
+  box-shadow: 0 0 0 3px rgba(79,140,255,.18);
+  outline: none;
+}
+.modal-bg .actions {
+  display: flex; gap: var(--space-2);
+  justify-content: flex-end;
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--edge-subtle);
+}
+
+/* Keyframes locales (por si compat se carga sin inventario.css) */
+@keyframes modalFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes modalSlide {
+  from { opacity: 0; transform: translateY(16px) scale(.96); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* ── Mensajes genéricos (#msg, .msg) ──────────────────────── */
+#msg,
+.msg-box {
+  font-family: var(--font-mono-v3);
+  font-size: var(--text-sm);
+  padding: var(--space-2) 0;
+  min-height: 1.4em;
+}
+#msg.ok,  .msg-box.ok  { color: var(--success-500); }
+#msg.err, .msg-box.err { color: var(--danger-500); }
+
+/* ── Grids legacy (.grid) dentro de modales/formularios ───── */
+.modal-bg .modal .grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: var(--space-3);
+}
+.modal-bg .modal .grid label {
+  display: flex; flex-direction: column;
+  gap: 4px;
+}
+
+/* ── Links legacy (a:not(.btn) etc.) ──────────────────────── */
+.wrap a:not(.btn-new):not(.btn-save):not(.btn-cancel) {
+  color: var(--brand-400);
+  text-decoration: none;
+}
+.wrap a:not(.btn-new):not(.btn-save):not(.btn-cancel):hover {
+  color: var(--brand-500);
+  text-decoration: underline;
+}
+
+/* ── Hairline / dividers sutiles ──────────────────────────── */
+hr {
+  border: none;
+  border-top: 1px solid var(--edge-subtle);
+  margin: var(--space-5) 0;
+}
