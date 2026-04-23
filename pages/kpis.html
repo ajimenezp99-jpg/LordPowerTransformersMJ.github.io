@@ -4,11 +4,16 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="robots" content="noindex, nofollow"/>
+  <meta name="theme-color" content="#0a0f1e"/>
+  <meta name="color-scheme" content="dark"/>
   <title>SGM · TRANSPOWER — KPIs &amp; Analítica RAM</title>
   <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
   <script type="module" src="../assets/js/auth/page-guard.js"></script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="../assets/css/theme.css"/>
   <link rel="stylesheet" href="../assets/css/base.css"/>
   <link rel="stylesheet" href="../assets/css/app.css"/>
@@ -21,55 +26,39 @@
 <body>
 <script type="module" src="../assets/js/ui/nav.js"></script>
 
-
-
 <main class="page-container">
 
   <div class="page-header">
-    <div class="breadcrumb">Inicio / KPIs &amp; Analítica</div>
-    <h1 class="page-title">KPIs &amp; <em>Analítica RAM</em></h1>
+    <div class="breadcrumb">Análisis / KPIs</div>
+    <h1 class="page-title">KPIs &amp; <em>analítica RAM</em></h1>
     <p class="page-subtitle">
-      Indicadores de Confiabilidad, Disponibilidad y Mantenibilidad (RAM) del parque
-      de transformadores. Cálculos agregados en tiempo real desde
-      <code>transformadores</code> y <code>ordenes</code>. Referencia: IEEE 762 /
-      IEC 60050-191.
+      Indicadores de confiabilidad, disponibilidad y mantenibilidad del parque.
+      Cálculos agregados en tiempo real. Referencia IEEE 762 · IEC 60050-191.
     </p>
   </div>
 
-  <div class="dash-info">
-    <span id="dashTs">Actualizado: —</span>
-    <button class="btn-secondary" id="btnReload">↻ Recalcular</button>
+  <div class="inv-toolbar" style="margin-bottom: var(--space-5)">
+    <div class="inv-filters">
+      <span class="text-mono text-xs text-muted" id="dashTs" style="letter-spacing: .12em">Actualizado: —</span>
+    </div>
+    <button class="btn-secondary" id="btnReload" title="Recalcular">
+      <i data-lucide="refresh-cw"></i> Recalcular
+    </button>
   </div>
 
   <div id="infoBox" class="info-msg" style="display:none"></div>
 
-  <!-- ── KPIs generales ── -->
-  <div class="section-head">▸ PARQUE Y ACTIVIDAD</div>
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon">⚡</div>
-      <div class="stat-value" id="tTrafos">—</div>
-      <div class="stat-label">TRANSFORMADORES</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">✅</div>
-      <div class="stat-value" id="tOps" style="color:var(--accent3)">—</div>
-      <div class="stat-label">EN OPERACIÓN</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">📋</div>
-      <div class="stat-value" id="tOrds">—</div>
-      <div class="stat-label">ÓRDENES TOTALES</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">⚙</div>
-      <div class="stat-value" id="tCurso" style="color:var(--accent2)">—</div>
-      <div class="stat-label">ÓRDENES EN CURSO</div>
-    </div>
+  <!-- ── Parque y actividad ── -->
+  <div class="section-head">Parque y actividad</div>
+  <div class="inv-stats">
+    <div class="inv-stat"><div class="inv-stat-label">Transformadores</div><div class="inv-stat-value" id="tTrafos">—</div></div>
+    <div class="inv-stat"><div class="inv-stat-label">En operación</div><div class="inv-stat-value" id="tOps" style="color: var(--success-500)">—</div></div>
+    <div class="inv-stat"><div class="inv-stat-label">Órdenes totales</div><div class="inv-stat-value" id="tOrds">—</div></div>
+    <div class="inv-stat"><div class="inv-stat-label">En curso</div><div class="inv-stat-value" id="tCurso" style="color: var(--warm-500)">—</div></div>
   </div>
 
   <!-- ── RAM ── -->
-  <div class="section-head">▸ INDICADORES RAM</div>
+  <div class="section-head">Indicadores RAM</div>
   <div class="ram-grid">
     <div class="ram-card">
       <div class="ram-head">MTBF · Mean Time Between Failures</div>
@@ -90,11 +79,11 @@
     </div>
   </div>
 
-  <!-- ── KPIs v2 (MO.00418) ── -->
-  <div class="section-head">▸ SALUD DEL PARQUE · MO.00418</div>
+  <!-- ── Salud del parque ── -->
+  <div class="section-head">Salud del parque · MO.00418</div>
   <div class="ram-grid">
     <div class="ram-card">
-      <div class="ram-head">HI promedio del parque</div>
+      <div class="ram-head">HI promedio</div>
       <div><span class="ram-value" id="hiPromedio">—</span><span class="ram-unit">/ 5</span></div>
       <div class="ram-desc">
         Promedio aritmético del Health Index final con overrides §A5.
@@ -104,56 +93,55 @@
       <div class="ram-head">Vida útil remanente</div>
       <div><span class="ram-value" id="vidaRemanenteProm">—</span></div>
       <div class="ram-desc">
-        Promedio de %vida_remanente (Chedong CIGRÉ 445).
+        Promedio de % vida remanente (curva de Chedong · CIGRÉ 445).
       </div>
     </div>
     <div class="ram-card">
-      <div class="ram-head">Activos en régimen especial</div>
-      <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-        <div><span class="ram-value" id="propFurPend">—</span><br><small>FUR pendiente</small></div>
-        <div><span class="ram-value" id="monC2H2">—</span><br><small>C₂H₂ intensivo</small></div>
-        <div><span class="ram-value" id="finVidaPapel">—</span><br><small>Fin vida papel</small></div>
+      <div class="ram-head">Régimen especial</div>
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: var(--space-3); margin: var(--space-2) 0">
+        <div><span class="ram-value" id="propFurPend" style="font-size: 1.6rem">—</span><br><span class="text-muted text-xs">FUR pendiente</span></div>
+        <div><span class="ram-value" id="monC2H2" style="font-size: 1.6rem">—</span><br><span class="text-muted text-xs">C₂H₂ intensivo</span></div>
+        <div><span class="ram-value" id="finVidaPapel" style="font-size: 1.6rem">—</span><br><span class="text-muted text-xs">Fin vida papel</span></div>
       </div>
-      <div class="ram-desc">
-        §A9.1 / §A9.2 — protocolos operativos activos.
-      </div>
+      <div class="ram-desc">§A9.1 / §A9.2 — protocolos operativos activos.</div>
     </div>
   </div>
 
-  <div class="charts-grid" style="margin-top: 1rem;">
+  <!-- ── Distribución por bucket ── -->
+  <div class="charts-grid" style="margin-top: var(--space-4)">
     <div class="chart-card">
       <div class="chart-title">Distribución por bucket HI · §A9.7</div>
       <canvas id="chBucket" height="180"></canvas>
     </div>
   </div>
 
-  <!-- ── Gráficas ── -->
-  <div class="section-head">▸ DISTRIBUCIÓN DE ÓRDENES</div>
+  <!-- ── Gráficas de órdenes ── -->
+  <div class="section-head">Distribución de órdenes</div>
   <div class="charts-grid">
     <div class="chart-card">
-      <div class="chart-title">Órdenes por estado</div>
+      <div class="chart-title">Por estado</div>
       <div class="chart-wrap"><canvas id="chEstado"></canvas></div>
     </div>
     <div class="chart-card">
-      <div class="chart-title">Órdenes por tipo</div>
+      <div class="chart-title">Por tipo</div>
       <div class="chart-wrap"><canvas id="chTipo"></canvas></div>
     </div>
     <div class="chart-card">
-      <div class="chart-title">Órdenes por prioridad</div>
+      <div class="chart-title">Por prioridad</div>
       <div class="chart-wrap"><canvas id="chPrioridad"></canvas></div>
     </div>
     <div class="chart-card">
-      <div class="chart-title">Órdenes por departamento</div>
+      <div class="chart-title">Por departamento</div>
       <div class="chart-wrap"><canvas id="chDepto"></canvas></div>
     </div>
     <div class="chart-card chart-full">
-      <div class="chart-title">Órdenes programadas — últimos 12 meses</div>
+      <div class="chart-title">Programadas · últimos 12 meses</div>
       <div class="chart-wrap"><canvas id="chMes"></canvas></div>
     </div>
   </div>
 
-  <!-- ── Top transformadores ── -->
-  <div class="section-head">▸ TOP 10 TRANSFORMADORES CON MÁS ÓRDENES</div>
+  <!-- ── Top 10 ── -->
+  <div class="section-head">Top 10 · transformadores con más órdenes</div>
   <div class="top-wrap">
     <table>
       <thead>
@@ -165,27 +153,12 @@
         </tr>
       </thead>
       <tbody id="topTbody">
-        <tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--muted);font-style:italic">Cargando…</td></tr>
+        <tr><td colspan="4" style="text-align:center; padding: var(--space-6); color: var(--ink-muted)">Cargando…</td></tr>
       </tbody>
     </table>
   </div>
 
-  <div class="highlight-box">
-    <strong>Notas metodológicas:</strong>
-    MTBF se calcula como <em>días-equipo acumulados en servicio</em>
-    (fecha actual − fecha de instalación, sumado sobre todos los transformadores)
-    dividido entre el número de órdenes correctivas <em>cerradas</em>.
-    MTTR es la media de <code>duracion_horas</code> en órdenes correctivas
-    cerradas (o la diferencia <code>fecha_cierre − fecha_inicio</code> si no está
-    registrada). A medida que el historial crezca, los estimadores ganan precisión.
-  </div>
-
 </main>
-
-<footer class="page-foot">
-  <span>SGM · TRANSPOWER — Caribe Colombiano</span>
-  <span>© <span id="yr">2025</span> · Zona interna</span>
-</footer>
 
 <script type="module" src="../assets/js/kpis-public.js"></script>
 

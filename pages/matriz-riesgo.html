@@ -4,80 +4,164 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="robots" content="noindex, nofollow"/>
+  <meta name="theme-color" content="#0a0f1e"/>
+  <meta name="color-scheme" content="dark"/>
   <title>SGM · TRANSPOWER — Matriz de Riesgo</title>
   <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
   <script type="module" src="../assets/js/auth/page-guard.js"></script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="../assets/css/theme.css"/>
   <link rel="stylesheet" href="../assets/css/base.css"/>
   <link rel="stylesheet" href="../assets/css/app.css"/>
   <link rel="stylesheet" href="../assets/css/nav.css"/>
   <link rel="stylesheet" href="../assets/css/compat.css"/>
   <style>
-    .wrap { max-width: 1080px; margin: 1rem auto; padding: 0 1rem; }
-    h1 { font-family: var(--font-display); color: var(--accent); }
-    .ref { font-family: var(--font-mono); font-size: .78rem; color: var(--text-soft); margin-bottom: 1.2rem; }
-    .matriz { border-collapse: collapse; font-family: var(--font-mono); width: 100%; margin-top: 1rem; }
-    .matriz th, .matriz td { border: 1px solid rgba(255,255,255,.1); padding: 1rem; text-align: center; vertical-align: middle; font-size: .8rem; }
-    .matriz th { background: rgba(0,0,0,.3); color: var(--accent); font-size: .75rem; letter-spacing: .06em; }
-    .cell { font-size: 1.6rem; font-weight: 700; cursor: pointer; transition: transform .15s; }
-    .cell:hover { transform: scale(1.05); }
-    .cell.count-0 { opacity: .35; }
-    .col-VRD  { background: rgba(27,142,63,.2); color: #4CB050; }
-    .col-AMRL { background: rgba(245,197,24,.2); color: #F5C518; }
-    .col-NAR  { background: rgba(239,120,32,.2); color: #EF7820; }
-    .col-ROJ  { background: rgba(229,57,53,.2); color: #E53935; }
-    .leyenda { display: flex; gap: 1.5rem; margin-top: 1.2rem; font-family: var(--font-mono); font-size: .72rem; }
-    .leyenda .chip { padding: .4rem .8rem; border-radius: 3px; }
-    .detalle { margin-top: 1.2rem; background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.1); border-radius: 4px; padding: 1rem; font-family: var(--font-mono); font-size: .75rem; display: none; }
+    .matriz-card {
+      padding: var(--space-6);
+      background: var(--surface-1);
+      border: 1px solid var(--edge-muted);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-5);
+    }
+    .matriz {
+      border-collapse: separate;
+      border-spacing: 6px;
+      width: 100%;
+      font-family: var(--font-mono-v3);
+    }
+    .matriz th, .matriz td {
+      padding: var(--space-4);
+      text-align: center;
+      vertical-align: middle;
+      font-size: .82rem;
+      border-radius: var(--radius-md);
+    }
+    .matriz th {
+      background: var(--surface-2);
+      color: var(--ink-muted);
+      font-size: .7rem;
+      font-weight: 500;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      border: 1px solid var(--edge-subtle);
+    }
+    .matriz .cell {
+      font-family: var(--font-display);
+      font-size: 1.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform var(--dur-fast) var(--ease-spring), box-shadow var(--dur-fast);
+      letter-spacing: -0.02em;
+      border: 1px solid transparent;
+    }
+    .matriz .cell:hover {
+      transform: scale(1.05);
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    .matriz .cell.count-0 { opacity: .3; cursor: default; }
+    .matriz .cell.count-0:hover { transform: none; }
+
+    .col-VRD  { background: rgba(74,222,128,.15);  color: var(--success-500); border-color: rgba(74,222,128,.35); }
+    .col-AMRL { background: rgba(255,169,77,.15);  color: var(--warm-500);    border-color: rgba(255,169,77,.35); }
+    .col-NAR  { background: rgba(255,90,110,.15);  color: #ff8196;            border-color: rgba(255,90,110,.35); }
+    .col-ROJ  { background: rgba(255,90,110,.28);  color: #fff;               border-color: rgba(255,90,110,.6);  box-shadow: inset 0 0 0 1px rgba(255,90,110,.3); }
+
+    .leyenda {
+      display: flex; gap: var(--space-3); flex-wrap: wrap;
+      margin-top: var(--space-5);
+      padding-top: var(--space-4);
+      border-top: 1px solid var(--edge-subtle);
+    }
+    .leyenda .chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: .3rem .8rem;
+      border-radius: var(--radius-full);
+      font-family: var(--font-mono-v3);
+      font-size: .72rem;
+      letter-spacing: .06em;
+      border: 1px solid;
+    }
+
+    .detalle {
+      padding: var(--space-5) var(--space-6);
+      background: var(--surface-1);
+      border: 1px solid var(--edge-muted);
+      border-radius: var(--radius-lg);
+      display: none;
+      animation: fadeUp var(--dur-med) var(--ease-out);
+    }
     .detalle.open { display: block; }
-    .detalle ul { list-style: disc inside; line-height: 1.6; }
-    .refnote { font-size: .7rem; color: var(--text-soft); padding-top: .3rem; }
+    .detalle h4 {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: var(--text-lg);
+      color: var(--ink-primary);
+      letter-spacing: -0.01em;
+      margin-bottom: var(--space-3);
+      padding-bottom: var(--space-2);
+      border-bottom: 1px solid var(--edge-subtle);
+    }
+    .detalle-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+      gap: var(--space-2);
+    }
+    .detalle-chip {
+      padding: .4rem .7rem;
+      background: var(--surface-2);
+      border: 1px solid var(--edge-subtle);
+      border-radius: var(--radius-sm);
+      font-family: var(--font-mono-v3);
+      font-size: .78rem;
+      color: var(--ink-primary);
+      text-align: center;
+    }
   </style>
 </head>
 <body>
 <script type="module" src="../assets/js/ui/nav.js"></script>
 
+<main id="main" class="page-container">
 
+  <div class="page-header">
+    <div class="breadcrumb">Análisis / Matriz de Riesgo</div>
+    <h1 class="page-title">Matriz de <em>riesgo</em> · Criticidad × Salud</h1>
+    <p class="page-subtitle">
+      Cruce entre nivel de criticidad (usuarios aguas abajo) y condición
+      de salud (HI 1–5), conforme Tabla 11 del procedimiento MO.00418.
+      Haz click en una celda para ver el listado de transformadores.
+    </p>
+  </div>
 
-<main id="main" class="wrap">
-  <h1>Matriz de Riesgo · Criticidad × Salud</h1>
-  <p class="ref">
-    MO.00418.DE-GAC-AX.01 Ed. 02, Tabla 11. Cruce entre nivel de
-    criticidad (usuarios aguas abajo) y condición de salud (HI 1–5).
-    Cada celda muestra el conteo de transformadores. Click en una
-    celda para ver el listado.
-  </p>
+  <div class="matriz-card">
+    <table class="matriz" id="matriz" aria-label="Matriz de riesgo">
+      <thead>
+        <tr>
+          <th scope="col">HI ↓ · Criticidad →</th>
+          <th scope="col">Mínima</th>
+          <th scope="col">Menor</th>
+          <th scope="col">Moderada</th>
+          <th scope="col">Mayor</th>
+          <th scope="col">Máxima</th>
+        </tr>
+      </thead>
+      <tbody id="mbody"></tbody>
+    </table>
 
-  <table class="matriz" id="matriz" aria-label="Matriz de riesgo">
-    <thead>
-      <tr>
-        <th scope="col">HI ↓ &amp; Criticidad →</th>
-        <th scope="col">Mínima</th>
-        <th scope="col">Menor</th>
-        <th scope="col">Moderada</th>
-        <th scope="col">Mayor</th>
-        <th scope="col">Máxima</th>
-      </tr>
-    </thead>
-    <tbody id="mbody"></tbody>
-  </table>
-
-  <div class="leyenda">
-    <span class="chip col-VRD">VRD · OK</span>
-    <span class="chip col-AMRL">AMRL · atención</span>
-    <span class="chip col-NAR">NAR · alta</span>
-    <span class="chip col-ROJ">ROJ · crítica</span>
+    <div class="leyenda">
+      <span class="chip col-VRD">Verde · OK</span>
+      <span class="chip col-AMRL">Amarillo · atención</span>
+      <span class="chip col-NAR">Naranja · alta</span>
+      <span class="chip col-ROJ">Rojo · crítica</span>
+    </div>
   </div>
 
   <div class="detalle" id="detalle"></div>
 
-  <p class="refnote">
-    Rangos de criticidad calculados sobre el universo de usuarios
-    aguas abajo. Tope máximo dinámico editable desde
-    `admin/matriz-riesgo.html`.
-  </p>
 </main>
 
 <script type="module">
@@ -102,20 +186,22 @@ async function init() {
     }).join('');
     $('mbody').innerHTML = rows;
 
-    document.querySelectorAll('.cell').forEach((c) => {
+    document.querySelectorAll('.matriz .cell').forEach((c) => {
+      if (c.classList.contains('count-0')) return;
       c.addEventListener('click', () => {
         const hi    = +c.dataset.hi;
         const nivel = c.dataset.nivel;
         const cell  = agg[hi][nivel];
         $('detalle').classList.add('open');
         $('detalle').innerHTML = cell.ids.length === 0
-          ? `<strong>HI ${hi} × ${nivel}:</strong> sin transformadores.`
-          : `<strong>HI ${hi} × ${nivel} · ${cell.count} transformadores</strong>
-             <ul>${cell.ids.map((id) => `<li>${id}</li>`).join('')}</ul>`;
+          ? `<h4>HI ${hi} × ${nivel}</h4><p>Sin transformadores.</p>`
+          : `<h4>HI ${hi} × ${nivel} · ${cell.count} transformadores</h4>
+             <div class="detalle-grid">${cell.ids.map((id) => `<span class="detalle-chip">${id}</span>`).join('')}</div>`;
+        $('detalle').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       });
     });
   } catch (err) {
-    $('mbody').innerHTML = `<tr><td colspan="6" style="color:#ff5577; padding:1rem;">Error: ${err.message}</td></tr>`;
+    $('mbody').innerHTML = `<tr><td colspan="6" style="color: var(--danger-500); padding: var(--space-5);">Error: ${err.message}</td></tr>`;
   }
 }
 
