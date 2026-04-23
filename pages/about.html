@@ -4,11 +4,16 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="robots" content="noindex, nofollow"/>
-  <title>SGM · TRANSPOWER — Acerca del Proyecto</title>
+  <meta name="theme-color" content="#0a0f1e"/>
+  <meta name="color-scheme" content="dark"/>
+  <title>SGM · TRANSPOWER — Sobre el proyecto</title>
   <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
   <script type="module" src="../assets/js/auth/page-guard.js"></script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="../assets/css/theme.css"/>
   <link rel="stylesheet" href="../assets/css/base.css"/>
   <link rel="stylesheet" href="../assets/css/app.css"/>
@@ -16,63 +21,121 @@
   <link rel="stylesheet" href="../assets/css/compat.css"/>
   <style>
     .profile-card {
-      display: flex; gap: 1.5rem; align-items: flex-start;
-      background: rgba(0,0,0,.25);
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--accent2);
-      border-radius: 4px; padding: 1.5rem;
-      margin-bottom: 1.5rem; flex-wrap: wrap;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: var(--space-5);
+      align-items: flex-start;
+      padding: var(--space-6);
+      background: var(--surface-1);
+      border: 1px solid var(--edge-muted);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-5);
     }
     .profile-avatar {
-      width: 72px; height: 72px; border-radius: 50%;
-      background: rgba(0,200,255,.08);
-      border: 2px solid rgba(0,200,255,.3);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 2rem; flex-shrink: 0;
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: var(--gradient-brand);
+      color: #04111f;
+      display: inline-flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
     }
+    .profile-avatar [data-lucide] { width: 36px; height: 36px; }
     .profile-info h3 {
-      font-family: var(--font-head); font-weight: 700;
-      font-size: 1.2rem; color: #e8f4fb; margin-bottom: .3rem;
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: var(--text-xl);
+      letter-spacing: -0.01em;
+      color: var(--ink-primary);
+      margin-bottom: var(--space-2);
     }
-    .profile-info p { font-size: .88rem; color: var(--muted); line-height: 1.7; }
-    .cert-row { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .8rem; }
+    .profile-info p {
+      font-size: var(--text-base);
+      color: var(--ink-secondary);
+      line-height: 1.65;
+      margin-bottom: var(--space-3);
+    }
+    .cert-row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
     .cert-badge {
-      font-family: var(--font-mono); font-size: .68rem;
-      letter-spacing: .1em; padding: .2rem .6rem;
-      border-radius: 2px;
-      background: rgba(0,200,255,.07);
-      border: 1px solid rgba(0,200,255,.25);
-      color: var(--accent);
+      display: inline-flex; align-items: center; gap: 4px;
+      font-family: var(--font-mono-v3);
+      font-size: .72rem;
+      letter-spacing: .06em;
+      padding: .25rem .7rem;
+      border-radius: var(--radius-full);
+      background: rgba(79,140,255,.08);
+      border: 1px solid rgba(79,140,255,.25);
+      color: var(--brand-400);
     }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: var(--space-4);
+    }
+    .feature-card {
+      padding: var(--space-5);
+      background: var(--surface-1);
+      border: 1px solid var(--edge-muted);
+      border-radius: var(--radius-lg);
+      transition: transform var(--dur-med) var(--ease-out), border-color var(--dur-med);
+    }
+    .feature-card:hover { transform: translateY(-2px); border-color: var(--edge-accent); }
+    .feature-icon {
+      width: 44px; height: 44px;
+      display: inline-flex; align-items: center; justify-content: center;
+      border-radius: var(--radius-md);
+      background: rgba(0,217,192,.1);
+      color: var(--teal-400);
+      border: 1px solid rgba(0,217,192,.25);
+      margin-bottom: var(--space-3);
+    }
+    .feature-card h3 {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: var(--text-lg);
+      letter-spacing: -0.01em;
+      color: var(--ink-primary);
+      margin-bottom: var(--space-2);
+    }
+    .feature-card p {
+      font-size: var(--text-sm);
+      color: var(--ink-secondary);
+      line-height: 1.6;
+    }
+    .feature-card ul {
+      list-style: none; padding: 0;
+      font-size: var(--text-sm);
+      color: var(--ink-secondary);
+      line-height: 1.85;
+    }
+    .feature-card ul li::before { content: '▸  '; color: var(--teal-400); }
   </style>
 </head>
 <body>
 <script type="module" src="../assets/js/ui/nav.js"></script>
 
-
-
 <main class="page-container">
 
   <div class="page-header">
-    <div class="breadcrumb">Inicio / Proyecto</div>
-    <h1 class="page-title">Acerca del <em>Proyecto</em></h1>
+    <div class="breadcrumb">Normativa / Sobre el proyecto</div>
+    <h1 class="page-title">Sobre <em>SGM · TRANSPOWER</em></h1>
     <p class="page-subtitle">
-      Plataforma sin ánimo de lucro para la dirección y gestión del mantenimiento
-      especializado de transformadores de potencia en el Caribe Colombiano.
+      Plataforma corporativa para la dirección y gestión del mantenimiento
+      especializado de transformadores de potencia en servicio activo
+      en el Caribe Colombiano.
     </p>
   </div>
 
-  <!-- PERFIL -->
-  <div class="section-head">▸ RESPONSABLE DEL SISTEMA</div>
+  <div class="section-head">Dirección técnica</div>
   <div class="profile-card">
-    <div class="profile-avatar">👷</div>
+    <div class="profile-avatar"><i data-lucide="user-cog"></i></div>
     <div class="profile-info">
       <h3>Ingeniero Electricista &amp; Electrónico</h3>
       <p>
-        Especialista en Dirección de Proyectos y Auditor Líder en ISO 50001:2018 (Gestión de la Energía),
-        con amplia experiencia en el sector eléctrico del Caribe Colombiano.
-        Responsable del diseño, implementación y seguimiento del sistema de gestión de mantenimiento
-        para activos de potencia en los departamentos de Bolívar, Córdoba, Sucre, Cesar y Magdalena.
+        Especialista en Dirección de Proyectos y Auditor Líder en ISO 50001:2018
+        (Gestión de la Energía), con experiencia en el sector eléctrico del
+        Caribe Colombiano. Responsable del diseño, implementación y seguimiento
+        del sistema de gestión de mantenimiento sobre activos de potencia en
+        los departamentos de Bolívar, Córdoba, Sucre, Cesar y Magdalena.
       </p>
       <div class="cert-row">
         <span class="cert-badge">Ing. Electricista</span>
@@ -83,92 +146,71 @@
     </div>
   </div>
 
-  <!-- DESCRIPCIÓN -->
-  <div class="section-head">▸ DESCRIPCIÓN DEL SISTEMA</div>
-  <div class="highlight-box">
-    <strong>SGM · TRANSPOWER</strong> es una plataforma web integral desarrollada para la
-    <strong>dirección y gestión del mantenimiento especializado</strong> de transformadores
-    de potencia en servicio activo. El sistema opera bajo un esquema de
-    <strong>ciclo de vida completo</strong>: desde el registro del activo hasta el cierre
-    de intervenciones y análisis de causa raíz.
-  </div>
+  <div class="section-head">Capacidades de la plataforma</div>
+  <div class="feature-grid">
 
-  <div class="info-grid">
-    <div class="content-card">
-      <h3>⚙️ Objetivo Principal</h3>
+    <div class="feature-card">
+      <div class="feature-icon"><i data-lucide="target"></i></div>
+      <h3>Ciclo de vida del activo</h3>
       <p>
-        Garantizar la trazabilidad completa de todas las intervenciones de mantenimiento
-        preventivo y correctivo sobre transformadores de potencia, alineado con los
-        estándares internacionales IEEE C57.12, IEC 60076, la normativa colombiana
-        RETIE y el sistema de gestión de energía ISO 50001:2018.
+        Trazabilidad completa desde el registro inicial hasta el cierre de
+        intervenciones, con análisis de causa raíz y evaluación de desempeño.
       </p>
     </div>
-    <div class="content-card">
-      <h3>🎯 Enfoque Técnico</h3>
+
+    <div class="feature-card">
+      <div class="feature-icon"><i data-lucide="activity"></i></div>
+      <h3>Salud de activos</h3>
+      <p>
+        Health Index ponderado Tabla 10 (MO.00418) sobre muestras DGA, ADFQ y
+        furanos, con diagnóstico Duval / Rogers / Doernenburg y overrides expertos.
+      </p>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon"><i data-lucide="line-chart"></i></div>
+      <h3>Analítica RAM</h3>
       <ul>
-        <li>Indicadores RAM: confiabilidad, disponibilidad y mantenibilidad</li>
-        <li>Análisis de causa raíz (RCA) por falla</li>
-        <li>Historial inmutable de intervenciones</li>
-        <li>Gestión documental normativa y auditable</li>
-        <li>Alertas tempranas por vencimiento de mantenimientos</li>
-        <li>Visualización georreferenciada de activos</li>
+        <li>Confiabilidad, disponibilidad y mantenibilidad</li>
+        <li>MTBF y MTTR por transformador</li>
+        <li>Matriz Criticidad × Salud</li>
+        <li>Plan de inversión con scoring multicriterio</li>
       </ul>
     </div>
-  </div>
 
-  <!-- NATURALEZA -->
-  <div class="section-head">▸ NATURALEZA DEL PROYECTO</div>
-  <div class="info-grid">
-    <div class="content-card">
-      <h3>🤝 Sin Ánimo de Lucro</h3>
-      <p>
-        El sistema se diseña y opera íntegramente sobre niveles gratuitos (tier free)
-        de proveedores cloud: GitHub Pages, Vercel Hobby, Firebase Spark y Leaflet/OpenStreetMap.
-        No hay costos de operación previstos en las fases actuales.
-      </p>
-    </div>
-    <div class="content-card">
-      <h3>🔒 Acceso Controlado</h3>
-      <p>
-        La plataforma incorpora una barrera de acceso estática durante la fase de construcción,
-        que será reemplazada por autenticación Firebase Auth en la Fase 5. El panel administrativo
-        contará con credenciales independientes y mayor nivel de protección.
-      </p>
-    </div>
-    <div class="content-card">
-      <h3>📐 Stack Tecnológico</h3>
+    <div class="feature-card">
+      <div class="feature-icon"><i data-lucide="shield-check"></i></div>
+      <h3>Normativa aplicada</h3>
       <ul>
-        <li>Frontend: HTML5, CSS3, JavaScript ES6+</li>
-        <li>Hosting: Vercel + GitHub Pages</li>
-        <li>Auth: Firebase Authentication</li>
-        <li>Base de datos: Cloud Firestore</li>
-        <li>Almacenamiento: Firebase Storage</li>
-        <li>Mapas: Leaflet + OpenStreetMap</li>
+        <li>ISO 50001:2018 · ISO 55001</li>
+        <li>IEEE C57.91 / C57.12 / C57.104</li>
+        <li>IEC 60076 · 60599 · 60567</li>
+        <li>RETIE · CREG 085/2018</li>
+        <li>MO.00418.DE-GAC-AX.01 Ed. 02</li>
       </ul>
     </div>
-    <div class="content-card">
-      <h3>📅 Hoja de Ruta</h3>
+
+    <div class="feature-card">
+      <div class="feature-icon"><i data-lucide="workflow"></i></div>
+      <h3>Trabajo en campo</h3>
       <p>
-        El desarrollo sigue 15 microfases iterativas (F0–F14), cada una cerrada con commit
-        aislado. Avance actual: <strong style="color:var(--accent)">20 %</strong>.
-        Las próximas fases incluyen la integración de Firebase, los módulos operativos
-        (inventario, órdenes, KPIs, georreferenciación) y el gate dinámico.
+        Órdenes con workflow de aprobaciones, asignación por aliado ejecutor
+        y contrato macro, historial inmutable y RCA post-mortem.
       </p>
     </div>
+
+    <div class="feature-card">
+      <div class="feature-icon"><i data-lucide="scale"></i></div>
+      <h3>Gobierno &amp; Auditoría</h3>
+      <p>
+        Bitácora global de cambios, control de acceso por rol con ámbito
+        geográfico y propuestas de reclasificación bajo juicio experto.
+      </p>
+    </div>
+
   </div>
 
 </main>
 
-<footer class="page-foot">
-  <span>SGM · TRANSPOWER — Caribe Colombiano</span>
-  <span>© <span id="yr">2025</span> · Zona interna</span>
-</footer>
-
-<script>
-  import('../assets/js/auth/session-guard.js').then((m) => {
-    document.getElementById('btnLogout').addEventListener('click', () => m.logout());
-  });
-  document.getElementById('yr').textContent = new Date().getFullYear();
-</script>
 </body>
 </html>
