@@ -4,167 +4,305 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="robots" content="noindex, nofollow"/>
-  <title>SGM · TRANSPOWER — Marco Normativo</title>
+  <meta name="theme-color" content="#0a0f1e"/>
+  <meta name="color-scheme" content="dark"/>
+  <title>SGM · TRANSPOWER — Normativa</title>
   <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
   <script type="module" src="../assets/js/auth/page-guard.js"></script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="../assets/css/theme.css"/>
   <link rel="stylesheet" href="../assets/css/base.css"/>
   <link rel="stylesheet" href="../assets/css/app.css"/>
   <link rel="stylesheet" href="../assets/css/nav.css"/>
   <link rel="stylesheet" href="../assets/css/compat.css"/>
+  <style>
+    .norm-group { margin-bottom: var(--space-6); }
+    .norm-group-title {
+      display: flex; align-items: center; gap: var(--space-3);
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: var(--text-xl);
+      color: var(--ink-primary);
+      letter-spacing: -0.01em;
+      margin-bottom: var(--space-4);
+      padding-bottom: var(--space-3);
+      border-bottom: 1px solid var(--edge-subtle);
+    }
+    .norm-group-title [data-lucide] {
+      width: 22px; height: 22px;
+      padding: 6px;
+      box-sizing: content-box;
+      background: rgba(79,140,255,.12);
+      color: var(--brand-400);
+      border-radius: var(--radius-md);
+      border: 1px solid rgba(79,140,255,.25);
+    }
+    .norm-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: var(--space-4);
+    }
+    .norm-card-v3 {
+      padding: var(--space-5);
+      background: var(--surface-1);
+      border: 1px solid var(--edge-muted);
+      border-left: 3px solid var(--teal-500);
+      border-radius: var(--radius-lg);
+      transition: transform var(--dur-med) var(--ease-out), border-color var(--dur-med);
+    }
+    .norm-card-v3:hover { transform: translateY(-2px); border-left-color: var(--brand-500); }
+    .norm-card-v3.warm { border-left-color: var(--warm-500); }
+    .norm-card-v3.warm:hover { border-left-color: var(--warm-500); }
+    .norm-card-v3 .code {
+      display: inline-block;
+      font-family: var(--font-mono-v3);
+      font-size: .72rem;
+      font-weight: 500;
+      color: var(--teal-400);
+      letter-spacing: .12em;
+      padding: 3px 8px;
+      background: rgba(0,217,192,.08);
+      border-radius: var(--radius-sm);
+      margin-bottom: var(--space-3);
+      text-transform: uppercase;
+    }
+    .norm-card-v3.warm .code { color: var(--warm-500); background: rgba(255,169,77,.08); }
+    .norm-card-v3 h3 {
+      font-family: var(--font-display);
+      font-weight: 600;
+      font-size: var(--text-lg);
+      color: var(--ink-primary);
+      letter-spacing: -0.01em;
+      margin-bottom: var(--space-2);
+    }
+    .norm-card-v3 p {
+      font-size: var(--text-sm);
+      color: var(--ink-secondary);
+      line-height: 1.6;
+    }
+  </style>
 </head>
 <body>
 <script type="module" src="../assets/js/ui/nav.js"></script>
 
-
-
 <main class="page-container">
 
   <div class="page-header">
-    <div class="breadcrumb">Inicio / Normativa</div>
-    <h1 class="page-title">Marco <em>Normativo</em> y Estándares</h1>
+    <div class="breadcrumb">Normativa / Marco regulatorio</div>
+    <h1 class="page-title">Marco <em>normativo</em> y estándares</h1>
     <p class="page-subtitle">
-      Estándares internacionales y nacionales que rigen el diseño, operación y mantenimiento
-      de transformadores de potencia bajo el esquema de gestión de energía ISO 50001:2018.
+      Estándares internacionales y colombianos que rigen el diseño, operación
+      y mantenimiento especializado de transformadores de potencia.
+      Las intervenciones generan evidencia auditable conforme a cada norma aplicable.
     </p>
   </div>
 
-  <!-- RESUMEN -->
-  <div class="highlight-box">
-    Todos los procedimientos de mantenimiento, pruebas eléctricas, análisis de aceite,
-    registros documentales y criterios de aceptación del sistema se alinean con los
-    siguientes marcos normativos. Las intervenciones generan evidencia auditable
-    conforme a cada estándar aplicable.
+  <!-- Procedimiento interno -->
+  <div class="norm-group">
+    <div class="norm-group-title">
+      <i data-lucide="file-check"></i> Procedimiento interno
+    </div>
+    <div class="norm-cards">
+      <div class="norm-card-v3 warm">
+        <span class="code">MO.00418</span>
+        <h3>MO.00418.DE-GAC-AX.01 · Ed. 02</h3>
+        <p>
+          Procedimiento oficial del operador (CARIBEMAR DE LA COSTA · Afinia · Grupo EPM).
+          Fuente canónica para la metodología de Salud de Activos (Health Index),
+          criterios de clasificación de condición y protocolos de intervención.
+          Edición 02, vigente desde 14/10/2025.
+        </p>
+      </div>
+    </div>
   </div>
 
-  <!-- ISO 50001 -->
-  <div class="section-head">▸ GESTIÓN DE LA ENERGÍA</div>
-  <div class="norm-card">
-    <div class="norm-card-code">ISO 50001:2018</div>
-    <div class="norm-card-title">Sistemas de Gestión de la Energía — Requisitos con orientación para su uso</div>
-    <div class="norm-card-desc">
-      Estándar internacional que establece los requisitos para implementar, mantener y
-      mejorar un Sistema de Gestión de la Energía (SGEn). Aplica al ciclo completo de
-      planificación, operación y verificación del desempeño energético de los activos
-      bajo mantenimiento. El sistema incorpora auditorías periódicas, revisión por la
-      dirección y mejora continua (PHVA).
+  <!-- Gestión de la energía -->
+  <div class="norm-group">
+    <div class="norm-group-title">
+      <i data-lucide="zap"></i> Gestión de la energía &amp; activos
+    </div>
+    <div class="norm-cards">
+      <div class="norm-card-v3">
+        <span class="code">ISO 50001:2018</span>
+        <h3>Sistemas de Gestión de la Energía</h3>
+        <p>
+          Requisitos para implementar, mantener y mejorar un Sistema de Gestión
+          de la Energía (SGEn). Ciclo PHVA completo con auditorías, revisión por
+          dirección y mejora continua.
+        </p>
+      </div>
+      <div class="norm-card-v3">
+        <span class="code">ISO 55001</span>
+        <h3>Gestión de activos</h3>
+        <p>
+          Marco general para la gestión del ciclo de vida de activos físicos,
+          incluyendo planificación estratégica, control operativo y bitácora
+          auditable (§9.1 compliance en audit log).
+        </p>
+      </div>
     </div>
   </div>
 
   <!-- IEEE -->
-  <div class="section-head">▸ ESTÁNDARES IEEE</div>
-  <div class="norm-card">
-    <div class="norm-card-code">IEEE C57.12</div>
-    <div class="norm-card-title">General Requirements for Liquid-Immersed Distribution, Power, and Regulating Transformers</div>
-    <div class="norm-card-desc">
-      Serie de estándares del Institute of Electrical and Electronics Engineers que
-      define requisitos generales, pruebas de aceptación, ensayos de rutina y criterios
-      de desempeño para transformadores de potencia inmersos en aceite. Referencia clave
-      para las pruebas eléctricas y la evaluación del estado operativo de cada activo.
+  <div class="norm-group">
+    <div class="norm-group-title">
+      <i data-lucide="cpu"></i> Estándares IEEE
+    </div>
+    <div class="norm-cards">
+      <div class="norm-card-v3">
+        <span class="code">IEEE C57.91</span>
+        <h3>Guía de carga de transformadores</h3>
+        <p>
+          Criterios de envejecimiento térmico del papel aislante y capacidad
+          de sobrecarga admisible. Base para el módulo de sobrecarga + Arrhenius FAA.
+        </p>
+      </div>
+      <div class="norm-card-v3">
+        <span class="code">IEEE C57.12</span>
+        <h3>Requisitos generales</h3>
+        <p>
+          Pruebas de aceptación, ensayos de rutina y criterios de desempeño para
+          transformadores de potencia inmersos en aceite.
+        </p>
+      </div>
+      <div class="norm-card-v3">
+        <span class="code">IEEE C57.104</span>
+        <h3>Interpretación DGA</h3>
+        <p>
+          Guía de interpretación del análisis de gases disueltos en aceite (DGA),
+          usada junto con Duval Triangle 1, Rogers Ratios y Doernenburg.
+        </p>
+      </div>
     </div>
   </div>
 
   <!-- IEC -->
-  <div class="section-head">▸ ESTÁNDARES IEC</div>
-  <div class="norm-card">
-    <div class="norm-card-code">IEC 60076</div>
-    <div class="norm-card-title">Power Transformers</div>
-    <div class="norm-card-desc">
-      Estándar internacional de la International Electrotechnical Commission que cubre
-      especificaciones técnicas, ensayos, pérdidas, niveles de aislamiento, temperatura
-      y comportamiento bajo cortocircuito de transformadores de potencia. Base técnica
-      para la ficha de cada activo registrado en el sistema.
+  <div class="norm-group">
+    <div class="norm-group-title">
+      <i data-lucide="globe"></i> Estándares IEC
     </div>
-  </div>
-  <div class="norm-card">
-    <div class="norm-card-code">NTC-IEC 60364</div>
-    <div class="norm-card-title">Instalaciones Eléctricas en Edificaciones</div>
-    <div class="norm-card-desc">
-      Norma Técnica Colombiana adaptada del estándar IEC 60364. Regula los principios
-      fundamentales para el diseño y construcción de instalaciones eléctricas de baja
-      tensión. Aplicable a las conexiones secundarias de los transformadores gestionados
-      por el sistema.
-    </div>
-  </div>
-
-  <!-- NORMATIVA COLOMBIANA -->
-  <div class="section-head">▸ NORMATIVA COLOMBIANA</div>
-  <div class="norm-card">
-    <div class="norm-card-code">RETIE</div>
-    <div class="norm-card-title">Reglamento Técnico de Instalaciones Eléctricas — Colombia</div>
-    <div class="norm-card-desc">
-      Reglamento oficial del Ministerio de Minas y Energía de Colombia que establece
-      los requisitos mínimos de seguridad para las instalaciones eléctricas. De obligatorio
-      cumplimiento en diseño, construcción, montaje, operación y mantenimiento de los
-      transformadores de potencia gestionados en el Caribe Colombiano.
+    <div class="norm-cards">
+      <div class="norm-card-v3">
+        <span class="code">IEC 60076</span>
+        <h3>Transformadores de potencia</h3>
+        <p>
+          Especificaciones técnicas, ensayos, pérdidas, niveles de aislamiento y
+          comportamiento bajo cortocircuito.
+        </p>
+      </div>
+      <div class="norm-card-v3">
+        <span class="code">IEC 60599</span>
+        <h3>Detección de fallas por DGA</h3>
+        <p>
+          Interpretación de gases para diagnóstico de fallas térmicas y eléctricas.
+          Complemento al IEEE C57.104.
+        </p>
+      </div>
+      <div class="norm-card-v3">
+        <span class="code">IEC 60567</span>
+        <h3>Muestreo de aceite</h3>
+        <p>
+          Procedimientos de muestreo para análisis de gases y aceite, garantizando
+          comparabilidad entre muestras.
+        </p>
+      </div>
     </div>
   </div>
 
-  <!-- CIGRE -->
-  <div class="section-head">▸ GRUPOS DE TRABAJO INTERNACIONALES</div>
-  <div class="norm-card">
-    <div class="norm-card-code">CIGRE WG A2</div>
-    <div class="norm-card-title">Power Transformers and Reactors — Working Group A2</div>
-    <div class="norm-card-desc">
-      Grupo de trabajo del Conseil International des Grands Réseaux Électriques (CIGRE)
-      especializado en transformadores de potencia y reactores. Sus guías técnicas
-      (brochures) son referencia en diagnóstico de estado, análisis de aceite,
-      monitoreo en línea, gestión de vida útil y análisis de fallas. El sistema integra
-      sus recomendaciones en los protocolos de mantenimiento predictivo.
+  <!-- Colombiana -->
+  <div class="norm-group">
+    <div class="norm-group-title">
+      <i data-lucide="flag"></i> Normativa colombiana
+    </div>
+    <div class="norm-cards">
+      <div class="norm-card-v3">
+        <span class="code">RETIE</span>
+        <h3>Reglamento Técnico de Instalaciones Eléctricas</h3>
+        <p>
+          Reglamento oficial del Ministerio de Minas y Energía. Requisitos mínimos de
+          seguridad en diseño, construcción, montaje, operación y mantenimiento.
+        </p>
+      </div>
+      <div class="norm-card-v3">
+        <span class="code">CREG 085/2018</span>
+        <h3>Unidades Constructivas (UUCC)</h3>
+        <p>
+          Catálogo oficial de unidades constructivas reguladas. N4T1–N4T19 y
+          N5T1–N5T25 gozan de vida útil reconocida de 30 años.
+        </p>
+      </div>
+      <div class="norm-card-v3">
+        <span class="code">NTC 3284</span>
+        <h3>Rigidez dieléctrica del aceite</h3>
+        <p>
+          Método de ensayo adoptado para la prueba de rigidez dieléctrica
+          (complemento ASTM D1816).
+        </p>
+      </div>
     </div>
   </div>
 
-  <!-- METODOLOGÍA -->
-  <div class="section-head">▸ METODOLOGÍA DE APLICACIÓN</div>
-  <div class="info-grid">
-    <div class="content-card">
-      <h3>📋 Auditoría y Trazabilidad</h3>
-      <p>
-        Cada intervención registrada en el sistema genera un registro inmutable con
-        referencia explícita a la norma aplicable, permitiendo auditorías internas
-        y externas sin reconstruir información manualmente.
+  <!-- CIGRÉ -->
+  <div class="norm-group">
+    <div class="norm-group-title">
+      <i data-lucide="book-open"></i> CIGRÉ
+    </div>
+    <div class="norm-cards">
+      <div class="norm-card-v3">
+        <span class="code">CIGRÉ 445</span>
+        <h3>Envejecimiento del papel aislante</h3>
+        <p>
+          Brochure de referencia para el uso de furanos (2FAL) y grado de
+          polimerización (DP) en la evaluación de vida útil del papel.
+          Base de la curva de Chedong aplicada en el motor FUR.
+        </p>
+      </div>
+      <div class="norm-card-v3">
+        <span class="code">CIGRÉ WG A2</span>
+        <h3>Grupo de trabajo — Transformadores &amp; reactores</h3>
+        <p>
+          Conjunto de guías técnicas sobre diagnóstico de estado, análisis de
+          aceite, monitoreo en línea, gestión de vida útil y análisis de fallas.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Aplicación -->
+  <div class="section-head">Cómo se aplica en la plataforma</div>
+  <div class="inv-stats" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr))">
+    <div class="inv-stat">
+      <div class="inv-stat-label">Auditoría &amp; trazabilidad</div>
+      <p style="font-size: var(--text-sm); color: var(--ink-secondary); line-height: 1.55; margin-top: 6px">
+        Cada intervención genera un registro inmutable con referencia explícita
+        a la norma aplicable.
       </p>
     </div>
-    <div class="content-card">
-      <h3>📊 Indicadores RAM</h3>
-      <p>
-        Los indicadores de confiabilidad (MTBF), mantenibilidad (MTTR) y disponibilidad
-        se calculan automáticamente a partir del historial de órdenes, conforme a los
-        criterios definidos en IEEE C57.117 y guías CIGRE.
+    <div class="inv-stat">
+      <div class="inv-stat-label">Indicadores RAM</div>
+      <p style="font-size: var(--text-sm); color: var(--ink-secondary); line-height: 1.55; margin-top: 6px">
+        MTBF / MTTR / disponibilidad calculados según IEEE C57.117 y guías CIGRÉ.
       </p>
     </div>
-    <div class="content-card">
-      <h3>📁 Gestión Documental</h3>
-      <p>
-        Los protocolos, informes técnicos, certificados y registros se indexan por
-        norma aplicable. El módulo de Gestión Documental (Fase 9) permitirá búsqueda
-        y filtrado por estándar, fecha y tipo de ensayo.
+    <div class="inv-stat">
+      <div class="inv-stat-label">Gestión documental</div>
+      <p style="font-size: var(--text-sm); color: var(--ink-secondary); line-height: 1.55; margin-top: 6px">
+        Protocolos, informes y certificados indexados por norma aplicable.
       </p>
     </div>
-    <div class="content-card">
-      <h3>🔄 Mejora Continua</h3>
-      <p>
-        El sistema soporta el ciclo PHVA (Planificar-Hacer-Verificar-Actuar) de
-        ISO 50001, con revisión periódica de indicadores y actualización de
-        procedimientos según nuevas emisiones normativas.
+    <div class="inv-stat">
+      <div class="inv-stat-label">Mejora continua</div>
+      <p style="font-size: var(--text-sm); color: var(--ink-secondary); line-height: 1.55; margin-top: 6px">
+        Ciclo PHVA con revisión periódica y actualización según nuevas ediciones.
       </p>
     </div>
   </div>
 
 </main>
 
-<footer class="page-foot">
-  <span>SGM · TRANSPOWER — Caribe Colombiano</span>
-  <span>© <span id="yr">2025</span> · Zona interna</span>
-</footer>
-
-<script>
-  import('../assets/js/auth/session-guard.js').then((m) => {
-    document.getElementById('btnLogout').addEventListener('click', () => m.logout());
-  });
-  document.getElementById('yr').textContent = new Date().getFullYear();
-</script>
 </body>
 </html>
