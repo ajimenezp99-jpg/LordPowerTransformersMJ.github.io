@@ -264,16 +264,21 @@
   spark('sparkAl',   [2, 4, 3, 6, 5, 7, 4, 3, 2, 4, 3, 1], '#ff5a6e');
 </script>
 
-<!-- Datos en vivo (Firestore) -->
+<!-- Datos en vivo (Firestore) · una suscripción por colección -->
 <script type="module">
   import { computeFromDatasets, isReady } from './assets/js/data/kpis.js';
   import { suscribir as suscribirTransformadores } from './assets/js/data/transformadores.js';
   import { suscribir as suscribirOrdenes }         from './assets/js/data/ordenes.js';
 
-  if (isReady()) {
+  if (!isReady()) {
+    console.info('[HOME] Firestore no configurado — se muestra la UI vacía.');
+  } else {
     const $ = (id) => document.getElementById(id);
+    const icons = () => window.sgmRefreshIcons?.();
+
     let trafos = null, ordenes = null, timer = null;
 
+    // ── Render principal (debounced, evita re-renderizar N veces por snapshot) ──
     const render = () => {
       if (!trafos || !ordenes) return;
       try {
@@ -303,69 +308,72 @@
           if (fill) fill.style.width = ((n / total) * 100).toFixed(1) + '%';
           if (val)  val.textContent  = n;
         }
-      } catch (err) { console.warn('Dashboard KPIs:', err); }
-    };
-    const schedule = () => { clearTimeout(timer); timer = setTimeout(render, 160); };
 
+        // Top 5 PI (reutiliza trafos)
+        const piList = $('piList');
+        if (piList) {
+          const scored = trafos
+            .filter((t) => t.salud_actual?.hi_final)
+            .map((t) => ({
+              codigo: t.identificacion?.codigo || t.codigo || '—',
+              nombre: t.identificacion?.nombre || t.nombre || '—',
+              hi: t.salud_actual.hi_final,
+              bucket: t.salud_actual.bucket,
+              zona: t.ubicacion?.zona || '—',
+            }))
+            .sort((a, b) => b.hi - a.hi)
+            .slice(0, 5);
+          piList.innerHTML = scored.length === 0
+            ? '<div class="feed-empty">Sin datos de salud todavía.</div>'
+            : scored.map((r, i) => `
+              <a class="pi-row" href="pages/inventario.html?codigo=${encodeURIComponent(r.codigo)}" style="text-decoration:none">
+                <span class="pi-rank">${i + 1}</span>
+                <div><div class="pi-name">${r.codigo} · ${r.nombre}</div><div class="pi-meta">Zona ${r.zona} · bucket ${r.bucket}</div></div>
+                <span class="pi-score">HI ${r.hi.toFixed(2)}</span>
+              </a>`).join('');
+        }
+
+        // Feed de últimas 8 órdenes (reutiliza ordenes)
+        const feed = $('feedList');
+        if (feed) {
+          const list = [...ordenes].sort((a,b) => {
+            const ta = a.updatedAt?.toMillis?.() || 0;
+            const tb = b.updatedAt?.toMillis?.() || 0;
+            return tb - ta;
+          }).slice(0, 8);
+          feed.innerHTML = list.length === 0
+            ? '<div class="feed-empty">Sin actividad reciente.</div>'
+            : list.map((o) => {
+                const estado = o.estado_v2 || o.estado || 'planificada';
+                const kind = /cancel|fallad/i.test(estado) ? 'bad' : (/cerr|ejecut/i.test(estado) ? 'ok' : (/curso|ejecuc/i.test(estado) ? 'warn' : ''));
+                const ts = o.updatedAt?.toDate?.() ? o.updatedAt.toDate() : null;
+                const tstr = ts ? ts.toLocaleString('es-CO', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : '—';
+                const icono = kind === 'ok' ? 'check' : kind === 'bad' ? 'x-octagon' : kind === 'warn' ? 'loader' : 'circle-dot';
+                return `<div class="feed-row ${kind}">
+                  <span class="feed-icon"><i data-lucide="${icono}"></i></span>
+                  <div class="feed-body"><strong>${(o.codigo || '—')}</strong> · ${o.titulo || 'orden'} · <span class="text-muted">${estado}</span></div>
+                  <span class="feed-time">${tstr}</span>
+                </div>`;
+              }).join('');
+        }
+
+        icons();  // re-renderiza iconos Lucide (debounced)
+      } catch (err) { console.warn('[HOME] render error:', err); }
+    };
+
+    const schedule = () => { clearTimeout(timer); timer = setTimeout(render, 180); };
+
+    // Solo DOS suscripciones: transformadores y órdenes.
     suscribirTransformadores({}, (items) => { trafos  = items; schedule(); });
     suscribirOrdenes({},         (items) => { ordenes = items; schedule(); });
 
-    // Feed de últimas 8 órdenes
-    suscribirOrdenes({}, (items) => {
-      const feed = document.getElementById('feedList');
-      if (!feed) return;
-      const list = [...items].sort((a,b) => {
-        const ta = a.updatedAt?.toMillis?.() || 0;
-        const tb = b.updatedAt?.toMillis?.() || 0;
-        return tb - ta;
-      }).slice(0, 8);
-      if (!list.length) { feed.innerHTML = '<div class="feed-empty">Sin actividad reciente.</div>'; return; }
-      feed.innerHTML = list.map((o) => {
-        const estado = o.estado_v2 || o.estado || 'planificada';
-        const kind = /cancel|fallad/i.test(estado) ? 'bad' : (/cerr|ejecut/i.test(estado) ? 'ok' : (/curso|ejecuc/i.test(estado) ? 'warn' : ''));
-        const ts = o.updatedAt?.toDate?.() ? o.updatedAt.toDate() : null;
-        const tstr = ts ? ts.toLocaleString('es-CO', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : '—';
-        const icono = kind === 'ok' ? 'check' : kind === 'bad' ? 'x-octagon' : kind === 'warn' ? 'loader' : 'circle-dot';
-        return `<div class="feed-row ${kind}">
-          <span class="feed-icon"><i data-lucide="${icono}"></i></span>
-          <div class="feed-body"><strong>${(o.codigo || '—')}</strong> · ${o.titulo || 'orden'} · <span class="text-muted">${estado}</span></div>
-          <span class="feed-time">${tstr}</span>
-        </div>`;
-      }).join('');
-      if (window.lucide) { try { window.lucide.createIcons(); } catch (_) {} }
-    });
-
-    // Top 5 PI (por HI × criticidad rápida)
-    suscribirTransformadores({}, (items) => {
-      const pi = document.getElementById('piList');
-      if (!pi) return;
-      const scored = items
-        .filter((t) => t.salud_actual?.hi_final)
-        .map((t) => ({
-          codigo: t.identificacion?.codigo || t.codigo || '—',
-          nombre: t.identificacion?.nombre || t.nombre || '—',
-          hi: t.salud_actual.hi_final,
-          bucket: t.salud_actual.bucket,
-          zona: t.ubicacion?.zona || '—',
-        }))
-        .sort((a, b) => b.hi - a.hi)
-        .slice(0, 5);
-      if (!scored.length) { pi.innerHTML = '<div class="feed-empty">Sin datos de salud todavía.</div>'; return; }
-      pi.innerHTML = scored.map((r, i) => `
-        <a class="pi-row" href="pages/inventario.html?codigo=${encodeURIComponent(r.codigo)}" style="text-decoration:none">
-          <span class="pi-rank">${i + 1}</span>
-          <div><div class="pi-name">${r.codigo} · ${r.nombre}</div><div class="pi-meta">Zona ${r.zona} · bucket ${r.bucket}</div></div>
-          <span class="pi-score">HI ${r.hi.toFixed(2)}</span>
-        </a>`).join('');
-    });
-
-    // Alertas críticas: import on-demand
+    // Alertas críticas (import asíncrono, suscripción independiente)
     import('./assets/js/data/alertas.js').then(({ suscribirComputo }) => {
       if (!suscribirComputo) return;
       suscribirComputo((estado) => {
-        const strip = document.getElementById('alertsStrip');
-        const kpi   = document.getElementById('kpiAlertas');
         if (!estado) return;
+        const strip = $('alertsStrip');
+        const kpi   = $('kpiAlertas');
         const criticas = (estado.alertas || []).filter((a) => a.severidad === 'critica' && !a.reconocida).slice(0, 3);
         if (kpi) kpi.textContent = criticas.length ? (estado.resumen?.criticas ?? criticas.length) : 0;
         if (!strip) return;
@@ -378,9 +386,9 @@
               <div class="alert-card-body"><h4>${a.titulo || a.tipo}</h4><p>${a.mensaje || a.descripcion || ''}</p></div>
             </a>`).join('');
         }
-        if (window.lucide) { try { window.lucide.createIcons(); } catch (_) {} }
-      }, (err) => console.warn('Alertas:', err));
-    }).catch((err) => console.warn('alertas module:', err));
+        icons();
+      }, (err) => console.warn('[HOME] Alertas:', err));
+    }).catch((err) => console.warn('[HOME] alertas module:', err));
   }
 </script>
 

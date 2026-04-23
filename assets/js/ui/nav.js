@@ -358,33 +358,40 @@ function hookSession() {
 }
 
 // ── Lucide icons loader ───────────────────────────────────────
+// Helper público: window.sgmRefreshIcons() puede ser llamado tras
+// render manual de iconos. No usamos MutationObserver global porque
+// lucide.createIcons() muta el DOM (reemplaza <i> por <svg>) y eso
+// retroalimenta al observer en bucle, bloqueando el main thread.
 function loadLucide() {
-  if (window.lucide) { window.lucide.createIcons(); return; }
+  if (window.lucide) { safeCreateIcons(); return; }
   if (document.getElementById('sgm-lucide')) return;
   const s = document.createElement('script');
   s.id = 'sgm-lucide';
   s.src = 'https://cdn.jsdelivr.net/npm/lucide@0.468.0/dist/umd/lucide.min.js';
   s.crossOrigin = 'anonymous';
-  s.onload = () => { try { window.lucide.createIcons(); } catch (_) {} };
+  s.onload = () => { safeCreateIcons(); };
+  s.onerror = () => { console.warn('[SGM] Lucide icons no se pudieron cargar.'); };
   document.head.append(s);
 }
 
-// Re-render iconos cuando cambie el DOM (páginas de app)
-const mo = new MutationObserver(() => {
-  if (window.lucide) {
-    try { window.lucide.createIcons(); } catch (_) {}
-  }
-});
+// Debounced createIcons para evitar spam de llamadas. Safe incluso
+// si un render posterior cambia el DOM — createIcons es idempotente.
+let iconsTimer = null;
+function safeCreateIcons() {
+  if (!window.lucide) return;
+  clearTimeout(iconsTimer);
+  iconsTimer = setTimeout(() => {
+    try { window.lucide.createIcons(); } catch (err) { console.warn('[SGM] lucide:', err); }
+  }, 60);
+}
+// API pública para los renders que inyectan iconos tras load.
+if (typeof window !== 'undefined') window.sgmRefreshIcons = safeCreateIcons;
 
 // ── Bootstrap ─────────────────────────────────────────────────
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    mount();
-    mo.observe(document.body, { childList: true, subtree: true });
-  });
+  document.addEventListener('DOMContentLoaded', mount);
 } else {
   mount();
-  mo.observe(document.body, { childList: true, subtree: true });
 }
 
 export { NAV };
