@@ -126,6 +126,7 @@ function render(rows) {
       </td>
     </tr>
   `).join('');
+  window.sgmRefreshIcons?.();
 }
 
 // ── Modal ──

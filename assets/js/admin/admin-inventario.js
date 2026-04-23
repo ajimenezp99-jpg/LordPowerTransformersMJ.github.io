@@ -111,6 +111,8 @@ function render(rows) {
     </tr>
   `;
   }).join('');
+  // Re-render iconos Lucide tras inyectar filas (debounced, no-loop).
+  window.sgmRefreshIcons?.();
 }
 
 // ── Modal ──

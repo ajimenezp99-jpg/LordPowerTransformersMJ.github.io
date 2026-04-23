@@ -247,7 +247,7 @@ async function render() {
     `<span>Rol ${rol.toUpperCase().replace(/_/g,' ')} · ` +
     (zonas.length ? `zonas: ${zonas.join(', ')}` : 'sin restricción geográfica') +
     '</span>';
-  if (window.lucide) { try { window.lucide.createIcons(); } catch (_) {} }
+  window.sgmRefreshIcons?.();
 
   try {
     const [rawTrafos, rawOrdenes, crit] = await Promise.all([
