@@ -9,11 +9,11 @@ import { logoutAdmin, ADMIN_ROUTES } from './admin-auth.js';
 
 const $ = (id) => document.getElementById(id);
 
-$('btnLogout').addEventListener('click', async () => {
+$('btnLogout')?.addEventListener('click', async () => {
   try { await logoutAdmin(); } catch (_) {}
   location.replace(ADMIN_ROUTES.login);
 });
-$('yr').textContent = new Date().getFullYear();
+if($('yr'))$('yr').textContent = new Date().getFullYear();
 $('btnReload').addEventListener('click', () => loadDashboard());
 
 $('btnExport').addEventListener('click', async () => {

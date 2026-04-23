@@ -121,8 +121,8 @@ function render(rows) {
       <td>${escHtml(o.tecnico || '—')}</td>
       <td><span class="estado-pill ${escHtml(o.estado)}">${escHtml(estadoOrdenLabel(o.estado))}</span></td>
       <td class="col-actions">
-        <button class="row-btn" data-act="edit" data-id="${o.id}">Editar</button>
-        <button class="row-btn danger" data-act="del" data-id="${o.id}">Eliminar</button>
+        <button class="row-btn" data-act="edit" data-id="${o.id}" title="Editar" aria-label="Editar"><i data-lucide="pencil"></i></button>
+        <button class="row-btn danger" data-act="del" data-id="${o.id}" title="Eliminar" aria-label="Eliminar"><i data-lucide="trash-2"></i></button>
       </td>
     </tr>
   `).join('');
@@ -353,11 +353,11 @@ fEstadoFilter.addEventListener('change', cargar);
 fTipoFilter.addEventListener('change', cargar);
 fPrioridadFilter.addEventListener('change', cargar);
 
-$('btnLogout').addEventListener('click', async () => {
+$('btnLogout')?.addEventListener('click', async () => {
   try { await logoutAdmin(); } catch (_) {}
   location.replace(ADMIN_ROUTES.login);
 });
-$('yr').textContent = new Date().getFullYear();
+if($('yr'))$('yr').textContent = new Date().getFullYear();
 
 window.addEventListener('beforeunload', () => {
   if (unsubscribe) { try { unsubscribe(); } catch (_) {} }

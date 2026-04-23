@@ -4,11 +4,16 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="robots" content="noindex, nofollow"/>
-  <title>SGM · TRANSPOWER — Admin · Órdenes de Trabajo</title>
+  <meta name="theme-color" content="#0a0f1e"/>
+  <meta name="color-scheme" content="dark"/>
+  <title>SGM · TRANSPOWER — Órdenes de trabajo</title>
   <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
   <script type="module" src="../assets/js/auth/admin-guard.js"></script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="../assets/css/theme.css"/>
   <link rel="stylesheet" href="../assets/css/base.css"/>
   <link rel="stylesheet" href="../assets/css/app.css"/>
@@ -19,220 +24,236 @@
 <body>
 <script type="module" src="../assets/js/ui/nav.js"></script>
 
-
-
 <main class="page-container">
 
   <div class="page-header">
-    <div class="breadcrumb">Admin / Órdenes de Trabajo</div>
-    <h1 class="page-title">Órdenes de <em>Trabajo</em></h1>
+    <div class="breadcrumb">Operación / Órdenes de trabajo</div>
+    <h1 class="page-title">Órdenes de <em>trabajo</em></h1>
     <p class="page-subtitle">
       Planificación, asignación, cambio de estado y cierre de intervenciones.
-      Los cambios de estado quedan registrados en un historial inmutable
-      (subcolección <code>ordenes/{id}/historial</code>).
+      Los cambios de estado quedan registrados en un historial inmutable.
     </p>
   </div>
 
-  <!-- BARRA DE ACCIONES -->
+  <!-- TOOLBAR -->
   <div class="inv-toolbar">
     <div class="inv-filters">
-      <select class="form-select" id="fEstado">
+      <select class="form-select" id="fEstado" aria-label="Filtrar por estado">
         <option value="">Todos los estados</option>
       </select>
-      <select class="form-select" id="fTipo">
+      <select class="form-select" id="fTipo" aria-label="Filtrar por tipo">
         <option value="">Todos los tipos</option>
       </select>
-      <select class="form-select" id="fPrioridad">
+      <select class="form-select" id="fPrioridad" aria-label="Filtrar por prioridad">
         <option value="">Todas las prioridades</option>
       </select>
-      <button class="btn-secondary" id="btnReload">↻ Recargar</button>
+      <button class="btn-secondary" id="btnReload" title="Recargar">
+        <i data-lucide="refresh-cw"></i> Recargar
+      </button>
     </div>
-    <button class="btn-primary" id="btnNuevo">+ NUEVA ORDEN</button>
+    <button class="btn-primary" id="btnNuevo">
+      <i data-lucide="plus"></i> Nueva orden
+    </button>
   </div>
 
-  <!-- MENSAJE DE ESTADO / ERROR -->
   <div id="infoBox" class="info-msg" style="display:none"></div>
 
-  <!-- TABLA -->
-  <div class="section-head">▸ LISTADO DE ÓRDENES</div>
+  <div class="section-head">Listado de órdenes</div>
   <div class="table-wrap">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th scope="col">Código</th>
-          <th scope="col">Título / Transformador</th>
-          <th scope="col">Tipo</th>
-          <th scope="col">Prioridad</th>
-          <th scope="col">Programada</th>
-          <th scope="col">Técnico</th>
-          <th scope="col">Estado</th>
-          <th scope="col" class="col-actions">Acciones</th>
-        </tr>
-      </thead>
-      <tbody id="tbody">
-        <tr><td colspan="8" class="td-empty">Cargando…</td></tr>
-      </tbody>
-    </table>
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th scope="col">Código</th>
+            <th scope="col">Título · Transformador</th>
+            <th scope="col">Tipo</th>
+            <th scope="col">Prioridad</th>
+            <th scope="col">Programada</th>
+            <th scope="col">Técnico</th>
+            <th scope="col">Estado</th>
+            <th scope="col" class="col-actions">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="8" class="td-empty">Cargando registros…</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
 </main>
 
 <!-- ═══ MODAL CRUD ═══ -->
 <div id="modal" class="modal-overlay" style="display:none">
-  <div class="modal-card" role="dialog" aria-labelledby="modalTitle">
+  <div class="modal-card" role="dialog" aria-labelledby="modalTitle" aria-modal="true">
     <div class="modal-head">
       <h3 id="modalTitle">Nueva orden de trabajo</h3>
-      <button class="modal-x" id="modalClose" aria-label="Cerrar">✕</button>
+      <button class="modal-x" id="modalClose" aria-label="Cerrar modal">
+        <i data-lucide="x"></i>
+      </button>
     </div>
 
     <form id="form" novalidate>
       <input type="hidden" id="fId">
 
-      <div class="form-row-2">
-        <div class="form-group">
-          <label class="form-label" for="fCodigo">Código de orden *</label>
-          <input class="form-input" type="text" id="fCodigo" required
-                 placeholder="OT-2026-001">
+      <!-- Datos generales -->
+      <fieldset class="form-fieldset">
+        <legend class="form-fieldset-title">Datos generales</legend>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label" for="fCodigo">Código *</label>
+            <input class="form-input" type="text" id="fCodigo" required placeholder="OT-2026-001">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fEstadoMain">Estado *</label>
+            <select class="form-select" id="fEstadoMain" required></select>
+          </div>
         </div>
+
         <div class="form-group">
-          <label class="form-label" for="fEstadoMain">Estado *</label>
-          <select class="form-select" id="fEstadoMain" required></select>
+          <label class="form-label" for="fTitulo">Título *</label>
+          <input class="form-input" type="text" id="fTitulo" required placeholder="Mantenimiento preventivo trimestral">
         </div>
-      </div>
 
-      <div class="form-group">
-        <label class="form-label" for="fTitulo">Título *</label>
-        <input class="form-input" type="text" id="fTitulo" required
-               placeholder="Mantenimiento preventivo trimestral">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="fTransformador">Transformador *</label>
-        <select class="form-select" id="fTransformador" required>
-          <option value="">— Seleccione —</option>
-        </select>
-      </div>
-
-      <div class="form-row-2">
         <div class="form-group">
-          <label class="form-label" for="fTipoMain">Tipo *</label>
-          <select class="form-select" id="fTipoMain" required></select>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="fPrioridadMain">Prioridad *</label>
-          <select class="form-select" id="fPrioridadMain" required></select>
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="fTecnico">Técnico asignado</label>
-        <input class="form-input" type="text" id="fTecnico"
-               placeholder="Nombre del responsable">
-      </div>
-
-      <div class="form-row-3">
-        <div class="form-group">
-          <label class="form-label" for="fFechaProg">Fecha programada</label>
-          <input class="form-input" type="date" id="fFechaProg">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="fFechaIni">Fecha inicio</label>
-          <input class="form-input" type="date" id="fFechaIni">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="fFechaCierre">Fecha cierre</label>
-          <input class="form-input" type="date" id="fFechaCierre">
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="fDuracion">Duración estimada (horas)</label>
-        <input class="form-input" type="number" id="fDuracion" step="0.5" min="0">
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="fDescripcion">Descripción</label>
-        <textarea class="form-textarea" id="fDescripcion" rows="3"
-                  placeholder="Detalle del trabajo a realizar"></textarea>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="fObs">Observaciones</label>
-        <textarea class="form-textarea" id="fObs" rows="2"></textarea>
-      </div>
-
-      <!-- v2 (F23) — FKs catálogo + workflow + RBAC -->
-      <div class="form-row-2">
-        <div class="form-group">
-          <label class="form-label" for="fEstadoV2">Estado workflow v2</label>
-          <select class="form-select" id="fEstadoV2">
-            <option value="borrador">borrador</option>
-            <option value="propuesta">propuesta</option>
-            <option value="revisada">revisada</option>
-            <option value="autorizada">autorizada</option>
-            <option value="programada">programada</option>
-            <option value="en_ejecucion">en ejecución</option>
-            <option value="ejecutada">ejecutada</option>
-            <option value="verificada">verificada</option>
-            <option value="cerrada">cerrada</option>
-            <option value="rechazada">rechazada</option>
-            <option value="cancelada">cancelada</option>
+          <label class="form-label" for="fTransformador">Transformador *</label>
+          <select class="form-select" id="fTransformador" required>
+            <option value="">— Seleccione —</option>
           </select>
         </div>
-        <div class="form-group">
-          <label class="form-label" for="fAliado">Aliado ejecutor</label>
-          <select class="form-select" id="fAliado">
-            <option value="">— sin asignar —</option>
-            <option value="BRIGADA_TX">Brigada TX</option>
-            <option value="CDM">CDM</option>
-            <option value="TYS">TyS</option>
-            <option value="TYS_G3">TyS G3</option>
-            <option value="CDM_TYS">CDM-TyS</option>
-            <option value="OTRO">Otro</option>
-          </select>
-        </div>
-      </div>
 
-      <div class="form-row-2">
-        <div class="form-group">
-          <label class="form-label" for="fMacro">Macroactividad (catálogo §A7)</label>
-          <select class="form-select" id="fMacro">
-            <option value="">— ninguna —</option>
-          </select>
+        <div class="form-row-3">
+          <div class="form-group">
+            <label class="form-label" for="fTipoMain">Tipo *</label>
+            <select class="form-select" id="fTipoMain" required></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fPrioridadMain">Prioridad *</label>
+            <select class="form-select" id="fPrioridadMain" required></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fTecnico">Técnico asignado</label>
+            <input class="form-input" type="text" id="fTecnico" placeholder="Responsable">
+          </div>
         </div>
-        <div class="form-group">
-          <label class="form-label" for="fContrato">Contrato</label>
-          <select class="form-select" id="fContrato">
-            <option value="">— ninguno —</option>
-          </select>
+      </fieldset>
+
+      <!-- Programación -->
+      <fieldset class="form-fieldset">
+        <legend class="form-fieldset-title">Programación</legend>
+
+        <div class="form-row-3">
+          <div class="form-group">
+            <label class="form-label" for="fFechaProg">Fecha programada</label>
+            <input class="form-input" type="date" id="fFechaProg">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fFechaIni">Fecha inicio</label>
+            <input class="form-input" type="date" id="fFechaIni">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fFechaCierre">Fecha cierre</label>
+            <input class="form-input" type="date" id="fFechaCierre">
+          </div>
         </div>
-      </div>
 
-      <div class="form-group">
-        <label class="form-label" for="fCausantes">Causantes (multi-select Ctrl+click)</label>
-        <select class="form-select" id="fCausantes" multiple size="5"></select>
-      </div>
+        <div class="form-group">
+          <label class="form-label" for="fDuracion">Duración estimada (horas)</label>
+          <input class="form-input" type="number" id="fDuracion" step="0.5" min="0">
+        </div>
+      </fieldset>
 
-      <!-- Historial (solo en edición) -->
+      <!-- Workflow v2 + contractual -->
+      <fieldset class="form-fieldset">
+        <legend class="form-fieldset-title">Workflow v2 + Contractual</legend>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label" for="fEstadoV2">Estado workflow</label>
+            <select class="form-select" id="fEstadoV2">
+              <option value="borrador">Borrador</option>
+              <option value="propuesta">Propuesta</option>
+              <option value="revisada">Revisada</option>
+              <option value="autorizada">Autorizada</option>
+              <option value="programada">Programada</option>
+              <option value="en_ejecucion">En ejecución</option>
+              <option value="ejecutada">Ejecutada</option>
+              <option value="verificada">Verificada</option>
+              <option value="cerrada">Cerrada</option>
+              <option value="rechazada">Rechazada</option>
+              <option value="cancelada">Cancelada</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fAliado">Aliado ejecutor</label>
+            <select class="form-select" id="fAliado">
+              <option value="">— sin asignar —</option>
+              <option value="BRIGADA_TX">Brigada TX</option>
+              <option value="CDM">CDM</option>
+              <option value="TYS">TyS</option>
+              <option value="TYS_G3">TyS G3</option>
+              <option value="CDM_TYS">CDM-TyS</option>
+              <option value="OTRO">Otro</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label" for="fMacro">Macroactividad (catálogo §A7)</label>
+            <select class="form-select" id="fMacro">
+              <option value="">— ninguna —</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fContrato">Contrato</label>
+            <select class="form-select" id="fContrato">
+              <option value="">— ninguno —</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="fCausantes">Causantes <span class="text-muted" style="text-transform:none; letter-spacing:0; font-weight:400">(Ctrl + clic para multiselección)</span></label>
+          <select class="form-select" id="fCausantes" multiple size="5"></select>
+        </div>
+      </fieldset>
+
+      <!-- Notas -->
+      <fieldset class="form-fieldset">
+        <legend class="form-fieldset-title">Detalle</legend>
+
+        <div class="form-group">
+          <label class="form-label" for="fDescripcion">Descripción</label>
+          <textarea class="form-textarea" id="fDescripcion" rows="3" placeholder="Detalle del trabajo a realizar"></textarea>
+        </div>
+
+        <div class="form-group" style="margin: 0">
+          <label class="form-label" for="fObs">Observaciones</label>
+          <textarea class="form-textarea" id="fObs" rows="2"></textarea>
+        </div>
+      </fieldset>
+
+      <!-- Historial -->
       <div id="historialWrap" class="historial-wrap" style="display:none">
-        <h4>▸ Historial de la orden</h4>
+        <h4 class="form-fieldset-title" style="color: var(--brand-400); margin-top: 0">Historial de la orden</h4>
         <div id="historialList"></div>
       </div>
 
       <div id="formMsg" class="msg" role="status" aria-live="polite"></div>
 
       <div class="modal-actions">
-        <button type="button" class="btn-secondary" id="btnCancel">Cancelar</button>
-        <button type="submit" class="btn-primary" id="btnSave">GUARDAR →</button>
+        <button type="button" class="btn-secondary" id="btnCancel">
+          <i data-lucide="x"></i> Cancelar
+        </button>
+        <button type="submit" class="btn-primary" id="btnSave">
+          <i data-lucide="check"></i> Guardar
+        </button>
       </div>
     </form>
   </div>
 </div>
-
-<footer class="page-foot">
-  <span>SGM · TRANSPOWER — Admin · Órdenes</span>
-  <span>© <span id="yr">2025</span> · Zona restringida</span>
-</footer>
 
 <script type="module" src="../assets/js/admin/admin-ordenes.js"></script>
 
