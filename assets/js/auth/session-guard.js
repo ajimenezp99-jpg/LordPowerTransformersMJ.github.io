@@ -43,7 +43,8 @@ import { getAuthSafe, getDbSafe, isFirebaseConfigured } from '../firebase-init.j
 const BASE_URL  = new URL('../../../', import.meta.url).href;
 const LOGIN_URL = BASE_URL + 'index.html';
 const HOME_URL  = BASE_URL + 'home.html';
-const TIMEOUT_MS = 6000;
+const TIMEOUT_MS = 8000;
+const FAILSAFE_MS = 12000;   // failsafe absoluto para evitar body hidden eterno
 
 // ── Ocultar body al arrancar (evita flash de contenido) ──
 function hideBody() {
@@ -52,13 +53,72 @@ function hideBody() {
   s.id = 'sgm-guard-hide';
   s.textContent = 'body{visibility:hidden!important}';
   document.head.appendChild(s);
+  mountSplash();
 }
 function revealBody() {
   const s = document.getElementById('sgm-guard-hide');
   if (s) s.remove();
+  unmountSplash();
+}
+
+// Splash visible mientras el body está hidden para que el usuario
+// no vea una pantalla en blanco/azul sin indicación de carga.
+function mountSplash(msg = 'Verificando sesión…') {
+  let el = document.getElementById('sgm-splash');
+  if (el) { const m = el.querySelector('.sgm-splash-msg'); if (m) m.textContent = msg; return; }
+  el = document.createElement('div');
+  el.id = 'sgm-splash';
+  el.className = 'sgm-splash';
+  // Estilos inline como failsafe si theme.css aún no cargó. El resto de
+  // la apariencia viene de theme.css (.sgm-splash).
+  el.style.cssText = [
+    'visibility:visible!important',
+    'position:fixed',
+    'inset:0',
+    'z-index:2147483647',
+    'display:flex',
+    'flex-direction:column',
+    'align-items:center',
+    'justify-content:center',
+    'gap:1rem',
+    'background:#0a0f1e',
+    'color:#a0b0cc',
+    'font-family:system-ui,-apple-system,sans-serif',
+    'font-size:.85rem',
+    'letter-spacing:.14em',
+    'text-transform:uppercase'
+  ].join(';');
+  el.innerHTML = '<div class="sgm-splash-ring" style="width:56px;height:56px;border:3px solid rgba(79,140,255,.15);border-top-color:#4f8cff;border-right-color:#00d9c0;border-radius:50%;animation:sgmSpin .9s linear infinite"></div>'
+    + '<div class="sgm-splash-msg" style="opacity:.75">' + msg + '</div>';
+  // Asegurar keyframes aun sin theme.css cargado.
+  if (!document.getElementById('sgm-splash-kf')) {
+    const kf = document.createElement('style');
+    kf.id = 'sgm-splash-kf';
+    kf.textContent = '@keyframes sgmSpin{to{transform:rotate(360deg)}}';
+    document.head.appendChild(kf);
+  }
+  document.documentElement.appendChild(el);
+}
+function unmountSplash() {
+  document.getElementById('sgm-splash')?.remove();
+}
+function showSplashError(msg, href) {
+  let el = document.getElementById('sgm-splash');
+  if (!el) { mountSplash(''); el = document.getElementById('sgm-splash'); }
+  el.innerHTML =
+    '<div style="width:42px;height:42px;border-radius:50%;background:rgba(255,90,110,.12);border:1px solid rgba(255,90,110,.4);display:inline-flex;align-items:center;justify-content:center;color:#ff5a6e;font-size:1.2rem">!</div>'
+    + '<div class="sgm-splash-msg sgm-splash-err" style="color:#ff5a6e;max-width:460px;text-align:center;line-height:1.5">' + msg + '</div>'
+    + (href ? `<a href="${href}" style="color:#4f8cff;text-decoration:underline;letter-spacing:0;text-transform:none;font-family:system-ui,sans-serif;margin-top:.5rem">Ir al login</a>` : '');
 }
 
 hideBody();
+// Failsafe: si en FAILSAFE_MS no se revela ni redirige, libera la UI.
+setTimeout(() => {
+  if (!document.getElementById('sgm-guard-hide')) return; // ya resuelto
+  console.warn('[SGM] Failsafe: liberando UI tras', FAILSAFE_MS, 'ms sin respuesta.');
+  showSplashError('No fue posible verificar la sesión.', LOGIN_URL);
+  // Deja el splash visible para que el usuario pueda click en "Ir al login"
+}, FAILSAFE_MS);
 
 // ── Utilidades ──
 function redirect(url) {
@@ -97,67 +157,89 @@ export function ensureSession({ requireAdmin = false } = {}) {
       redirect(LOGIN_URL);
       return;
     }
-    const auth = getAuthSafe();
-    const db   = getDbSafe();
+
+    let auth, db;
+    try {
+      auth = getAuthSafe();
+      db   = getDbSafe();
+    } catch (err) {
+      console.error('[SGM] Firebase no inicializó:', err);
+      showSplashError('Firebase no pudo inicializar. ' + (err?.message || ''), LOGIN_URL);
+      return;
+    }
     if (!auth || !db) {
       redirect(LOGIN_URL);
       return;
     }
 
-    // Timeout de seguridad.
+    // Timeout de seguridad para Auth.
     const failTimer = setTimeout(() => {
-      console.warn('[SGM] Timeout verificando sesión.');
+      console.warn('[SGM] Timeout verificando sesión tras', TIMEOUT_MS, 'ms.');
       redirect(LOGIN_URL);
     }, TIMEOUT_MS);
 
-    const unsub = onAuthStateChanged(auth, async (user) => {
-      clearTimeout(failTimer);
-      if (!user) {
-        unsub();
-        redirect(LOGIN_URL);
-        return;
-      }
+    let unsub = () => {};
+    try {
+      unsub = onAuthStateChanged(auth, async (user) => {
+        clearTimeout(failTimer);
+        try {
+          if (!user) {
+            unsub();
+            redirect(LOGIN_URL);
+            return;
+          }
 
-      let profile = await loadProfile(db, user.uid);
+          let profile = await loadProfile(db, user.uid);
 
-      // Fallback bootstrap: legacy admin doc.
-      if (!profile) {
-        const legacy = await isLegacyAdmin(db, user.uid);
-        if (legacy) {
-          profile = {
-            uid: user.uid,
-            email: user.email,
-            nombre: user.displayName || user.email,
-            rol: 'admin',
-            activo: true,
-            legacy: true
-          };
+          if (!profile) {
+            const legacy = await isLegacyAdmin(db, user.uid);
+            if (legacy) {
+              profile = {
+                uid: user.uid,
+                email: user.email,
+                nombre: user.displayName || user.email,
+                rol: 'admin',
+                activo: true,
+                legacy: true
+              };
+            }
+          }
+
+          if (!profile || profile.activo === false) {
+            unsub();
+            try { await signOut(auth); } catch (_) {}
+            redirect(LOGIN_URL + '?denied=1');
+            return;
+          }
+
+          if (requireAdmin && profile.rol !== 'admin') {
+            unsub();
+            redirect(HOME_URL + '?denied=admin');
+            return;
+          }
+
+          const sess = { user, profile, role: profile.rol };
+          window.__sgmSession = sess;
+          window.__sgmAdmin = { uid: user.uid, email: user.email };
+          try {
+            window.dispatchEvent(new CustomEvent('sgm:session-ready', { detail: sess }));
+          } catch (_) {}
+          revealBody();
+          resolve(sess);
+        } catch (innerErr) {
+          console.error('[SGM] Error resolviendo sesión:', innerErr);
+          showSplashError('Error verificando sesión: ' + (innerErr?.message || ''), LOGIN_URL);
         }
-      }
-
-      if (!profile || profile.activo === false) {
-        unsub();
-        try { await signOut(auth); } catch (_) {}
-        redirect(LOGIN_URL + '?denied=1');
-        return;
-      }
-
-      if (requireAdmin && profile.rol !== 'admin') {
-        unsub();
-        redirect(HOME_URL + '?denied=admin');
-        return;
-      }
-
-      const sess = { user, profile, role: profile.rol };
-      window.__sgmSession = sess;
-      // Compat con controladores admin-*.js que leían __sgmAdmin.
-      window.__sgmAdmin = { uid: user.uid, email: user.email };
-      try {
-        window.dispatchEvent(new CustomEvent('sgm:session-ready', { detail: sess }));
-      } catch (_) {}
-      revealBody();
-      resolve(sess);
-    });
+      }, (authErr) => {
+        clearTimeout(failTimer);
+        console.error('[SGM] onAuthStateChanged error:', authErr);
+        showSplashError('Error de autenticación: ' + (authErr?.message || ''), LOGIN_URL);
+      });
+    } catch (err) {
+      clearTimeout(failTimer);
+      console.error('[SGM] No se pudo suscribir a Auth:', err);
+      showSplashError('No se pudo conectar con Auth.', LOGIN_URL);
+    }
   });
 }
 

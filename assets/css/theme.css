@@ -122,6 +122,11 @@
 }
 
 /* ── Fondo aurora global (reemplaza scanlines) ───────────────── */
+html {
+  background: var(--surface-0);
+  color-scheme: dark;
+  min-height: 100%;
+}
 body {
   background: var(--surface-0);
   color: var(--ink-primary);
@@ -130,6 +135,39 @@ body {
   letter-spacing: -0.005em;
   min-height: 100vh;
   overflow-x: hidden;
+}
+
+/* ── Splash durante carga de session-guard ──────────────────── */
+/* Cuando el page-guard oculta el body por verificar sesión, en
+   vez de dejar la pantalla muerta mostramos un loader centrado.
+   Se inyecta por el guard (ver session-guard.js). */
+.sgm-splash {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: var(--space-4);
+  background: var(--surface-0);
+  color: var(--ink-secondary);
+  font-family: var(--font-mono-v3);
+  font-size: var(--text-sm);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+.sgm-splash-ring {
+  width: 56px; height: 56px;
+  border: 3px solid rgba(79,140,255,.15);
+  border-top-color: var(--brand-500);
+  border-right-color: var(--teal-500);
+  border-radius: 50%;
+  animation: sgmSpin .9s linear infinite;
+  box-shadow: 0 0 40px rgba(79,140,255,.18);
+}
+@keyframes sgmSpin { to { transform: rotate(360deg); } }
+.sgm-splash-msg { opacity: .75; }
+.sgm-splash-err { color: var(--danger-500); }
+.sgm-splash-err a {
+  color: var(--brand-400); text-decoration: underline;
+  letter-spacing: 0; text-transform: none; font-family: var(--font-body);
 }
 
 /* Retirar el grid y scanlines antiguos; un solo mesh gradient sutil */

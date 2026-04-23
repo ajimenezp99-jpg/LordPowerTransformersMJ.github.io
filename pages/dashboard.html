@@ -178,10 +178,11 @@ async function render() {
 document.addEventListener('sgm:session-ready', render);
 if (window.__sgmSession) render();
 
-// Register SW (F34)
+// Register SW (F34) · path relativo para que funcione en project pages.
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
+    const swUrl = new URL('../sw.js', location.href).href;
+    navigator.serviceWorker.register(swUrl, { scope: new URL('../', location.href).pathname }).catch(() => {});
   });
 }
 </script>
