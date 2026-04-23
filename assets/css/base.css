@@ -93,30 +93,8 @@ body {
   position: relative;
 }
 
-/* Grid de fondo */
-body::before {
-  content: '';
-  position: fixed; inset: 0;
-  background-image:
-    linear-gradient(rgba(0,200,255,.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,200,255,.04) 1px, transparent 1px);
-  background-size: 44px 44px;
-  pointer-events: none; z-index: 0;
-}
-
-/* Scanlines */
-body::after {
-  content: '';
-  position: fixed; inset: 0;
-  background: repeating-linear-gradient(
-    0deg,
-    transparent,
-    transparent 2px,
-    rgba(0,0,0,.08) 2px,
-    rgba(0,0,0,.08) 4px
-  );
-  pointer-events: none; z-index: 0;
-}
+/* Fondo limpio — el theme v3 provee aurora + grain, sin scanlines CRT */
+body::before, body::after { content: none !important; display: none !important; }
 
 /* ── Utilidades compartidas ── */
 

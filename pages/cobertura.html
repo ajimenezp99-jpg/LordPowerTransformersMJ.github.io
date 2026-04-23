@@ -8,9 +8,11 @@
   <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
   <script type="module" src="../assets/js/auth/page-guard.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/theme.css"/>
   <link rel="stylesheet" href="../assets/css/base.css"/>
   <link rel="stylesheet" href="../assets/css/app.css"/>
+  <link rel="stylesheet" href="../assets/css/nav.css"/>
   <style>
     .municipios-list {
       columns: 2; column-gap: 1.5rem;
@@ -22,24 +24,9 @@
   </style>
 </head>
 <body>
+<script type="module" src="../assets/js/ui/nav.js"></script>
 
-<header class="topbar">
-  <a href="../home.html" class="topbar-brand">SGM · <span>TRANSPOWER</span></a>
-  <nav class="main-nav">
-    <a href="../home.html"    class="nav-link">Inicio</a>
-    <a href="about.html"      class="nav-link">Proyecto</a>
-    <a href="inventario.html" class="nav-link">Inventario</a>
-    <a href="ordenes.html"    class="nav-link">Órdenes</a>
-    <a href="kpis.html"       class="nav-link">KPIs</a>
-    <a href="documentos.html" class="nav-link">Documentos</a>
-    <a href="mapa.html"       class="nav-link">Mapa</a>
-    <a href="alertas.html"    class="nav-link">Alertas</a>
-    <a href="cobertura.html"  class="nav-link active">Cobertura</a>
-    <a href="normativa.html"  class="nav-link">Normativa</a>
-    <a href="contacto.html"   class="nav-link">Contacto</a>
-  </nav>
-  <button class="btn-logout" id="btnLogout">CERRAR SESIÓN</button>
-</header>
+
 
 <main class="page-container">
 
