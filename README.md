@@ -76,22 +76,35 @@ Los tests (266 al cierre de v2.0.0) cubren:
 - Plan de Inversión (scoring multicriterio + candidatos forzosos).
 - Desempeño aliados + audit trail.
 
+## Documentación
+
+Mapa completo de navegación (leer en este orden ante cualquier duda):
+
+1. [`CLAUDE.md`](./CLAUDE.md) — **contrato funcional** · §0 permisos push · §7.1 inventario del repo · §7.2 cómo continuar · §5 plan histórico F0–F37.
+2. [`docs/ARQUITECTURA.md`](./docs/ARQUITECTURA.md) — mapa de código por capa (dominio / data / UI / rules / tests). Si buscas "dónde está X", empieza aquí.
+3. [`docs/MODELO-DATOS-v2.md`](./docs/MODELO-DATOS-v2.md) — diccionario completo del shape v2 (secciones, `salud_actual`, subcolecciones, §9 con todas las colecciones F17–F37).
+4. [`docs/OPERACIONES.md`](./docs/OPERACIONES.md) — runbook de bootstrap, uso diario por rol, troubleshooting.
+5. [`docs/DEPLOY-FUNCTIONS.md`](./docs/DEPLOY-FUNCTIONS.md) — despliegue de Cloud Functions F32 (firebase login, secret Resend, costos estimados).
+6. [`CHANGELOG.md`](./CHANGELOG.md) — release notes consolidadas v1.0 → v2.0.8.
+
 ## CI/CD
 
 - `.github/workflows/ci.yml` — lint HTML en push / PR.
 - `.github/workflows/pages.yml` — deploy automático a GitHub Pages desde `main`.
 - `vercel.json` — configuración de headers, cleanUrls y redirects para Vercel.
 
-## Firebase (Fase 4)
+## Firebase (Fase 4 → v2.0.x)
 
 Archivos en el repo:
 
-- `firebase.json` — hosting, paths de reglas y puertos de emuladores.
-- `.firebaserc` — proyecto por defecto.
-- `firestore.rules` / `storage.rules` — en modo **DENY-ALL**.
-- `firestore.indexes.json` — vacío (se llenará en F6+).
+- `firebase.json` — hosting, paths de reglas, emuladores (auth 9099 / firestore 8080 / storage 9199).
+- `.firebaserc` — proyecto `sgm-transpower`.
+- `firestore.rules` v2 — valida secciones identificacion/ubicacion + enums + `estado_v2` del workflow F29.
+- `firestore.indexes.json` — 20+ índices compuestos (zona/grupo/bucket/contratos/macroactividades).
+- `storage.rules` — `documentos/**` lectura pública, escritura admin (tope 20 MB).
 - `assets/js/firebase-config.js` — config pública (placeholders).
 - `assets/js/firebase-init.js` — bootstrap del SDK modular v10.
+- `functions/` — Cloud Functions deployable (F32) con stubs `onMuestraCreate` + `cronAlertasDiarias`.
 - `pages/_firebase-test.html` — sonda de diagnóstico (oculta).
 
 Pasos manuales pendientes (consola Firebase):

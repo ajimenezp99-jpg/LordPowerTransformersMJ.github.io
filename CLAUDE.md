@@ -68,8 +68,34 @@ chat habrá que pedirlo de nuevo o leerlo de donde el dueño lo deje).
 
 ### 0.2 Branch de trabajo
 
-Desarrollar siempre sobre `claude/personal-website-transformers-CVWxV`.
+Durante la evolución v2.0 (F16–F37) la rama activa fue
+`claude/review-phase-16-plan-mhPgg` (no `claude/personal-website-
+transformers-CVWxV` — esa era la rama legacy del plan v1.0).
+Cualquier sesión nueva debe continuar en la rama activa indicada
+por el hook del entorno o explícitamente por el dueño.
 `main` se toca solo cuando el dueño lo pide explícitamente.
+
+### 0.3 Estado al iniciar una sesión nueva (abril 2026)
+
+**El plan v2.2 (F16–F37) está cerrado.** Al arrancar una sesión
+nueva, lee en este orden:
+
+1. Esta §0 completa (permisos + token + branch).
+2. **§7 del presente archivo** (progreso actual, inventario del
+   repo §7.1, cómo continuar §7.2).
+3. `docs/ARQUITECTURA.md` para entender dónde vive cada cosa.
+4. `docs/OPERACIONES.md` si el director te pide un troubleshooting
+   o un paso operativo.
+5. `CHANGELOG.md` para ver qué cambió en cada tag post-v2.0.
+
+**NO arranques a re-implementar el plan**. Las 22 microfases están
+hechas. El último tag es `v2.0.8` (commit `6accdb6`). El prompt
+maestro v2.2 está archivado como contrato funcional de referencia
+pero ya se cumplió.
+
+**Qué esperar:** el director te pedirá features puntuales, bug
+fixes ante feedback de campo, o una extensión v3 para nuevos
+parámetros. Sigue el árbol de decisión de §7.2.
 
 ---
 
@@ -962,18 +988,77 @@ panel de KPIs.
 |----------------------------|-------|
 | v1.0 (F0–F14)              | **100 %** ✅ |
 | v1.0 + Realtime (F15)      | ✅ |
-| Evolución v2.0 (F16–F37)    | **F16 ✅ · F17–F37 🔜** |
-| Próxima movida              | **Evolución v2.0.0 CERRADA. Post-v2: nuevos features según demanda del director.** |
+| Evolución v2.0 (F16–F37)    | **22/22 microfases ✅ cerradas** |
+| Tags plan (F16 → F37)       | `v2.0.0-f16` · `v2.0.0-f17` · `v2.0.0-f18` · `v2.0.0-f19` · `v2.0.0-f22` · `v2.0.0-f23` · `v2.0.0-f26` · `v2.0.0-f30` · `v2.0.0-f37` · **`v2.0.0`** |
+| Post-plan polish            | **9 ciclos cerrados**: `v2.0.1` · `v2.0.2` · `v2.0.3` · `v2.0.4` · `v2.0.5` · `v2.0.6` · `v2.0.7` · `v2.0.8` (+ refactor `6accdb6`) |
+| Tests                       | **282 / 282 verdes** (81 suites, node --test) |
+| Lint HTML                   | limpio |
+| Último tag                  | **`v2.0.8`** |
 | Referencia normativa activa | MO.00418.DE-GAC-AX.01 Ed. 02 (14/10/2025) |
-| Último tag                  | `v2.0.0` |
-| Servicios dinámicos activos | Firebase (Auth + Firestore + Storage) · Vercel post-v2 |
+| Próxima movida              | **Plan v2.2 cerrado. Próxima sesión: responder a peticiones específicas del director o feedback de campo.** |
+| Servicios dinámicos activos | Firebase (Auth + Firestore + Storage) · Cloud Functions deployable (F32 stubs + cron/Resend) |
+
+### 7.1 Inventario del repo post-v2.0.8
+
+| Área | Archivos clave |
+|---|---|
+| **Plan v2.0** | 22 microfases F16-F37 (prompt v2.2) |
+| **Dominio puro** (`assets/js/domain/`) | `schema.js` · `transformador_schema.js` · `subestacion_schema.js` · `salud_activos.js` · `dga_diagnostico.js` · `sobrecarga_admisible.js` · `monitoreo_intensivo.js` · `juicio_experto_fur.js` · `umbrales_salud_baseline.js` · `muestra_schema.js` · `contrato_schema.js` · `catalogos_baseline.js` · `orden_schema.js` · `fallados_schema.js` · `tpt_respaldo.js` · `matriz_riesgo.js` · `estrategias.js` · `rbac.js` · `workflow.js` · `plan_inversion.js` · `desempeno_aliados.js` · `audit.js` · `importador.js` |
+| **Data layer** (`assets/js/data/`) | `transformadores.js` · `subestaciones.js` · `transformadores_subcolecciones.js` · `ordenes.js` · `documentos.js` · `alertas.js` · `kpis.js` · `usuarios.js` · `umbrales_salud.js` · `muestras.js` · `contratos.js` · `catalogos.js` · `fallados.js` · `monitoreo_fur.js` · `parametros_criticidad.js` · `auditoria.js` · `importar.js` |
+| **UIs admin** (15) | `index.html` · `inventario.html` · `ordenes.html` · `kpis.html` · `alertas.html` · `documentos.html` · `mapa.html` · `usuarios.html` · `muestras.html` · `subestaciones.html` · `contratos.html` · `catalogos.html` · `motor-salud.html` · `umbrales-salud.html` · `importar.html` · `propuestas-fur.html` · `plan-inversion.html` · `desempeno-aliados.html` · `fallados.html` · `contramuestras.html` · `auditoria.html` · `demo-seed.html` |
+| **Páginas públicas** (v2) | `dashboard.html` · `matriz-riesgo.html` · `inventario.html` · `ordenes.html` · `kpis.html` · `alertas.html` · `muestras.html` · `documentos.html` · `mapa.html` · `about.html` · `cobertura.html` · `normativa.html` · `contacto.html` |
+| **Cloud Functions** (`functions/`) | `index.js` · `package.json` · `README.md` (deployable con `firebase deploy`) |
+| **Tests** (`tests/`) | 16 archivos · 282 tests (incluye 3 E2E + 7 audit helper + 11 importador + 95 motor) |
+| **Scripts** | `scripts/migrate/v1-to-v2-transformadores.js` |
+| **Rules / Índices** | `firestore.rules` v2 · `firestore.indexes.json` (20+ índices compuestos) · `storage.rules` |
+| **Docs** | `CLAUDE.md` (master plan) · `README.md` · `CHANGELOG.md` · `docs/MODELO-DATOS-v2.md` · `docs/DEPLOY-FUNCTIONS.md` · `docs/ARQUITECTURA.md` · `docs/OPERACIONES.md` · `docs/PLAN-SERVICIOS-EXTERNOS.md` · `functions/README.md` |
+| **PWA** | `manifest.json` · `sw.js` (cache version `sgm-v2-0-8`) |
+| **CI/CD** | `.github/workflows/ci.yml` (lint) · `.github/workflows/pages.yml` (deploy main → GitHub Pages) · `vercel.json` |
 
 > **Continuidad entre chats.** Si arrancas una sesión nueva: lee la
-> sección **0** (permisos de push + token inline), luego revisa la
-> tabla v2.0 en la sección **5.1** para saber qué queda. El prompt
-> maestro v2.2 con el addendum normativo A1–A9 es el contrato
-> funcional de referencia. F16 cerró con schema v2; F17 es la
-> siguiente movida.
+> sección **0** (permisos de push + token inline), luego §7.1
+> (inventario del repo) y §7.2 abajo (cómo continuar). El plan v2.2
+> cerró en `v2.0.0`; del `v2.0.1` al `v2.0.8` fueron ciclos de
+> pulido que el prompt original no pedía pero sí aportan cierre
+> operativo. El último commit fue `6accdb6` (refactor DRY de
+> `persistirAuditoria`) sin tag.
+
+### 7.2 Cómo continuar en una sesión nueva
+
+Si el director pide un **feature específico** (ej. "quiero un widget X",
+"implementa un cálculo Y"):
+1. Revisa el módulo de dominio adecuado en `assets/js/domain/`.
+2. Extiende con función pura + tests.
+3. Si hay I/O: añade data layer en `assets/js/data/`.
+4. Actualiza UI (admin y/o público) según corresponda.
+5. Commit aislado + push inline con el token PAT.
+
+Si el director pide un **bug fix**:
+1. Reproduce con test primero (node --test).
+2. Corrige y verifica 282/282 verdes.
+3. Commit con mensaje descriptivo.
+
+Si el director pide una **operación de despliegue**:
+1. Seed catálogos → `admin/catalogos.html` → CARGAR BASELINE.
+2. Importar Excel → `admin/importar.html` → SIMULAR primero.
+3. Cloud Functions → seguir `docs/DEPLOY-FUNCTIONS.md`.
+4. Merge a main → crear PR desde `claude/review-phase-16-plan-mhPgg`.
+
+Si el director pide una **extensión mayor v3** (nuevos parámetros,
+integración SCADA, etc.):
+1. Pide el "brief técnico" similar al prompt v2.2.
+2. Genera un plan en microfases en `CLAUDE.md` §8.
+3. Cada microfase con commit aislado.
+
+### 7.3 Mapas de documentación
+
+- **Plan histórico** → `CLAUDE.md` §5 (fases F0–F37 con detalle).
+- **Release notes** → `CHANGELOG.md`.
+- **Modelo de datos** → `docs/MODELO-DATOS-v2.md`.
+- **Arquitectura de código** → `docs/ARQUITECTURA.md`.
+- **Runbook operativo** → `docs/OPERACIONES.md`.
+- **Despliegue de Cloud Functions** → `docs/DEPLOY-FUNCTIONS.md`.
+- **Servicios externos (legacy)** → `docs/PLAN-SERVICIOS-EXTERNOS.md`.
 
 ---
 
