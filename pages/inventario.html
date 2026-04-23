@@ -4,11 +4,16 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="robots" content="noindex, nofollow"/>
-  <title>SGM · TRANSPOWER — Inventario de Activos</title>
+  <meta name="theme-color" content="#0a0f1e"/>
+  <meta name="color-scheme" content="dark"/>
+  <title>SGM · TRANSPOWER — Inventario</title>
   <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
   <script type="module" src="../assets/js/auth/page-guard.js"></script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="../assets/css/theme.css"/>
   <link rel="stylesheet" href="../assets/css/base.css"/>
   <link rel="stylesheet" href="../assets/css/app.css"/>
@@ -18,94 +23,81 @@
 <body>
 <script type="module" src="../assets/js/ui/nav.js"></script>
 
-
-
 <main class="page-container">
 
   <div class="page-header">
-    <div class="breadcrumb">Inicio / Inventario</div>
-    <h1 class="page-title">Inventario de <em>Activos</em></h1>
+    <div class="breadcrumb">Operación / Inventario</div>
+    <h1 class="page-title">Inventario del <em>parque</em></h1>
     <p class="page-subtitle">
-      Vista de solo lectura de los transformadores de potencia gestionados por
-      el sistema. Los datos se consultan en tiempo real desde Firestore.
-      La gestión (alta, edición, baja) es exclusiva del panel administrativo.
+      Consulta del parque de transformadores de potencia. Los datos se
+      actualizan en tiempo real; la gestión se realiza desde el módulo
+      administrativo.
     </p>
   </div>
 
   <!-- KPIs -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon">⚡</div>
-      <div class="stat-value" id="kTotal">—</div>
-      <div class="stat-label">TRANSFORMADORES REGISTRADOS</div>
+  <div class="inv-stats">
+    <div class="inv-stat">
+      <div class="inv-stat-label">Registrados</div>
+      <div class="inv-stat-value" id="kTotal">—</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-icon">✅</div>
-      <div class="stat-value" id="kOp" style="color:var(--accent3)">—</div>
-      <div class="stat-label">EN OPERACIÓN</div>
+    <div class="inv-stat">
+      <div class="inv-stat-label">En operación</div>
+      <div class="inv-stat-value" id="kOp" style="color: var(--success-500)">—</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-icon">🔧</div>
-      <div class="stat-value" id="kMan" style="color:var(--accent2)">—</div>
-      <div class="stat-label">EN MANTENIMIENTO</div>
+    <div class="inv-stat">
+      <div class="inv-stat-label">En mantenimiento</div>
+      <div class="inv-stat-value" id="kMan" style="color: var(--warm-500)">—</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-icon">⛔</div>
-      <div class="stat-value" id="kFs" style="color:#ff7a99">—</div>
-      <div class="stat-label">FUERA DE SERVICIO</div>
+    <div class="inv-stat">
+      <div class="inv-stat-label">Fuera de servicio</div>
+      <div class="inv-stat-value" id="kFs" style="color: var(--danger-500)">—</div>
     </div>
   </div>
 
-  <!-- FILTROS -->
+  <!-- TOOLBAR -->
   <div class="inv-toolbar">
     <div class="inv-filters">
-      <select class="form-select" id="fDept">
+      <div class="inv-search">
+        <i data-lucide="search"></i>
+        <input type="search" id="fSearch" placeholder="Buscar por código, nombre…" aria-label="Buscar">
+      </div>
+      <select class="form-select" id="fDept" aria-label="Filtrar por departamento">
         <option value="">Todos los departamentos</option>
       </select>
-      <select class="form-select" id="fEstado">
+      <select class="form-select" id="fEstado" aria-label="Filtrar por estado">
         <option value="">Todos los estados</option>
       </select>
-      <input class="form-input" type="search" id="fSearch" placeholder="Buscar por código o nombre…" style="min-width:260px">
     </div>
-    <span id="counter" style="font-family:var(--font-mono); font-size:.72rem; color:var(--muted); letter-spacing:.1em">—</span>
+    <span id="counter" class="text-mono text-xs text-muted" style="letter-spacing:.1em">—</span>
   </div>
 
   <div id="infoBox" class="info-msg" style="display:none"></div>
 
   <!-- TABLA -->
-  <div class="section-head">▸ LISTADO DE TRANSFORMADORES</div>
+  <div class="section-head">Listado</div>
   <div class="table-wrap">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th scope="col">Código</th>
-          <th scope="col">Tipo</th>
-          <th scope="col">Nombre / Subestación</th>
-          <th scope="col">Zona / Depto</th>
-          <th scope="col">Potencia · Tensión</th>
-          <th scope="col">Estado</th>
-          <th scope="col">HI · Bucket</th>
-        </tr>
-      </thead>
-      <tbody id="tbody">
-        <tr><td colspan="7" class="td-empty">Cargando…</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="highlight-box">
-    <strong>Nota:</strong> esta vista consume la colección <code>transformadores</code>
-    de Firestore. Si el inventario aparece vacío, el panel administrativo aún no
-    ha registrado activos. La georreferenciación de cada transformador se
-    visualizará en el <strong>mapa interactivo (Fase 10)</strong>.
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th scope="col">Código</th>
+            <th scope="col">Tipo</th>
+            <th scope="col">Nombre · Subestación</th>
+            <th scope="col">Zona · Depto</th>
+            <th scope="col">Potencia · Tensión</th>
+            <th scope="col">Estado</th>
+            <th scope="col">HI · Bucket</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="7" class="td-empty">Cargando registros…</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
 </main>
-
-<footer class="page-foot">
-  <span>SGM · TRANSPOWER — Caribe Colombiano</span>
-  <span>© <span id="yr">2025</span> · Zona interna</span>
-</footer>
 
 <script type="module" src="../assets/js/inventario-public.js"></script>
 

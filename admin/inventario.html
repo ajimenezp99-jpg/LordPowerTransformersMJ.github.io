@@ -4,11 +4,16 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="robots" content="noindex, nofollow"/>
-  <title>SGM · TRANSPOWER — Admin · Inventario</title>
+  <meta name="theme-color" content="#0a0f1e"/>
+  <meta name="color-scheme" content="dark"/>
+  <title>SGM · TRANSPOWER — Inventario</title>
   <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
   <script type="module" src="../assets/js/auth/admin-guard.js"></script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="../assets/css/theme.css"/>
   <link rel="stylesheet" href="../assets/css/base.css"/>
   <link rel="stylesheet" href="../assets/css/app.css"/>
@@ -18,211 +23,236 @@
 <body>
 <script type="module" src="../assets/js/ui/nav.js"></script>
 
-
-
 <main class="page-container">
 
   <div class="page-header">
-    <div class="breadcrumb">Admin / Inventario</div>
-    <h1 class="page-title">Inventario de <em>Activos</em></h1>
+    <div class="breadcrumb">Operación / Inventario</div>
+    <h1 class="page-title">Inventario de <em>activos</em></h1>
     <p class="page-subtitle">
-      Gestión completa de transformadores de potencia. Alta, edición, baja y
-      consulta. Los registros se persisten en Firestore (colección
-      <code>transformadores</code>) con campos auditables.
+      Gestión del parque de transformadores: alta, edición, baja y consulta.
+      Los registros se persisten en Firestore con campos auditables.
     </p>
   </div>
 
-  <!-- BARRA DE ACCIONES -->
+  <!-- TOOLBAR: búsqueda + filtros + acción -->
   <div class="inv-toolbar">
     <div class="inv-filters">
-      <select class="form-select" id="fDept">
+      <div class="inv-search">
+        <i data-lucide="search"></i>
+        <input type="search" id="fBusqueda" placeholder="Buscar por código, nombre o serial…" aria-label="Buscar">
+      </div>
+      <select class="form-select" id="fDept" aria-label="Filtrar por departamento">
         <option value="">Todos los departamentos</option>
       </select>
-      <select class="form-select" id="fEstado">
+      <select class="form-select" id="fEstado" aria-label="Filtrar por estado">
         <option value="">Todos los estados</option>
       </select>
-      <button class="btn-secondary" id="btnReload">↻ Recargar</button>
+      <button class="btn-secondary" id="btnReload" title="Recargar">
+        <i data-lucide="refresh-cw"></i> Recargar
+      </button>
     </div>
-    <button class="btn-primary" id="btnNuevo">+ NUEVO TRANSFORMADOR</button>
+    <button class="btn-primary" id="btnNuevo">
+      <i data-lucide="plus"></i> Nuevo transformador
+    </button>
   </div>
 
-  <!-- MENSAJE DE ESTADO / ERROR -->
+  <!-- MENSAJE DE ESTADO -->
   <div id="infoBox" class="info-msg" style="display:none"></div>
 
   <!-- TABLA -->
-  <div class="section-head">▸ LISTADO DE TRANSFORMADORES</div>
+  <div class="section-head">Listado de transformadores</div>
   <div class="table-wrap">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th scope="col">Código</th>
-          <th scope="col">Tipo</th>
-          <th scope="col">Nombre / Subestación</th>
-          <th scope="col">Zona / Depto</th>
-          <th scope="col">Potencia · Tensión</th>
-          <th scope="col">Estado</th>
-          <th scope="col">HI · Bucket</th>
-          <th scope="col">Vida rem.</th>
-          <th scope="col" class="col-actions">Acciones</th>
-        </tr>
-      </thead>
-      <tbody id="tbody">
-        <tr><td colspan="9" class="td-empty">Cargando…</td></tr>
-      </tbody>
-    </table>
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th scope="col">Código</th>
+            <th scope="col">Tipo</th>
+            <th scope="col">Nombre · Subestación</th>
+            <th scope="col">Zona · Depto</th>
+            <th scope="col">Potencia · Tensión</th>
+            <th scope="col">Estado</th>
+            <th scope="col">HI · Bucket</th>
+            <th scope="col">Vida rem.</th>
+            <th scope="col" class="col-actions">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="9" class="td-empty">Cargando registros…</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
 </main>
 
 <!-- ═══ MODAL CRUD ═══ -->
 <div id="modal" class="modal-overlay" style="display:none">
-  <div class="modal-card" role="dialog" aria-labelledby="modalTitle">
+  <div class="modal-card" role="dialog" aria-labelledby="modalTitle" aria-modal="true">
     <div class="modal-head">
       <h3 id="modalTitle">Nuevo transformador</h3>
-      <button class="modal-x" id="modalClose" aria-label="Cerrar">✕</button>
+      <button class="modal-x" id="modalClose" aria-label="Cerrar modal">
+        <i data-lucide="x"></i>
+      </button>
     </div>
 
     <form id="form" novalidate>
       <input type="hidden" id="fId">
 
-      <div class="form-row-2">
-        <div class="form-group">
-          <label class="form-label" for="fCodigo">Código *</label>
-          <input class="form-input" type="text" id="fCodigo" required
-                 placeholder="TRF-001">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="fEstadoMain">Estado *</label>
-          <select class="form-select" id="fEstadoMain" required></select>
-        </div>
-      </div>
+      <!-- Identificación ── -->
+      <fieldset class="form-fieldset">
+        <legend class="form-fieldset-title">Identificación</legend>
 
-      <div class="form-group">
-        <label class="form-label" for="fNombre">Nombre / Denominación *</label>
-        <input class="form-input" type="text" id="fNombre" required>
-      </div>
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label" for="fCodigo">Código *</label>
+            <input class="form-input" type="text" id="fCodigo" required placeholder="TRF-001">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fEstadoMain">Estado *</label>
+            <select class="form-select" id="fEstadoMain" required></select>
+          </div>
+        </div>
 
-      <!-- Identificación v2 (MO.00418) -->
-      <div class="form-row-3">
         <div class="form-group">
-          <label class="form-label" for="fTipoActivo">Tipo activo</label>
-          <select class="form-select" id="fTipoActivo">
-            <option value="POTENCIA">POTENCIA</option>
-            <option value="TPT">TPT (Servicios Propios)</option>
-            <option value="RESPALDO">RESPALDO</option>
-          </select>
+          <label class="form-label" for="fNombre">Nombre / denominación *</label>
+          <input class="form-input" type="text" id="fNombre" required>
         </div>
-        <div class="form-group">
-          <label class="form-label" for="fUUCC">UUCC (CREG 085)</label>
-          <input class="form-input" type="text" id="fUUCC" placeholder="N4T1, N5T10…">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="fGrupo">Grupo</label>
-          <select class="form-select" id="fGrupo">
-            <option value="">—</option>
-            <option value="G1">G1</option>
-            <option value="G2">G2</option>
-            <option value="G3">G3</option>
-          </select>
-        </div>
-      </div>
 
-      <div class="form-row-3">
-        <div class="form-group">
-          <label class="form-label" for="fDeptMain">Departamento *</label>
-          <select class="form-select" id="fDeptMain" required></select>
+        <div class="form-row-3">
+          <div class="form-group">
+            <label class="form-label" for="fTipoActivo">Tipo activo</label>
+            <select class="form-select" id="fTipoActivo">
+              <option value="POTENCIA">Potencia</option>
+              <option value="TPT">TPT · Servicios propios</option>
+              <option value="RESPALDO">Respaldo</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fUUCC">UUCC (CREG 085)</label>
+            <input class="form-input" type="text" id="fUUCC" placeholder="N4T1 · N5T10…">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fGrupo">Grupo</label>
+            <select class="form-select" id="fGrupo">
+              <option value="">—</option>
+              <option value="G1">G1</option>
+              <option value="G2">G2</option>
+              <option value="G3">G3</option>
+            </select>
+          </div>
         </div>
-        <div class="form-group">
-          <label class="form-label" for="fZona">Zona</label>
-          <select class="form-select" id="fZona">
-            <option value="">— auto desde depto —</option>
-            <option value="BOLIVAR">BOLIVAR</option>
-            <option value="ORIENTE">ORIENTE</option>
-            <option value="OCCIDENTE">OCCIDENTE</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="fMun">Municipio</label>
-          <input class="form-input" type="text" id="fMun">
-        </div>
-      </div>
+      </fieldset>
 
-      <div class="form-group">
-        <label class="form-label" for="fSub">Subestación</label>
-        <input class="form-input" type="text" id="fSub">
-      </div>
+      <!-- Ubicación ── -->
+      <fieldset class="form-fieldset">
+        <legend class="form-fieldset-title">Ubicación</legend>
 
-      <div class="form-row-3">
-        <div class="form-group">
-          <label class="form-label" for="fPot">Potencia (kVA)</label>
-          <input class="form-input" type="number" id="fPot" step="0.1" min="0">
+        <div class="form-row-3">
+          <div class="form-group">
+            <label class="form-label" for="fDeptMain">Departamento *</label>
+            <select class="form-select" id="fDeptMain" required></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fZona">Zona</label>
+            <select class="form-select" id="fZona">
+              <option value="">Auto desde depto</option>
+              <option value="BOLIVAR">Bolívar</option>
+              <option value="ORIENTE">Oriente</option>
+              <option value="OCCIDENTE">Occidente</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fMun">Municipio</label>
+            <input class="form-input" type="text" id="fMun">
+          </div>
         </div>
-        <div class="form-group">
-          <label class="form-label" for="fTp">Tensión primaria (kV)</label>
-          <input class="form-input" type="number" id="fTp" step="0.01" min="0">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="fTs">Tensión secundaria (kV)</label>
-          <input class="form-input" type="number" id="fTs" step="0.01" min="0">
-        </div>
-      </div>
 
-      <div class="form-row-3">
         <div class="form-group">
-          <label class="form-label" for="fMarca">Marca</label>
-          <input class="form-input" type="text" id="fMarca">
+          <label class="form-label" for="fSub">Subestación</label>
+          <input class="form-input" type="text" id="fSub">
         </div>
-        <div class="form-group">
-          <label class="form-label" for="fModelo">Modelo</label>
-          <input class="form-input" type="text" id="fModelo">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="fSerial">Serial</label>
-          <input class="form-input" type="text" id="fSerial">
-        </div>
-      </div>
 
-      <div class="form-row-2">
-        <div class="form-group">
-          <label class="form-label" for="fFf">Fecha fabricación</label>
-          <input class="form-input" type="date" id="fFf">
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label" for="fLat">Latitud</label>
+            <input class="form-input" type="number" id="fLat" step="0.000001" placeholder="9.4">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fLng">Longitud</label>
+            <input class="form-input" type="number" id="fLng" step="0.000001" placeholder="-74.8">
+          </div>
         </div>
-        <div class="form-group">
-          <label class="form-label" for="fFi">Fecha instalación</label>
-          <input class="form-input" type="date" id="fFi">
-        </div>
-      </div>
+      </fieldset>
 
-      <div class="form-row-2">
-        <div class="form-group">
-          <label class="form-label" for="fLat">Latitud</label>
-          <input class="form-input" type="number" id="fLat" step="0.000001">
-        </div>
-        <div class="form-group">
-          <label class="form-label" for="fLng">Longitud</label>
-          <input class="form-input" type="number" id="fLng" step="0.000001">
-        </div>
-      </div>
+      <!-- Datos técnicos ── -->
+      <fieldset class="form-fieldset">
+        <legend class="form-fieldset-title">Datos técnicos</legend>
 
-      <div class="form-group">
-        <label class="form-label" for="fObs">Observaciones</label>
-        <textarea class="form-textarea" id="fObs" rows="3"></textarea>
-      </div>
+        <div class="form-row-3">
+          <div class="form-group">
+            <label class="form-label" for="fPot">Potencia (kVA)</label>
+            <input class="form-input" type="number" id="fPot" step="0.1" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fTp">Tensión primaria (kV)</label>
+            <input class="form-input" type="number" id="fTp" step="0.01" min="0">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fTs">Tensión secundaria (kV)</label>
+            <input class="form-input" type="number" id="fTs" step="0.01" min="0">
+          </div>
+        </div>
+
+        <div class="form-row-3">
+          <div class="form-group">
+            <label class="form-label" for="fMarca">Marca</label>
+            <input class="form-input" type="text" id="fMarca">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fModelo">Modelo</label>
+            <input class="form-input" type="text" id="fModelo">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fSerial">Serial</label>
+            <input class="form-input" type="text" id="fSerial">
+          </div>
+        </div>
+
+        <div class="form-row-2">
+          <div class="form-group">
+            <label class="form-label" for="fFf">Fecha fabricación</label>
+            <input class="form-input" type="date" id="fFf">
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="fFi">Fecha instalación</label>
+            <input class="form-input" type="date" id="fFi">
+          </div>
+        </div>
+      </fieldset>
+
+      <!-- Observaciones ── -->
+      <fieldset class="form-fieldset">
+        <legend class="form-fieldset-title">Notas</legend>
+        <div class="form-group" style="margin: 0">
+          <label class="form-label" for="fObs">Observaciones</label>
+          <textarea class="form-textarea" id="fObs" rows="3"></textarea>
+        </div>
+      </fieldset>
 
       <div id="formMsg" class="msg" role="status" aria-live="polite"></div>
 
       <div class="modal-actions">
-        <button type="button" class="btn-secondary" id="btnCancel">Cancelar</button>
-        <button type="submit" class="btn-primary" id="btnSave">GUARDAR →</button>
+        <button type="button" class="btn-secondary" id="btnCancel">
+          <i data-lucide="x"></i> Cancelar
+        </button>
+        <button type="submit" class="btn-primary" id="btnSave">
+          <i data-lucide="check"></i> Guardar
+        </button>
       </div>
     </form>
   </div>
 </div>
-
-<footer class="page-foot">
-  <span>SGM · TRANSPOWER — Admin · Inventario</span>
-  <span>© <span id="yr">2025</span> · Zona restringida</span>
-</footer>
 
 <script type="module" src="../assets/js/admin/admin-inventario.js"></script>
 

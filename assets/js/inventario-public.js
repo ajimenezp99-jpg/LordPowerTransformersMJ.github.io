@@ -132,6 +132,6 @@ import('./auth/session-guard.js').then((m) => {
   const btn = document.getElementById('btnLogout');
   if (btn) btn.addEventListener('click', () => m.logout());
 });
-$('yr').textContent = new Date().getFullYear();
+if($('yr'))$('yr').textContent = new Date().getFullYear();
 
 cargar();

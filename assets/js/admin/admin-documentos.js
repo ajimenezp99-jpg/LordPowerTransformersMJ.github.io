@@ -284,11 +284,11 @@ $('btnReload').addEventListener('click', cargar);
 fCategoriaFilter.addEventListener('change', cargar);
 fNormaFilter.addEventListener('change', cargar);
 
-$('btnLogout').addEventListener('click', async () => {
+$('btnLogout')?.addEventListener('click', async () => {
   try { await logoutAdmin(); } catch (_) {}
   location.replace(ADMIN_ROUTES.login);
 });
-$('yr').textContent = new Date().getFullYear();
+if($('yr'))$('yr').textContent = new Date().getFullYear();
 
 // ── Init ──
 fillSelects();

@@ -16,8 +16,8 @@ const $ = (id) => document.getElementById(id);
 let cache = [];
 
 // ── Logout ──
-$('btnLogout').addEventListener('click', () => logout());
-$('yr').textContent = new Date().getFullYear();
+$('btnLogout')?.addEventListener('click', () => logout());
+if($('yr'))$('yr').textContent = new Date().getFullYear();
 
 // ── Carga inicial ──
 async function cargar() {

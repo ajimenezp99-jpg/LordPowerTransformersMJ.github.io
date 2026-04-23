@@ -77,10 +77,10 @@ fEstado.addEventListener('change', cargar);
 $('btnReload').addEventListener('click', cargar);
 $('btnReset').addEventListener('click', resetMap);
 
-$('btnLogout').addEventListener('click', async () => {
+$('btnLogout')?.addEventListener('click', async () => {
   try { await logoutAdmin(); } catch (_) {}
   location.replace(ADMIN_ROUTES.login);
 });
-$('yr').textContent = new Date().getFullYear();
+if($('yr'))$('yr').textContent = new Date().getFullYear();
 
 cargar();

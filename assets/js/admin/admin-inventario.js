@@ -105,8 +105,8 @@ function render(rows) {
         : '—'}</td>
       <td>${vidaRem != null ? vidaRem.toFixed(0) + ' %' : '—'}</td>
       <td class="col-actions">
-        <button class="row-btn" data-act="edit" data-id="${t.id}">Editar</button>
-        <button class="row-btn danger" data-act="del" data-id="${t.id}">Eliminar</button>
+        <button class="row-btn" data-act="edit" data-id="${t.id}" title="Editar" aria-label="Editar"><i data-lucide="pencil"></i></button>
+        <button class="row-btn danger" data-act="del" data-id="${t.id}" title="Eliminar" aria-label="Eliminar"><i data-lucide="trash-2"></i></button>
       </td>
     </tr>
   `;
@@ -282,11 +282,11 @@ $('btnReload').addEventListener('click', cargar);
 fDeptFilter.addEventListener('change', cargar);
 fEstadoFilter.addEventListener('change', cargar);
 
-$('btnLogout').addEventListener('click', async () => {
+$('btnLogout')?.addEventListener('click', async () => {
   try { await logoutAdmin(); } catch (_) {}
   location.replace(ADMIN_ROUTES.login);
 });
-$('yr').textContent = new Date().getFullYear();
+if($('yr'))$('yr').textContent = new Date().getFullYear();
 
 // ── Init ──
 fillSelects();

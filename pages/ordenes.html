@@ -4,11 +4,16 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="robots" content="noindex, nofollow"/>
-  <title>SGM · TRANSPOWER — Órdenes de Trabajo</title>
+  <meta name="theme-color" content="#0a0f1e"/>
+  <meta name="color-scheme" content="dark"/>
+  <title>SGM · TRANSPOWER — Órdenes</title>
   <link rel="icon" type="image/svg+xml" href="../assets/img/favicon.svg"/>
   <script type="module" src="../assets/js/auth/page-guard.js"></script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="../assets/css/theme.css"/>
   <link rel="stylesheet" href="../assets/css/base.css"/>
   <link rel="stylesheet" href="../assets/css/app.css"/>
@@ -19,101 +24,84 @@
 <body>
 <script type="module" src="../assets/js/ui/nav.js"></script>
 
-
-
 <main class="page-container">
 
   <div class="page-header">
-    <div class="breadcrumb">Inicio / Órdenes de Trabajo</div>
-    <h1 class="page-title">Órdenes de <em>Trabajo</em></h1>
+    <div class="breadcrumb">Operación / Órdenes</div>
+    <h1 class="page-title">Órdenes de <em>trabajo</em></h1>
     <p class="page-subtitle">
-      Vista de solo lectura de las intervenciones planificadas, en curso y cerradas.
-      Los datos se consultan en tiempo real desde Firestore (colección
-      <code>ordenes</code>). La gestión es exclusiva del panel administrativo.
+      Consulta de las intervenciones planificadas, en curso y cerradas.
+      Cada orden mantiene un historial inmutable con todos sus cambios de estado.
     </p>
   </div>
 
   <!-- KPIs -->
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon">📋</div>
-      <div class="stat-value" id="kTotal">—</div>
-      <div class="stat-label">ÓRDENES REGISTRADAS</div>
+  <div class="inv-stats">
+    <div class="inv-stat">
+      <div class="inv-stat-label">Registradas</div>
+      <div class="inv-stat-value" id="kTotal">—</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-icon">🗓</div>
-      <div class="stat-value" id="kPlan" style="color:var(--accent)">—</div>
-      <div class="stat-label">PLANIFICADAS</div>
+    <div class="inv-stat">
+      <div class="inv-stat-label">Planificadas</div>
+      <div class="inv-stat-value" id="kPlan" style="color: var(--brand-400)">—</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-icon">⚙</div>
-      <div class="stat-value" id="kCurso" style="color:var(--accent2)">—</div>
-      <div class="stat-label">EN CURSO</div>
+    <div class="inv-stat">
+      <div class="inv-stat-label">En curso</div>
+      <div class="inv-stat-value" id="kCurso" style="color: var(--warm-500)">—</div>
     </div>
-    <div class="stat-card">
-      <div class="stat-icon">✅</div>
-      <div class="stat-value" id="kCerr" style="color:var(--accent3)">—</div>
-      <div class="stat-label">CERRADAS</div>
+    <div class="inv-stat">
+      <div class="inv-stat-label">Cerradas</div>
+      <div class="inv-stat-value" id="kCerr" style="color: var(--success-500)">—</div>
     </div>
   </div>
 
-  <!-- FILTROS -->
+  <!-- TOOLBAR -->
   <div class="inv-toolbar">
     <div class="inv-filters">
-      <select class="form-select" id="fEstado">
+      <div class="inv-search">
+        <i data-lucide="search"></i>
+        <input type="search" id="fSearch" placeholder="Buscar por código, título, transformador…" aria-label="Buscar">
+      </div>
+      <select class="form-select" id="fEstado" aria-label="Filtrar por estado">
         <option value="">Todos los estados</option>
       </select>
-      <select class="form-select" id="fTipo">
+      <select class="form-select" id="fTipo" aria-label="Filtrar por tipo">
         <option value="">Todos los tipos</option>
       </select>
-      <select class="form-select" id="fPrioridad">
+      <select class="form-select" id="fPrioridad" aria-label="Filtrar por prioridad">
         <option value="">Todas las prioridades</option>
       </select>
-      <input class="form-input" type="search" id="fSearch"
-             placeholder="Buscar por código, título o transformador…"
-             style="min-width:260px">
     </div>
-    <span id="counter" style="font-family:var(--font-mono); font-size:.72rem; color:var(--muted); letter-spacing:.1em">—</span>
+    <span id="counter" class="text-mono text-xs text-muted" style="letter-spacing:.1em">—</span>
   </div>
 
   <div id="infoBox" class="info-msg" style="display:none"></div>
 
-  <!-- TABLA -->
-  <div class="section-head">▸ LISTADO DE ÓRDENES</div>
+  <div class="section-head">Listado</div>
   <div class="table-wrap">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th scope="col">Código</th>
-          <th scope="col">Título / Transformador</th>
-          <th scope="col">Tipo</th>
-          <th scope="col">Prioridad</th>
-          <th scope="col">Macroactividad</th>
-          <th scope="col">Contrato</th>
-          <th scope="col">Programada</th>
-          <th scope="col">Técnico / Aliado</th>
-          <th scope="col">Estado</th>
-        </tr>
-      </thead>
-      <tbody id="tbody">
-        <tr><td colspan="9" class="td-empty">Cargando…</td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="highlight-box">
-    <strong>Nota:</strong> esta vista consume la colección <code>ordenes</code>
-    de Firestore. Cada orden mantiene un <strong>historial inmutable</strong>
-    en su subcolección <code>historial</code> (append-only), donde quedan
-    registrados todos los cambios de estado con marca de tiempo y UID del admin.
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th scope="col">Código</th>
+            <th scope="col">Título · Transformador</th>
+            <th scope="col">Tipo</th>
+            <th scope="col">Prioridad</th>
+            <th scope="col">Macroactividad</th>
+            <th scope="col">Contrato</th>
+            <th scope="col">Programada</th>
+            <th scope="col">Técnico · Aliado</th>
+            <th scope="col">Estado</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="9" class="td-empty">Cargando registros…</td></tr>
+        </tbody>
+      </table>
+    </div>
   </div>
 
 </main>
-
-<footer class="page-foot">
-  <span>SGM · TRANSPOWER — Caribe Colombiano</span>
-  <span>© <span id="yr">2025</span> · Zona interna</span>
-</footer>
 
 <script type="module" src="../assets/js/ordenes-public.js"></script>
 

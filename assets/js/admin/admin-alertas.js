@@ -253,10 +253,10 @@ window.addEventListener('beforeunload', () => {
   if (unsubscribe) { try { unsubscribe(); } catch (_) {} }
 });
 
-$('btnLogout').addEventListener('click', async () => {
+$('btnLogout')?.addEventListener('click', async () => {
   try { await logoutAdmin(); } catch (_) {}
   location.replace(ADMIN_ROUTES.login);
 });
-$('yr').textContent = new Date().getFullYear();
+if($('yr'))$('yr').textContent = new Date().getFullYear();
 
 cargar();
