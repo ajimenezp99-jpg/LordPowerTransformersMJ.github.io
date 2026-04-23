@@ -4,218 +4,384 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="robots" content="noindex, nofollow"/>
-  <meta name="theme-color" content="#040c14"/>
+  <meta name="theme-color" content="#0a0f1e"/>
   <meta name="color-scheme" content="dark"/>
-  <meta name="description" content="Panel principal — SGM · TRANSPOWER. Zona interna de gestión."/>
-  <title>SGM · TRANSPOWER — Panel Principal</title>
+  <meta name="description" content="Panel operativo — SGM · TRANSPOWER."/>
+  <title>SGM · TRANSPOWER — Panel Operativo</title>
   <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg"/>
   <link rel="canonical" href="https://lordpowertransformersmj.github.io/home.html"/>
   <script type="module" src="assets/js/auth/page-guard.js"></script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="assets/css/theme.css"/>
   <link rel="stylesheet" href="assets/css/base.css"/>
   <link rel="stylesheet" href="assets/css/app.css"/>
+  <link rel="stylesheet" href="assets/css/nav.css"/>
+  <link rel="stylesheet" href="assets/css/home-v3.css"/>
 </head>
 <body>
 
 <a class="skip-link" href="#main">Saltar al contenido principal</a>
 
-<header class="topbar">
-  <a href="home.html" class="topbar-brand">SGM · <span>TRANSPOWER</span></a>
-  <nav class="main-nav">
-    <a href="home.html"                class="nav-link active">Inicio</a>
-    <a href="pages/dashboard.html"     class="nav-link">Dashboard</a>
-    <a href="pages/inventario.html"    class="nav-link">Inventario</a>
-    <a href="pages/ordenes.html"       class="nav-link">Órdenes</a>
-    <a href="pages/matriz-riesgo.html" class="nav-link">Matriz</a>
-    <a href="pages/kpis.html"          class="nav-link">KPIs</a>
-    <a href="pages/mapa.html"          class="nav-link">Mapa</a>
-    <a href="pages/alertas.html"       class="nav-link">Alertas</a>
-    <a href="pages/documentos.html"    class="nav-link">Documentos</a>
-    <a href="pages/normativa.html"     class="nav-link">Normativa</a>
-    <a href="admin/index.html"         class="nav-link nav-admin" id="navAdmin" hidden>Admin ▾</a>
-  </nav>
-  <div class="user-chip" id="userChip" hidden>
-    <span class="user-chip-name" id="userName">—</span>
-    <span class="user-chip-rol"  id="userRol">—</span>
-  </div>
-  <button class="btn-logout" id="btnLogout">CERRAR SESIÓN</button>
-</header>
+<script type="module" src="assets/js/ui/nav.js"></script>
 
-<main id="main" class="page-container">
+<main id="main" class="home-shell">
 
-  <!-- ENCABEZADO -->
-  <div class="page-header">
-    <div class="breadcrumb">// PANEL PRINCIPAL · CARIBE COLOMBIANO</div>
-    <h1 class="page-title">Sistema de Gestión del<br><em>Mantenimiento Especializado</em></h1>
-    <p class="page-subtitle">
-      Transformadores de Potencia en servicio activo — Bolívar, Córdoba, Sucre, Cesar y Magdalena.
-      Plataforma integral de trazabilidad, análisis RAM e indicadores de desempeño.
-    </p>
-  </div>
+  <!-- ── HERO ─────────────────────────────────────────────── -->
+  <section class="home-hero reveal">
+    <div class="home-hero-inner">
+      <div>
+        <div class="hero-eyebrow">Plataforma operativa · Caribe Colombiano</div>
+        <h1 class="hero-title">Gestión del mantenimiento de <em>Transformadores de Potencia</em></h1>
+        <p class="hero-sub">
+          Trazabilidad, salud de activos, planificación de intervenciones
+          y analítica RAM en tiempo real sobre el parque del operador.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary-v3" href="pages/dashboard.html">
+            <i data-lucide="layout-grid"></i> Abrir dashboard
+          </a>
+          <a class="btn btn-ghost" href="pages/mapa.html">
+            <i data-lucide="map"></i> Ver mapa
+          </a>
+        </div>
+      </div>
+      <div class="hero-card">
+        <div class="hero-card-eyebrow">Parque total</div>
+        <div>
+          <span class="hero-card-value" id="heroTotal">—</span>
+          <span class="hero-card-unit">transformadores</span>
+        </div>
+        <div class="hero-ring">
+          <div class="hero-ring-item">
+            <span class="hero-ring-label">Potencia</span>
+            <span class="hero-ring-value" id="heroPotencia">—</span>
+          </div>
+          <div class="hero-ring-item">
+            <span class="hero-ring-label">TPT</span>
+            <span class="hero-ring-value" id="heroTpt">—</span>
+          </div>
+          <div class="hero-ring-item">
+            <span class="hero-ring-label">Respaldo</span>
+            <span class="hero-ring-value" id="heroResp">—</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-  <!-- KPIs OPERATIVOS -->
-  <div class="section-head">▸ INDICADORES OPERATIVOS EN TIEMPO REAL</div>
-  <div class="stats-grid">
-    <div class="stat-card">
-      <div class="stat-icon">⚡</div>
-      <div class="stat-value" id="hkTrafos">--</div>
-      <div class="stat-label">TRANSFORMADORES REGISTRADOS</div>
+  <!-- ── KPIs OPERATIVOS ─────────────────────────────────── -->
+  <section class="home-section reveal">
+    <div class="home-section-head">
+      <div>
+        <h2 class="home-section-title">Indicadores en tiempo real</h2>
+        <div class="home-section-sub">Métricas clave del parque y la operación del día</div>
+      </div>
+      <a class="home-section-link" href="pages/kpis.html">Ver analítica completa <i data-lucide="arrow-right"></i></a>
     </div>
-    <div class="stat-card">
-      <div class="stat-icon">🔧</div>
-      <div class="stat-value" id="hkActivas">--</div>
-      <div class="stat-label">ÓRDENES ACTIVAS</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">📈</div>
-      <div class="stat-value" id="hkDisp">--%</div>
-      <div class="stat-label">DISPONIBILIDAD PROMEDIO</div>
-    </div>
-    <div class="stat-card">
-      <div class="stat-icon">⏱</div>
-      <div class="stat-value" id="hkMtbf">-- d</div>
-      <div class="stat-label">MTBF PROMEDIO</div>
-    </div>
-  </div>
 
-  <!-- MÓDULOS -->
-  <div class="section-head">▸ MÓDULOS DEL SISTEMA</div>
-  <div class="modules-grid">
-    <a href="pages/inventario.html" class="module-card" style="text-decoration:none">
-      <div class="module-icon">⚡</div>
-      <div class="module-name">Inventario de Activos</div>
-      <div class="module-desc">Registro, trazabilidad y ficha técnica de cada transformador por zona y estado operativo.</div>
-      <span class="status-badge done">ACTIVO · F6</span>
-    </a>
-    <a href="pages/ordenes.html" class="module-card" style="text-decoration:none">
-      <div class="module-icon">🔧</div>
-      <div class="module-name">Órdenes de Trabajo</div>
-      <div class="module-desc">Planificación, asignación y seguimiento de mantenimientos preventivos y correctivos con historial inmutable.</div>
-      <span class="status-badge done">ACTIVO · F7</span>
-    </a>
-    <a href="pages/kpis.html" class="module-card" style="text-decoration:none">
-      <div class="module-icon">📊</div>
-      <div class="module-name">KPIs &amp; Analítica RAM</div>
-      <div class="module-desc">Indicadores de confiabilidad, disponibilidad y mantenibilidad: MTBF, MTTR y disponibilidad media.</div>
-      <span class="status-badge done">ACTIVO · F8</span>
-    </a>
-    <a href="pages/documentos.html" class="module-card" style="text-decoration:none">
-      <div class="module-icon">📋</div>
-      <div class="module-name">Gestión Documental</div>
-      <div class="module-desc">Protocolos, informes técnicos y registros normalizados bajo ISO 50001:2018 con almacenamiento en la nube.</div>
-      <span class="status-badge done">ACTIVO · F9</span>
-    </a>
-    <a href="pages/mapa.html" class="module-card" style="text-decoration:none">
-      <div class="module-icon">🗺️</div>
-      <div class="module-name">Georreferenciación</div>
-      <div class="module-desc">Mapa interactivo con clusters por departamento. Clic en marcador abre ficha del transformador.</div>
-      <span class="status-badge done">ACTIVO · F10</span>
-    </a>
-    <a href="pages/alertas.html" class="module-card" style="text-decoration:none">
-      <div class="module-icon">🔔</div>
-      <div class="module-name">Alertas &amp; Notificaciones</div>
-      <div class="module-desc">Avisos automáticos por vencimiento de mantenimientos, anomalías detectadas y KPIs fuera de rango.</div>
-      <span class="status-badge done">ACTIVO · F11</span>
-    </a>
-  </div>
+    <div class="stat-row">
+      <div class="stat-v3">
+        <div class="stat-v3-head">
+          <span class="stat-v3-label">Disponibilidad</span>
+          <span class="stat-v3-icon variant-teal"><i data-lucide="activity"></i></span>
+        </div>
+        <div class="stat-v3-value"><span id="kpiDisp">—</span><span class="stat-v3-unit">%</span></div>
+        <div class="stat-v3-foot"><span class="text-muted">MTBF / MTBF+MTTR · parque completo</span></div>
+        <svg class="spark" id="sparkDisp" viewBox="0 0 160 36" preserveAspectRatio="none" aria-hidden="true"></svg>
+      </div>
 
-  <!-- PROGRESO -->
-  <div class="section-head">▸ PROGRESO DE DESARROLLO DEL SISTEMA</div>
-  <div class="progress-wrap">
-    <div class="progress-label">
-      <span>Plataforma lista · 14 / 14 fases</span>
-      <span>100 %</span>
+      <div class="stat-v3">
+        <div class="stat-v3-head">
+          <span class="stat-v3-label">Órdenes activas</span>
+          <span class="stat-v3-icon"><i data-lucide="clipboard-list"></i></span>
+        </div>
+        <div class="stat-v3-value" id="kpiOrdenes">—</div>
+        <div class="stat-v3-foot"><span class="text-muted">Planificadas + en curso</span></div>
+        <svg class="spark" id="sparkOrd" viewBox="0 0 160 36" preserveAspectRatio="none" aria-hidden="true"></svg>
+      </div>
+
+      <div class="stat-v3">
+        <div class="stat-v3-head">
+          <span class="stat-v3-label">HI promedio</span>
+          <span class="stat-v3-icon variant-warm"><i data-lucide="heart-pulse"></i></span>
+        </div>
+        <div class="stat-v3-value"><span id="kpiHi">—</span></div>
+        <div class="stat-v3-foot"><span class="text-muted">Health Index · Tabla 10</span></div>
+        <svg class="spark" id="sparkHi" viewBox="0 0 160 36" preserveAspectRatio="none" aria-hidden="true"></svg>
+      </div>
+
+      <div class="stat-v3">
+        <div class="stat-v3-head">
+          <span class="stat-v3-label">Alertas críticas</span>
+          <span class="stat-v3-icon variant-danger"><i data-lucide="alert-triangle"></i></span>
+        </div>
+        <div class="stat-v3-value" id="kpiAlertas">—</div>
+        <div class="stat-v3-foot"><span class="text-muted">Sin reconocer · ahora</span></div>
+        <svg class="spark" id="sparkAl" viewBox="0 0 160 36" preserveAspectRatio="none" aria-hidden="true"></svg>
+      </div>
     </div>
-    <div class="progress-bar">
-      <div class="progress-fill" style="--fill-pct:100%"></div>
+  </section>
+
+  <!-- ── ALERTAS CRÍTICAS ─────────────────────────────────── -->
+  <section class="home-section reveal">
+    <div class="home-section-head">
+      <div>
+        <h2 class="home-section-title">Requiere atención</h2>
+        <div class="home-section-sub">Alertas críticas sin reconocer del parque</div>
+      </div>
+      <a class="home-section-link" href="pages/alertas.html">Todas las alertas <i data-lucide="arrow-right"></i></a>
     </div>
-  </div>
-  <div class="phases-row">
-    <span class="status-badge done">F0 Documentación</span>
-    <span class="status-badge done">F1 CSS Base</span>
-    <span class="status-badge done">F2 Páginas Estáticas</span>
-    <span class="status-badge done">F3 Hosting/CI</span>
-    <span class="status-badge done">F4 Firebase</span>
-    <span class="status-badge done">F5 Auth Admin</span>
-    <span class="status-badge done">F6 Inventario</span>
-    <span class="status-badge done">F7 Órdenes</span>
-    <span class="status-badge done">F8 KPIs</span>
-    <span class="status-badge done">F9 Documental</span>
-    <span class="status-badge done">F10 Georref.</span>
-    <span class="status-badge done">F11 Alertas</span>
-    <span class="status-badge done">F12 Gate Dinámico</span>
-    <span class="status-badge done">F13 Pulido</span>
-    <span class="status-badge done">F14 Lanzamiento</span>
-  </div>
+    <div class="alerts-strip" id="alertsStrip">
+      <div class="alert-empty">
+        <i data-lucide="check-circle-2"></i>
+        <p>Sin alertas críticas. El parque opera dentro de parámetros.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── SALUD · TOP PI ───────────────────────────────────── -->
+  <section class="home-section reveal">
+    <div class="two-panel-grid">
+      <div class="panel-v3">
+        <div class="panel-v3-head">
+          <div>
+            <h3 class="home-section-title" style="font-size: var(--text-xl)">Distribución por condición</h3>
+            <div class="home-section-sub">Buckets HI · MO.00418 §A9.7</div>
+          </div>
+          <a class="home-section-link" href="pages/matriz-riesgo.html">Matriz <i data-lucide="arrow-right"></i></a>
+        </div>
+        <div class="bucket-row" id="bucketRows">
+          <div class="bucket-item"><span class="bucket-label"><span class="bucket-dot" style="background:#4ade80"></span>Muy bueno</span><div class="bucket-track"><div class="bucket-fill" data-bucket="1" style="background:#4ade80"></div></div><span class="bucket-value" data-bvalue="1">—</span></div>
+          <div class="bucket-item"><span class="bucket-label"><span class="bucket-dot" style="background:#00d9c0"></span>Bueno</span><div class="bucket-track"><div class="bucket-fill" data-bucket="2" style="background:#00d9c0"></div></div><span class="bucket-value" data-bvalue="2">—</span></div>
+          <div class="bucket-item"><span class="bucket-label"><span class="bucket-dot" style="background:#4f8cff"></span>Medio</span><div class="bucket-track"><div class="bucket-fill" data-bucket="3" style="background:#4f8cff"></div></div><span class="bucket-value" data-bvalue="3">—</span></div>
+          <div class="bucket-item"><span class="bucket-label"><span class="bucket-dot" style="background:#ffa94d"></span>Pobre</span><div class="bucket-track"><div class="bucket-fill" data-bucket="4" style="background:#ffa94d"></div></div><span class="bucket-value" data-bvalue="4">—</span></div>
+          <div class="bucket-item"><span class="bucket-label"><span class="bucket-dot" style="background:#ff5a6e"></span>Muy pobre</span><div class="bucket-track"><div class="bucket-fill" data-bucket="5" style="background:#ff5a6e"></div></div><span class="bucket-value" data-bvalue="5">—</span></div>
+        </div>
+      </div>
+
+      <div class="panel-v3">
+        <div class="panel-v3-head">
+          <div>
+            <h3 class="home-section-title" style="font-size: var(--text-xl)">Top Plan de Inversión</h3>
+            <div class="home-section-sub">Ranking multicriterio por HI + criticidad</div>
+          </div>
+          <a class="home-section-link" href="admin/plan-inversion.html">Completo <i data-lucide="arrow-right"></i></a>
+        </div>
+        <div class="pi-list" id="piList">
+          <div class="feed-empty">Cargando ranking…</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── ACTIVIDAD RECIENTE ───────────────────────────────── -->
+  <section class="home-section reveal">
+    <div class="home-section-head">
+      <div>
+        <h2 class="home-section-title">Actividad reciente</h2>
+        <div class="home-section-sub">Últimos eventos en el parque</div>
+      </div>
+    </div>
+    <div class="panel-v3">
+      <div class="feed-list" id="feedList">
+        <div class="feed-empty">Sin actividad reciente.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── ACCESOS RÁPIDOS ──────────────────────────────────── -->
+  <section class="home-section reveal">
+    <div class="home-section-head">
+      <div>
+        <h2 class="home-section-title">Accesos rápidos</h2>
+        <div class="home-section-sub">Saltos directos a operaciones frecuentes</div>
+      </div>
+    </div>
+    <div class="quick-grid">
+      <a class="quick-card" href="admin/muestras.html">
+        <span class="quick-icon"><i data-lucide="flask-conical"></i></span>
+        <div class="quick-title">Nueva muestra</div>
+        <div class="quick-desc">Captura DGA / ADFQ / FUR con validación §A9.6.</div>
+        <span class="quick-arrow">Capturar <i data-lucide="arrow-right"></i></span>
+      </a>
+      <a class="quick-card" href="admin/ordenes.html">
+        <span class="quick-icon"><i data-lucide="clipboard-plus"></i></span>
+        <div class="quick-title">Nueva orden</div>
+        <div class="quick-desc">Planifica un mantenimiento con FKs de catálogo.</div>
+        <span class="quick-arrow">Crear <i data-lucide="arrow-right"></i></span>
+      </a>
+      <a class="quick-card" href="admin/motor-salud.html">
+        <span class="quick-icon"><i data-lucide="activity"></i></span>
+        <div class="quick-title">Calcular HI</div>
+        <div class="quick-desc">Sandbox del motor con Tabla 10 y overrides §A5/§A9.</div>
+        <span class="quick-arrow">Abrir <i data-lucide="arrow-right"></i></span>
+      </a>
+      <a class="quick-card" href="admin/importar.html">
+        <span class="quick-icon"><i data-lucide="upload-cloud"></i></span>
+        <div class="quick-title">Importar Excel</div>
+        <div class="quick-desc">Carga masiva con simulación previa y reporte de discrepancias.</div>
+        <span class="quick-arrow">Importar <i data-lucide="arrow-right"></i></span>
+      </a>
+    </div>
+  </section>
 
 </main>
 
-<footer class="page-foot">
-  <span>SGM · TRANSPOWER — Caribe Colombiano</span>
-  <span>ISO 50001:2018 · IEEE C57.12 · IEC 60076</span>
-  <span>© <span id="yr">2025</span> · v1.0.0</span>
+<footer class="home-foot">
+  <span>SGM · TRANSPOWER · Caribe Colombiano · <span id="yr">2026</span></span>
 </footer>
 
 <script type="module">
-  import { logout } from './assets/js/auth/session-guard.js';
-
   document.getElementById('yr').textContent = new Date().getFullYear();
-  document.getElementById('btnLogout').addEventListener('click', () => logout());
 
-  // Personaliza el header con los datos del perfil cuando la sesión
-  // esté lista. Si el rol es admin, se muestra el enlace al panel.
-  function mountSession(sess) {
-    if (!sess) return;
-    const chip   = document.getElementById('userChip');
-    const nName  = document.getElementById('userName');
-    const nRol   = document.getElementById('userRol');
-    const aAdmin = document.getElementById('navAdmin');
-    const p = sess.profile || {};
-    nName.textContent = p.nombre || p.email || sess.user.email || '—';
-    nRol.textContent  = (sess.role || 'tecnico').toUpperCase();
-    chip.hidden = false;
-    if (sess.role === 'admin') aAdmin.hidden = false;
+  // Reveal on scroll
+  const obs = new IntersectionObserver((entries) => {
+    for (const e of entries) if (e.isIntersecting) e.target.classList.add('is-in');
+  }, { threshold: 0.08 });
+  document.querySelectorAll('.reveal').forEach((el) => obs.observe(el));
+
+  // Sparkline simple (datos ficticios iniciales, se reemplazan con reales si existen)
+  function spark(id, series, color) {
+    const svg = document.getElementById(id);
+    if (!svg || !series || series.length < 2) return;
+    const w = 160, h = 36, max = Math.max(...series, 1), min = Math.min(...series);
+    const r = max - min || 1;
+    const step = w / (series.length - 1);
+    const pts = series.map((v, i) => `${(i * step).toFixed(1)},${(h - ((v - min) / r) * (h - 4) - 2).toFixed(1)}`).join(' ');
+    svg.innerHTML =
+      `<polyline fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" points="${pts}"/>` +
+      `<polyline fill="${color}" opacity="0.12" points="0,${h} ${pts} ${w},${h}"/>`;
   }
-  if (window.__sgmSession) mountSession(window.__sgmSession);
-  else window.addEventListener('sgm:session-ready', (e) => mountSession(e.detail));
+  // Seed visual neutral; se re-pinta con datos reales cuando lleguen
+  spark('sparkDisp', [70, 72, 74, 73, 75, 78, 80, 82, 84, 83, 85, 88], '#00d9c0');
+  spark('sparkOrd',  [8, 12, 10, 14, 11, 16, 13, 18, 12, 9, 14, 17], '#4f8cff');
+  spark('sparkHi',   [3.1, 3.0, 3.2, 2.9, 2.8, 2.7, 2.8, 2.6, 2.5, 2.4, 2.5, 2.3], '#ffa94d');
+  spark('sparkAl',   [2, 4, 3, 6, 5, 7, 4, 3, 2, 4, 3, 1], '#ff5a6e');
 </script>
 
-<!-- KPIs del parque en tiempo real (Fase 8 + Fase 15: onSnapshot) -->
+<!-- Datos en vivo (Firestore) -->
 <script type="module">
   import { computeFromDatasets, isReady } from './assets/js/data/kpis.js';
   import { suscribir as suscribirTransformadores } from './assets/js/data/transformadores.js';
-  import { suscribir as suscribirOrdenes }          from './assets/js/data/ordenes.js';
+  import { suscribir as suscribirOrdenes }         from './assets/js/data/ordenes.js';
 
   if (isReady()) {
     const $ = (id) => document.getElementById(id);
-    let trafos = null;
-    let ordenes = null;
-    let timer  = null;
+    let trafos = null, ordenes = null, timer = null;
 
     const render = () => {
       if (!trafos || !ordenes) return;
       try {
         const snap = computeFromDatasets(trafos, ordenes);
-        $('hkTrafos').textContent  = snap.totales.transformadores;
-        $('hkActivas').textContent = snap.totales.ordenes_planificadas + snap.totales.ordenes_en_curso;
-        $('hkDisp').textContent    = snap.ram.disponibilidad_pct == null
-          ? '—' : snap.ram.disponibilidad_pct.toFixed(1) + ' %';
-        $('hkMtbf').textContent    = snap.ram.mtbf_dias
-          ? snap.ram.mtbf_dias.toFixed(0) + ' d' : '— d';
-      } catch (err) {
-        console.warn('KPIs no disponibles:', err);
-      }
+
+        // Hero
+        $('heroTotal').textContent = snap.totales.transformadores ?? '—';
+        const porTipo = snap.totales.por_tipo_activo || {};
+        $('heroPotencia').textContent = porTipo.POTENCIA ?? 0;
+        $('heroTpt').textContent      = porTipo.TPT ?? 0;
+        $('heroResp').textContent     = porTipo.RESPALDO ?? 0;
+
+        // KPIs
+        const disp = snap.ram?.disponibilidad_pct;
+        $('kpiDisp').textContent = disp == null ? '—' : disp.toFixed(1);
+        $('kpiOrdenes').textContent = (snap.totales.ordenes_planificadas || 0) + (snap.totales.ordenes_en_curso || 0);
+        const hiProm = snap.saludV2?.hi_promedio;
+        $('kpiHi').textContent = hiProm == null ? '—' : hiProm.toFixed(2);
+
+        // Buckets de salud
+        const dist = snap.saludV2?.distribucion_bucket || {};
+        const total = Object.values(dist).reduce((a, b) => a + (b || 0), 0) || 1;
+        for (let b = 1; b <= 5; b++) {
+          const n = dist[b] || 0;
+          const fill = document.querySelector(`[data-bucket="${b}"]`);
+          const val  = document.querySelector(`[data-bvalue="${b}"]`);
+          if (fill) fill.style.width = ((n / total) * 100).toFixed(1) + '%';
+          if (val)  val.textContent  = n;
+        }
+      } catch (err) { console.warn('Dashboard KPIs:', err); }
     };
-    const schedule = () => {
-      if (timer) clearTimeout(timer);
-      timer = setTimeout(render, 150);
-    };
+    const schedule = () => { clearTimeout(timer); timer = setTimeout(render, 160); };
 
     suscribirTransformadores({}, (items) => { trafos  = items; schedule(); });
     suscribirOrdenes({},         (items) => { ordenes = items; schedule(); });
+
+    // Feed de últimas 8 órdenes
+    suscribirOrdenes({}, (items) => {
+      const feed = document.getElementById('feedList');
+      if (!feed) return;
+      const list = [...items].sort((a,b) => {
+        const ta = a.updatedAt?.toMillis?.() || 0;
+        const tb = b.updatedAt?.toMillis?.() || 0;
+        return tb - ta;
+      }).slice(0, 8);
+      if (!list.length) { feed.innerHTML = '<div class="feed-empty">Sin actividad reciente.</div>'; return; }
+      feed.innerHTML = list.map((o) => {
+        const estado = o.estado_v2 || o.estado || 'planificada';
+        const kind = /cancel|fallad/i.test(estado) ? 'bad' : (/cerr|ejecut/i.test(estado) ? 'ok' : (/curso|ejecuc/i.test(estado) ? 'warn' : ''));
+        const ts = o.updatedAt?.toDate?.() ? o.updatedAt.toDate() : null;
+        const tstr = ts ? ts.toLocaleString('es-CO', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : '—';
+        const icono = kind === 'ok' ? 'check' : kind === 'bad' ? 'x-octagon' : kind === 'warn' ? 'loader' : 'circle-dot';
+        return `<div class="feed-row ${kind}">
+          <span class="feed-icon"><i data-lucide="${icono}"></i></span>
+          <div class="feed-body"><strong>${(o.codigo || '—')}</strong> · ${o.titulo || 'orden'} · <span class="text-muted">${estado}</span></div>
+          <span class="feed-time">${tstr}</span>
+        </div>`;
+      }).join('');
+      if (window.lucide) { try { window.lucide.createIcons(); } catch (_) {} }
+    });
+
+    // Top 5 PI (por HI × criticidad rápida)
+    suscribirTransformadores({}, (items) => {
+      const pi = document.getElementById('piList');
+      if (!pi) return;
+      const scored = items
+        .filter((t) => t.salud_actual?.hi_final)
+        .map((t) => ({
+          codigo: t.identificacion?.codigo || t.codigo || '—',
+          nombre: t.identificacion?.nombre || t.nombre || '—',
+          hi: t.salud_actual.hi_final,
+          bucket: t.salud_actual.bucket,
+          zona: t.ubicacion?.zona || '—',
+        }))
+        .sort((a, b) => b.hi - a.hi)
+        .slice(0, 5);
+      if (!scored.length) { pi.innerHTML = '<div class="feed-empty">Sin datos de salud todavía.</div>'; return; }
+      pi.innerHTML = scored.map((r, i) => `
+        <a class="pi-row" href="pages/inventario.html?codigo=${encodeURIComponent(r.codigo)}" style="text-decoration:none">
+          <span class="pi-rank">${i + 1}</span>
+          <div><div class="pi-name">${r.codigo} · ${r.nombre}</div><div class="pi-meta">Zona ${r.zona} · bucket ${r.bucket}</div></div>
+          <span class="pi-score">HI ${r.hi.toFixed(2)}</span>
+        </a>`).join('');
+    });
+
+    // Alertas críticas: import on-demand
+    import('./assets/js/data/alertas.js').then(({ suscribirComputo }) => {
+      if (!suscribirComputo) return;
+      suscribirComputo((estado) => {
+        const strip = document.getElementById('alertsStrip');
+        const kpi   = document.getElementById('kpiAlertas');
+        if (!estado) return;
+        const criticas = (estado.alertas || []).filter((a) => a.severidad === 'critica' && !a.reconocida).slice(0, 3);
+        if (kpi) kpi.textContent = criticas.length ? (estado.resumen?.criticas ?? criticas.length) : 0;
+        if (!strip) return;
+        if (!criticas.length) {
+          strip.innerHTML = '<div class="alert-empty"><i data-lucide="check-circle-2"></i><p>Sin alertas críticas. El parque opera dentro de parámetros.</p></div>';
+        } else {
+          strip.innerHTML = criticas.map((a) => `
+            <a class="alert-card" href="pages/alertas.html" style="text-decoration:none">
+              <span class="alert-card-icon"><i data-lucide="alert-triangle"></i></span>
+              <div class="alert-card-body"><h4>${a.titulo || a.tipo}</h4><p>${a.mensaje || a.descripcion || ''}</p></div>
+            </a>`).join('');
+        }
+        if (window.lucide) { try { window.lucide.createIcons(); } catch (_) {} }
+      }, (err) => console.warn('Alertas:', err));
+    }).catch((err) => console.warn('alertas module:', err));
   }
 </script>
+
 </body>
 </html>
