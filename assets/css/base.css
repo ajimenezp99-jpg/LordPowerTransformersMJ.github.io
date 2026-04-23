@@ -1,30 +1,10 @@
 /* ═══════════════════════════════════════════════════════════════
-   SGM · TRANSPOWER — Base Styles (Fase 1)
-   Estilos compartidos entre landing y sitio real.
-   Cada página añade sus propios estilos específicos en <style>
-   o en su propio archivo CSS.
+   SGM · TRANSPOWER — Base Styles
+   Solo reset + accesibilidad. El sistema de tokens, tipografía y
+   colores vive en theme.css (cargado SIEMPRE antes que este).
 ═══════════════════════════════════════════════════════════════ */
 
-/* ── Variables globales ── */
-:root {
-  --bg:      #040c14;
-  --panel:   #070f1a;
-  --border:  #0d2a3f;
-  --accent:  #00c8ff;
-  --accent2: #f0a500;
-  --accent3: #00ff99;
-  --text:    #c9dde8;
-  --muted:   #4a6478;
-  --glow:    0 0 18px rgba(0,200,255,.45);
-  --glow2:   0 0 18px rgba(240,165,0,.45);
-
-  /* Tipografía */
-  --font-ui:   'Exo 2', sans-serif;
-  --font-mono: 'Share Tech Mono', monospace;
-  --font-head: 'Rajdhani', sans-serif;
-}
-
-/* ── Reset ── */
+/* ── Reset ─────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 html { scroll-behavior: smooth; }
@@ -38,39 +18,39 @@ html { scroll-behavior: smooth; }
   }
 }
 
-/* ── Accesibilidad (Fase 13) ── */
+/* ── Accesibilidad ─────────────────────────────────────────── */
 .skip-link {
   position: absolute;
   top: -48px;
   left: 1rem;
   z-index: 1000;
-  background: var(--accent);
-  color: #041018;
-  font-family: var(--font-head);
+  background: var(--brand-500);
+  color: #04111f;
+  font-family: var(--font-display);
   font-weight: 700;
-  letter-spacing: .12em;
+  letter-spacing: .08em;
   padding: .6rem 1rem;
-  border-radius: 3px;
+  border-radius: var(--radius-md);
   text-decoration: none;
   transition: top .2s ease;
 }
 .skip-link:focus {
   top: 1rem;
-  outline: 2px solid var(--accent3);
+  outline: 2px solid var(--teal-400);
   outline-offset: 2px;
 }
 
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--brand-500);
   outline-offset: 2px;
-  border-radius: 2px;
+  border-radius: 4px;
 }
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  box-shadow: 0 0 0 2px rgba(0,200,255,.35);
+  box-shadow: 0 0 0 3px rgba(79,140,255,.25);
 }
 
 .sr-only {
@@ -83,58 +63,49 @@ textarea:focus-visible {
   border: 0;
 }
 
-/* ── Base ── */
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--font-ui);
-  min-height: 100vh;
-  overflow-x: hidden;
-  position: relative;
-}
-
-/* Fondo limpio — el theme v3 provee aurora + grain, sin scanlines CRT */
+/* ── Fondo limpio: sin scanlines / sin grid CRT ─────────────── */
 body::before, body::after { content: none !important; display: none !important; }
 
-/* ── Utilidades compartidas ── */
-
+/* ── Utilidades compartidas ────────────────────────────────── */
 .divider {
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--border), var(--accent), var(--border), transparent);
+  background: linear-gradient(90deg, transparent, var(--edge-muted), var(--brand-500), var(--edge-muted), transparent);
   margin: 2rem 0;
 }
 
 .section-label {
-  font-family: var(--font-mono);
+  font-family: var(--font-mono-v3);
   font-size: .7rem;
-  letter-spacing: .25em;
-  color: var(--muted);
+  letter-spacing: .16em;
+  color: var(--ink-muted);
   margin-bottom: 1rem;
+  text-transform: uppercase;
 }
 
 .norm-badge {
-  background: rgba(0,255,153,.06);
-  border: 1px solid rgba(0,255,153,.2);
-  border-radius: 3px;
-  padding: .3rem .75rem;
-  font-family: var(--font-mono);
+  display: inline-flex; align-items: center; gap: 4px;
+  background: rgba(0,217,192,.08);
+  border: 1px solid rgba(0,217,192,.25);
+  border-radius: var(--radius-full);
+  padding: .25rem .7rem;
+  font-family: var(--font-mono-v3);
   font-size: .72rem;
-  color: var(--accent3);
-  letter-spacing: .1em;
+  color: var(--teal-400);
+  letter-spacing: .08em;
 }
 
-/* ── Animaciones ── */
+/* ── Animaciones globales ──────────────────────────────────── */
 @keyframes pulseAnim {
   0%,100% { opacity: 1; transform: scale(1); }
   50%      { opacity: .4; transform: scale(.7); }
 }
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(28px); }
+  from { opacity: 0; transform: translateY(24px); }
   to   { opacity: 1; transform: none; }
 }
 
 @keyframes fadeDown {
-  from { opacity: 0; transform: translateY(-22px); }
+  from { opacity: 0; transform: translateY(-20px); }
   to   { opacity: 1; transform: none; }
 }
