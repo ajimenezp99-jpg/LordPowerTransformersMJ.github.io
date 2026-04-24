@@ -23,7 +23,9 @@ import { onSchedule }        from 'firebase-functions/v2/scheduler';
 import { defineSecret }      from 'firebase-functions/params';
 
 // Lógica pura del dominio (módulos sin imports de Firebase SDK).
-import { snapshotSaludCompleto } from '../assets/js/domain/salud_activos.js';
+// La carpeta ./domain/ se sincroniza automáticamente desde
+// ../assets/js/domain/ por functions/prepare-deploy.mjs (predeploy hook).
+import { snapshotSaludCompleto } from './domain/salud_activos.js';
 
 // Compute mínimo de alertas críticas para el cron (subconjunto v2).
 // Las reglas v1 ricas viven en assets/js/data/alertas.js (browser).
