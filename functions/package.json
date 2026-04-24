@@ -4,7 +4,7 @@
   "description": "Cloud Functions v2 para SGM · TRANSPOWER (F32). Recálculo de salud y notificaciones por email.",
   "type": "module",
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "main": "index.js",
   "scripts": {
