@@ -60,7 +60,9 @@ function mountSplash(msg = 'Verificando sesión…') {
   ].join(';');
   el.innerHTML =
     '<div class="sgm-splash-ring" style="width:56px;height:56px;border:3px solid rgba(79,140,255,.15);border-top-color:#4f8cff;border-right-color:#00d9c0;border-radius:50%;animation:sgmSpin .9s linear infinite"></div>'
-    + '<div class="sgm-splash-msg" style="opacity:.75">' + msg + '</div>';
+    + '<div class="sgm-splash-msg" style="opacity:.75">' + msg + '</div>'
+    // Escape valve: aparece a los 2s para que el user nunca quede atrapado.
+    + '<a id="sgm-splash-escape" href="' + LOGIN_URL + '" style="display:none;color:#8fa0bb;text-decoration:underline;letter-spacing:0;text-transform:none;font-family:system-ui,sans-serif;font-size:.78rem;opacity:.75;margin-top:1rem">¿Tarda demasiado? Volver al login</a>';
   if (!document.getElementById('sgm-splash-kf')) {
     const kf = document.createElement('style');
     kf.id = 'sgm-splash-kf';
@@ -68,6 +70,11 @@ function mountSplash(msg = 'Verificando sesión…') {
     document.head.appendChild(kf);
   }
   document.documentElement.appendChild(el);
+  // Mostrar la escape valve a los 2 s.
+  setTimeout(() => {
+    const a = document.getElementById('sgm-splash-escape');
+    if (a) a.style.display = 'inline';
+  }, 2000);
 }
 function unmountSplash() {
   document.getElementById('sgm-splash')?.remove();
