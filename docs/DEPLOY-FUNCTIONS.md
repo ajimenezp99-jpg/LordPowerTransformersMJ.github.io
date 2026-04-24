@@ -1,34 +1,68 @@
 # Despliegue de Cloud Functions (F32)
 
 Guía de activación de los triggers `onMuestraCreate` y
-`cronAlertasDiarias` en producción.
+`cronAlertasDiarias` en producción. **Se puede hacer por etapas:**
+primero el trigger de salud (sin secretos) y después el cron de
+email cuando quieras activar notificaciones.
 
 ## Prerrequisitos
 
-- Proyecto Firebase con plan **Blaze** (las funciones requieren
-  Blaze para salida a red externa hacia Resend).
+- Proyecto Firebase con plan **Blaze** (requerido por Cloud
+  Functions; tier gratis generoso: 2M invocaciones + 400K GB-s/mes).
 - `firebase-tools` instalado globalmente:
   ```bash
   npm install -g firebase-tools
   firebase login
-  firebase use sgm-transpower
+  firebase use lordpowertransformersmj
   ```
-- Cuenta en [Resend](https://resend.com) (free tier 3 000 emails/mes).
-- Dominio verificado en Resend (o usar el dominio sandbox para pruebas).
 
-## 1. Configurar el secret de Resend
+## Etapa 1 — Deploy del trigger de salud (recomendado primero)
+
+**No requiere Resend, ni Secret Manager, ni cuenta de email.**
+Recalcula `salud_actual` automáticamente cuando se crea una muestra.
+
+```bash
+cd functions
+npm install
+cd ..
+firebase deploy --only functions:onMuestraCreate
+```
+
+Eso basta para tener el motor de Salud reactivo en producción.
+
+## Etapa 2 — Activar el cron diario de email (opcional)
+
+Ejecuta esto solo cuando quieras recibir el resumen diario por correo.
+
+### 2.1 Habilitar Secret Manager API
+
+Una sola vez en el proyecto. Abre en el navegador:
+
+```
+https://console.developers.google.com/apis/api/secretmanager.googleapis.com/overview?project=lordpowertransformersmj
+```
+
+y click **Enable**. Toma ~30 segundos en propagar.
+
+### 2.2 Cuenta en Resend + API key
+
+1. Crear cuenta en [resend.com](https://resend.com) (free 3 000 emails/mes).
+2. Dashboard → **API Keys → Create API Key** → copia el valor `re_xxx...`.
+3. *(Opcional pero recomendado)*: verifica un dominio tuyo para que los
+   emails salgan con tu marca. Sin dominio verificado, Resend solo
+   permite enviar al email de la cuenta Resend.
+
+### 2.3 Guardar el secret en Firebase
 
 ```bash
 firebase functions:secrets:set RESEND_API_KEY
 # Pega la API key cuando lo solicite (formato re_xxx...)
 ```
 
-## 2. Instalar dependencias y desplegar
+### 2.4 Deploy del cron
 
 ```bash
-cd functions
-npm install
-firebase deploy --only functions
+firebase deploy --only functions:cronAlertasDiarias
 ```
 
 El primer despliegue tarda ~2–3 minutos. Crea:

@@ -1,19 +1,23 @@
 // ══════════════════════════════════════════════════════════════
 // SGM · TRANSPOWER — Cloud Functions (F32)
 // ──────────────────────────────────────────────────────────────
-// Despliegue:
+// DESPLIEGUE RECOMENDADO (sin email, sin secretos):
 //   cd functions && npm install
-//   firebase deploy --only functions
+//   cd ..
+//   firebase deploy --only functions:onMuestraCreate
 //
-// Requiere:
-//   · firebase-admin v12 + firebase-functions v5
-//   · Variable ENV `RESEND_API_KEY` para notificaciones (cron).
+// DESPLIEGUE COMPLETO (cuando actives email via Resend):
+//   1. https://console.developers.google.com/apis/api/secretmanager.googleapis.com
+//      → botón Enable (habilita Secret Manager en el proyecto).
+//   2. firebase functions:secrets:set RESEND_API_KEY   (pega API key de resend.com)
+//   3. firebase deploy --only functions
 //
 // Triggers exportados:
-//   · onMuestraCreate  — recálculo salud_actual + historial_hi
-//                        cuando se escribe en /muestras/{id}.
-//   · cronAlertasDiarias — Pub/Sub schedule diario que envía email
-//                          de alertas críticas no reconocidas.
+//   · onMuestraCreate      — recálculo salud_actual + historial_hi
+//                            cuando se escribe en /muestras/{id}.
+//                            NO requiere secretos; deployable stand-alone.
+//   · cronAlertasDiarias   — Pub/Sub schedule diario 07:00 Bogotá.
+//                            Requiere Resend + Secret Manager habilitado.
 // ══════════════════════════════════════════════════════════════
 
 import { initializeApp } from 'firebase-admin/app';
