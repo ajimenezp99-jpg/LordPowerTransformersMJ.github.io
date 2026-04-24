@@ -9,7 +9,7 @@
 
 import {
   collection, doc, addDoc, setDoc, getDoc, writeBatch, serverTimestamp
-} from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 import { getDbSafe, isFirebaseConfigured } from '../firebase-init.js';
 import { auditar } from '../domain/audit.js';
 
@@ -35,7 +35,7 @@ async function buscarPorCodigo(codigo) {
   // Búsqueda no-indexada simple: getDoc por codigo como docId.
   // En v2, docIds son autogenerados, así que usamos query.
   const { query, where, getDocs, limit } = await import(
-    'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js'
+    'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js'
   );
   const q = query(colTxRef(), where('codigo', '==', codigo), limit(1));
   const snap = await getDocs(q);

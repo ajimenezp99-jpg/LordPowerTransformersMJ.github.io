@@ -9,7 +9,7 @@
 import {
   doc, collection, addDoc, getDoc, setDoc, onSnapshot,
   getDocs, query, orderBy, limit, serverTimestamp
-} from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 
 import { getDbSafe, isFirebaseConfigured } from '../firebase-init.js';
 import { BASELINE_UMBRALES_SALUD, mergeConBaseline } from '../domain/umbrales_salud_baseline.js';
@@ -88,7 +88,7 @@ export async function guardarUmbrales(payload, { uid, razon } = {}) {
   }
   // Audit global (F35)
   try {
-    const { collection } = await import('https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js');
+    const { collection } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js');
     await addDoc(collection(getDbSafe(), 'auditoria'),
       { ...auditar({
           accion: 'cambiar_umbrales', coleccion: 'umbrales_salud',

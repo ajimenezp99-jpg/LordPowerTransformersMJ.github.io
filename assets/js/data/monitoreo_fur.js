@@ -4,7 +4,7 @@
 import {
   collection, doc, addDoc, updateDoc, getDoc, getDocs,
   query, where, orderBy, serverTimestamp
-} from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 import { getDbSafe, isFirebaseConfigured } from '../firebase-init.js';
 import { crearEstadoMonitoreoIntensivo, calcularVelocidadC2H2, evaluarOverrideC2H2, BASELINES_C2H2 }
   from '../domain/monitoreo_intensivo.js';
