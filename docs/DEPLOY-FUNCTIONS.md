@@ -5,6 +5,20 @@ Guía de activación de los triggers `onMuestraCreate` y
 primero el trigger de salud (sin email) y después el cron de
 alertas cuando quieras activar notificaciones por correo.
 
+## Estado actual
+
+| Trigger | Estado | Deploy fecha | Notas |
+|---|---|---|---|
+| `onMuestraCreate` | ✅ **Activo en producción** | abr 2026 | Recalcula `salud_actual` al crearse muestra. Node 22 · southamerica-east1. |
+| `cronAlertasDiarias` | ⏳ Pendiente | — | Requiere Firebase Extension "Trigger Email" + Gmail App Password (ver §2). |
+| Cleanup policy Artifact Registry | ✅ Configurada | abr 2026 | 7 días de retención de imágenes Docker. |
+
+### Regla operativa
+
+Revisar sección **§0 Protocolo de deploys** en
+[`docs/OPERACIONES.md`](./OPERACIONES.md) — cada cambio a
+`functions/*.js` requiere re-deploy manual: `firebase deploy --only functions`.
+
 ## Prerrequisitos
 
 - Proyecto Firebase con plan **Blaze** (requerido por Cloud

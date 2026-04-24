@@ -66,6 +66,44 @@ chat habrá que pedirlo de nuevo o leerlo de donde el dueño lo deje).
    visible, **preguntar al dueño** por un PAT clásico (scope `repo`).
    Sin eso, push imposible.
 
+### 0.1.1 Regla permanente · Protocolo de deploys Firebase
+
+**Cada vez que yo (Claude) modifique uno de estos archivos, DEBO avisar
+al director IN EL MISMO TURNO qué comando debe ejecutar él en su Mac:**
+
+| Si modifico… | El director debe ejecutar |
+|---|---|
+| `firestore.rules` | `firebase deploy --only firestore:rules` |
+| `firestore.indexes.json` | `firebase deploy --only firestore:indexes` |
+| `storage.rules` | `firebase deploy --only storage` |
+| `functions/*.js` o `functions/package.json` | `firebase deploy --only functions` (o `functions:NombreEspecifico`) |
+| `firebase.json` | según qué secciones cambiaron |
+
+**El director (miguel) NO tiene auto-deploy de estos canales.** GitHub
+Pages sí tiene auto-deploy via workflow `pages.yml`, pero los 4 canales
+Firebase requieren su intervención manual.
+
+**Formato del aviso** (siempre al final del mensaje donde se hace el
+cambio, no en uno separado):
+
+> ⚠ Requiere deploy manual:
+> ```bash
+> firebase deploy --only firestore:rules
+> ```
+
+**También debo incluir el bloque "Requiere deploy" al final del commit
+message** cuando el commit toca esos archivos, para que quede en el
+historial.
+
+**Por qué es crítico:**
+- Sin rules desplegadas → queries fallan con `permission-denied`.
+- Sin índices desplegados → queries fallan con `FAILED_PRECONDITION`.
+- Sin functions desplegadas → código viejo sigue corriendo en producción.
+- Acumular varios cambios sin deployar hace imposible aislar el bug.
+
+El director (Miguel) solicitó explícitamente esta regla (sesión abril 2026)
+después de que un deploy de functions quedó pendiente dos iteraciones.
+
 ### 0.2 Branch de trabajo
 
 Durante la evolución v2.0 (F16–F37) la rama activa fue
