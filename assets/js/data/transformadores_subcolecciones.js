@@ -20,7 +20,7 @@ import {
   collection, doc,
   addDoc, getDocs, query, orderBy, limit, where,
   serverTimestamp
-} from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 
 import { getDbSafe } from '../firebase-init.js';
 

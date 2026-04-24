@@ -10,7 +10,7 @@
 // firebase-init.js con enableIndexedDbPersistence.
 // ══════════════════════════════════════════════════════════════
 
-const CACHE_VERSION = 'sgm-v3-0-1';
+const CACHE_VERSION = 'sgm-v3-1-0';
 const SHELL = [
   '/',
   '/index.html',

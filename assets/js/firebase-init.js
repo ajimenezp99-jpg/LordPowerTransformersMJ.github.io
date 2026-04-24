@@ -14,13 +14,13 @@
 // ══════════════════════════════════════════════════════════════
 
 import { initializeApp, getApps, getApp as _getApp }
-  from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
+  from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js';
 import { getAuth }
-  from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
+  from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js';
 import { getFirestore }
-  from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+  from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 import { getStorage }
-  from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js';
+  from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js';
 
 import { firebaseConfig, isFirebaseConfigured } from './firebase-config.js';
 

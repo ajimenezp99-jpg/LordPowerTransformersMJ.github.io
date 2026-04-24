@@ -9,12 +9,12 @@ import {
   addDoc, updateDoc, deleteDoc, setDoc,
   getDoc, getDocs, query, where, orderBy, limit,
   serverTimestamp
-} from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 
 import {
   ref as storageRef,
   uploadBytesResumable, getDownloadURL, deleteObject
-} from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-storage.js';
+} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-storage.js';
 
 import { getDbSafe, getStorageSafe, isFirebaseConfigured } from '../firebase-init.js';
 import { auditar } from '../domain/audit.js';

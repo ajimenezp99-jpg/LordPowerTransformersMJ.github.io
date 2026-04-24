@@ -3,7 +3,7 @@
 // ══════════════════════════════════════════════════════════════
 import {
   collection, getDocs, query, where, orderBy, limit, onSnapshot
-} from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 import { getDbSafe, isFirebaseConfigured } from '../firebase-init.js';
 
 const COL = 'auditoria';

@@ -12,7 +12,7 @@
 import {
   collection, doc, getDoc, getDocs, setDoc, updateDoc, deleteDoc,
   query, orderBy, serverTimestamp
-} from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 
 import { getDbSafe, isFirebaseConfigured } from '../firebase-init.js';
 import { auditar } from '../domain/audit.js';
@@ -96,7 +96,7 @@ export async function crear({
   await setDoc(ref(uid), payload, { merge: false });
   // Audit (F35) — best-effort, no rompe la operación si falla.
   try {
-    const { addDoc } = await import('https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js');
+    const { addDoc } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js');
     await addDoc(collection(getDbSafe(), 'auditoria'),
       { ...auditar({ accion: 'crear', coleccion: 'usuarios', docId: uid,
                      uid: createdBy, nota: `Alta de ${email} con rol ${rol}` }),
@@ -128,7 +128,7 @@ export async function actualizar(uid, patch, { actorUid } = {}) {
   if (Object.keys(clean).length === 0) return;
   await updateDoc(ref(uid), clean);
   try {
-    const { addDoc } = await import('https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js');
+    const { addDoc } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js');
     await addDoc(collection(getDbSafe(), 'auditoria'),
       { ...auditar({ accion: 'actualizar', coleccion: 'usuarios', docId: uid,
                      uid: actorUid, diff: clean }),
@@ -140,7 +140,7 @@ export async function eliminar(uid, { actorUid } = {}) {
   if (!uid) throw new Error('UID requerido.');
   await deleteDoc(ref(uid));
   try {
-    const { addDoc } = await import('https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js');
+    const { addDoc } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js');
     await addDoc(collection(getDbSafe(), 'auditoria'),
       { ...auditar({ accion: 'eliminar', coleccion: 'usuarios', docId: uid, uid: actorUid }),
         at: serverTimestamp() });
