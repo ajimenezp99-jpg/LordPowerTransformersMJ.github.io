@@ -6,6 +6,64 @@ plataforma en producción.
 Audiencia: **Ingeniero Director de Proyectos** (Afinia · CARIBEMAR)
 y quien administre la plataforma.
 
+---
+
+## 0. Protocolo de deploys (regla permanente)
+
+Firebase tiene **5 canales de deploy independientes** que NO se
+despliegan automáticamente con cada `git push`. Cada uno requiere
+un comando manual desde la máquina del director:
+
+| Canal | Archivo fuente | Comando de deploy |
+|---|---|---|
+| Firestore rules | `firestore.rules` | `firebase deploy --only firestore:rules` |
+| Firestore indexes | `firestore.indexes.json` | `firebase deploy --only firestore:indexes` |
+| Storage rules | `storage.rules` | `firebase deploy --only storage` |
+| Cloud Functions | `functions/*.js` | `firebase deploy --only functions[:nombre]` |
+| Firebase Extensions | consola web | Firebase Console → Extensions |
+
+*(GitHub Pages sí se despliega automático con cada push a `main` via
+el workflow `.github/workflows/pages.yml` — eso sigue siendo
+transparente.)*
+
+### Regla estricta
+
+**Cada vez que se modifique uno de esos archivos, el autor del cambio
+(Claude o desarrollador humano) debe avisar EN EL MISMO TURNO al
+director exactamente qué hay que deployar y con qué comando.**
+
+Ejemplos de aviso correcto:
+
+> *"Modificaste `firestore.rules` — ejecuta `firebase deploy --only firestore:rules` antes de probar."*
+
+> *"Agregué un índice nuevo para `ordenes` por macroactividad — ejecuta `firebase deploy --only firestore:indexes`. Los índices tardan 2-5 min en propagarse."*
+
+> *"La función `onMuestraCreate` ahora lee un campo nuevo — ejecuta `firebase deploy --only functions:onMuestraCreate` para actualizarla."*
+
+### Por qué importa
+
+- **Los índices no desplegados** hacen que queries fallen con
+  `FAILED_PRECONDITION: The query requires an index`.
+- **Las rules no desplegadas** bloquean lecturas/escrituras con
+  `permission-denied` aunque el cliente tenga sesión.
+- **Las functions no desplegadas** corren en producción con el
+  código viejo sin que el director lo note hasta que algo se rompe.
+- **Acumular varios cambios sin desplegar** hace imposible aislar
+  el bug cuando algo falla; lo rápido es deployar pronto, pronto.
+
+### Commits con cambios de deploy deben incluir en el mensaje
+
+```
+Requiere deploy:
+  firebase deploy --only firestore:rules,firestore:indexes
+```
+
+Claude debe añadir ese bloque al final del commit message cuando el
+PR o commit incluya cambios en `firestore.rules`, `firestore.indexes.json`,
+`storage.rules` o `functions/`.
+
+---
+
 ## 1. Bootstrap inicial (primer despliegue)
 
 Orden recomendado (replicado como asistente visual en

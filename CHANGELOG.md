@@ -7,6 +7,61 @@ Formato inspirado en [Keep a Changelog](https://keepachangelog.com/).
 Semver por tag. Pulido post-v2.0 incrementa el patch (v2.0.1,
 v2.0.2, …) sin promesas de incompatibilidad.
 
+## v3.0.0 · 2026-04 · UX v3 + Cloud Functions activas
+
+Evolución mayor con reestructuración de UX y activación de la primera
+Cloud Function en producción.
+
+### Nuevo sistema de diseño (UX v3)
+- Tokens CSS corporativos en `assets/css/theme.css` (Space Grotesk +
+  Inter + JetBrains Mono, paleta azul eléctrico + teal, glass morphism,
+  aurora gradient sutil).
+- Navegación unificada con 2 desplegables (`Más ▾` y `Admin ▾`) en lugar
+  de 3 universos inconsistentes. Componente ESM en `assets/js/ui/nav.js`.
+- `home.html` redibujado como dashboard operativo (hero + KPIs con
+  sparklines + alertas críticas + Top 5 PI + feed + accesos rápidos).
+- Páginas estáticas (about, cobertura, normativa, contacto) reescritas
+  con tono corporativo, sin referencias a "fases" / "v1.0.0".
+- `compat.css` para que las 15 páginas admin secundarias hereden el look
+  v3 sin reescribir su HTML.
+- `admin/index.html` reducido a redirect → `home.html`. Se retira el
+  panel admin separado.
+- Dashboard ejecutivo, Matriz de Riesgo y KPIs rediseñados con cards v3.
+
+### Fixes críticos
+- Splash de verificación de sesión + failsafe 7.5 s + escape valve
+  "Volver al login" tras 2 s.
+- Eliminado el bucle infinito MutationObserver + Lucide que congelaba
+  el browser (`window.sgmRefreshIcons()` debounced).
+- Firebase SDK `10.13.0 → 10.14.1`: silencia warnings "heartbeats
+  undefined" (bug conocido del SDK).
+- Consolida 4 suscripciones Firestore duplicadas en home a 2.
+- Service Worker bump `sgm-v2-0-8 → sgm-v3-1-0` para invalidar cache.
+
+### Cloud Functions
+- `firebase.json` declara sección `functions` con runtime `nodejs22`.
+- `functions/prepare-deploy.mjs` sincroniza `assets/js/domain/` →
+  `functions/domain/` antes del deploy (predeploy hook).
+- Refactor `functions/index.js` a Firebase Extension "Trigger Email"
+  vía colección `/mail` (100% Google, sin Resend/Secret Manager).
+- Dependencias actualizadas: `firebase-admin ^13`, `firebase-functions ^6`.
+- ✅ **`onMuestraCreate` deployado en producción** (southamerica-east1).
+- Cleanup policy Artifact Registry: 7 días de retención.
+
+### Documentación nueva
+- `docs/OPERACIONES.md §0` — **Protocolo de deploys**: regla
+  permanente de avisar al director qué hay que deployar manualmente
+  cada vez que se modifican rules/indexes/storage/functions.
+- `docs/DEPLOY-FUNCTIONS.md` reescrito con flujo Gmail + Extension
+  (etapa 1 sin email, etapa 2 opcional con email).
+- `CLAUDE.md §0.1.1` — regla obligatoria para Claude de avisar
+  en el mismo turno cuando haga cambios que requieran deploy Firebase.
+
+### Pendiente
+- `cronAlertasDiarias` — requiere instalar Firebase Extension
+  "Trigger Email from Firestore" con Gmail App Password (documentado
+  en `docs/DEPLOY-FUNCTIONS.md §2`).
+
 ## v2.0.8 · 2026-04
 - Audit log wired en `documentos.js` (subir/actualizar/eliminar) — cierre del trail en los 7 data layers de mutación.
 - `assets/js/ui-helpers.js` compartido (bucketColor · escHtml · fmtTs). Elimina duplicados en inventario admin/público.
