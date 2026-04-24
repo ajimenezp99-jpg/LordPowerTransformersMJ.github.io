@@ -1,97 +1,142 @@
 # Despliegue de Cloud Functions (F32)
 
 Guía de activación de los triggers `onMuestraCreate` y
-`cronAlertasDiarias` en producción.
+`cronAlertasDiarias` en producción. **Se puede hacer por etapas:**
+primero el trigger de salud (sin email) y después el cron de
+alertas cuando quieras activar notificaciones por correo.
 
 ## Prerrequisitos
 
-- Proyecto Firebase con plan **Blaze** (las funciones requieren
-  Blaze para salida a red externa hacia Resend).
+- Proyecto Firebase con plan **Blaze** (requerido por Cloud
+  Functions; tier gratis generoso: 2M invocaciones + 400K GB-s/mes).
 - `firebase-tools` instalado globalmente:
   ```bash
   npm install -g firebase-tools
   firebase login
-  firebase use sgm-transpower
+  firebase use lordpowertransformersmj
   ```
-- Cuenta en [Resend](https://resend.com) (free tier 3 000 emails/mes).
-- Dominio verificado en Resend (o usar el dominio sandbox para pruebas).
 
-## 1. Configurar el secret de Resend
+## Etapa 1 — Deploy del trigger de salud (recomendado primero)
 
-```bash
-firebase functions:secrets:set RESEND_API_KEY
-# Pega la API key cuando lo solicite (formato re_xxx...)
-```
-
-## 2. Instalar dependencias y desplegar
+**No requiere email ni cuentas externas.** Recalcula
+`salud_actual` automáticamente cuando se crea una muestra.
 
 ```bash
 cd functions
 npm install
-firebase deploy --only functions
+cd ..
+firebase deploy --only functions:onMuestraCreate
 ```
 
-El primer despliegue tarda ~2–3 minutos. Crea:
+Eso basta para tener el motor de Salud reactivo en producción.
 
-- `onMuestraCreate` (Firestore trigger v2 · region `southamerica-east1`).
-- `cronAlertasDiarias` (Pub/Sub schedule · `0 7 * * * America/Bogota`).
+## Etapa 2 — Activar email de alertas diarias (100% Google)
 
-## 3. Activar el cron desde la UI
+El cron `cronAlertasDiarias` **no envía el email directamente**.
+Crea un doc en la colección `/mail` con el contenido del correo,
+y la Firebase Extension **"Trigger Email from Firestore"** lo envía
+vía SMTP (Gmail u otro proveedor que elijas).
+
+Este approach evita dependencias externas (Resend, SendGrid) y
+mantiene toda la infraestructura dentro de Google / Firebase.
+
+### 2.1 Generar App Password de Gmail
+
+1. Activa 2FA en tu cuenta Gmail si no la tienes:
+   [myaccount.google.com/security](https://myaccount.google.com/security).
+2. Abre [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords).
+3. **Nombre de la aplicación:** `SGM Transpower - Alertas` (o lo que quieras).
+4. Click **Crear** → Google muestra una contraseña de 16 caracteres
+   (ejemplo `xxxx xxxx xxxx xxxx`). **Cópiala — se muestra una sola vez.**
+5. Guárdala en tu gestor de contraseñas.
+
+### 2.2 Instalar la Firebase Extension
+
+1. Firebase Console → **Extensions** → buscar
+   **"Trigger Email from Firestore"** (publicada por Firebase).
+2. Click **Install**.
+3. Configuración:
+   - **Authentication Type:** *UsernamePassword*
+   - **SMTP connection URI:** `smtps://TU_EMAIL%40gmail.com:APP_PASSWORD@smtp.gmail.com:465`
+     - Reemplaza `TU_EMAIL` por tu email (sin `@gmail.com`, que va `%40`).
+     - Reemplaza `APP_PASSWORD` por la contraseña de 16 caracteres sin espacios.
+     - Ejemplo: `smtps://miguel%[email protected]:abcdwxyzabcdwxyz@smtp.gmail.com:465`
+   - **SMTP password (opcional):** dejar en blanco (ya va en el URI).
+   - **Default FROM address:** tu Gmail (ej. `[email protected]`).
+   - **Default REPLY-TO address:** tu Gmail (igual que FROM).
+   - **Email documents collection:** `mail` *(importante: exactamente ese nombre)*.
+   - **Users collection:** deja vacío.
+4. Click **Install extension**. El proceso toma ~2 minutos.
+
+### 2.3 Deploy del cron
+
+```bash
+firebase deploy --only functions:cronAlertasDiarias
+```
+
+### 2.4 Activar desde la UI
 
 1. Abre `admin/alertas.html` (rol admin).
-2. En el panel "Umbrales del motor de reglas":
-   - **Destinatario correo** → email del director / responsable.
+2. Panel "Umbrales del motor de reglas":
+   - **Destinatario correo** → email que recibirá el resumen.
    - **Cron diario** → "Habilitado".
-3. Click en "Guardar config".
+3. Click "Guardar config".
 
-A partir del día siguiente a las 07:00 (hora Bogotá) el cron
-correrá. Si no hay alertas críticas no reconocidas, no envía email.
+A partir del día siguiente a las 07:00 hora Bogotá, el cron correrá.
+Si no hay alertas críticas sin reconocer, no se envía email.
 
-## 4. Verificar
+## 3. Verificar funcionamiento
 
 ```bash
 firebase functions:log --only cronAlertasDiarias
 firebase functions:log --only onMuestraCreate
 ```
 
-## 5. Endpoint health (Vercel)
+Para probar el cron sin esperar al día siguiente, puedes:
+- Crear manualmente un doc en `/mail` desde Firestore Console:
+  ```json
+  {
+    "to": "tu@email.com",
+    "message": {
+      "subject": "Prueba SGM Transpower",
+      "html": "<p>Funciona!</p>"
+    }
+  }
+  ```
+  Si llega el email, la Extension está OK.
 
-Si despliegas el repo en Vercel además de GitHub Pages:
-
-```
-GET https://<proyecto>.vercel.app/api/health
-→ { "ok": true, "service": "SGM · TRANSPOWER", "version": "v2.0.x", ... }
-```
-
-Sirve como sonda externa de availability.
-
-## 6. Costos esperados (orden de magnitud)
+## 4. Costos esperados (orden de magnitud)
 
 | Servicio | Tier | Estimado mes |
 |---|---|---|
 | Firebase Cloud Functions | Blaze | < 1 USD (1 cron/día + ~10 muestras/día) |
 | Firebase Firestore       | Blaze | < 1 USD (lecturas + writes operativos) |
-| Resend                   | Free  | 0 USD (≤ 3 000 emails/mes) |
+| Gmail SMTP               | Free  | 0 USD (límite 500 emails/día) |
 
-Total operativo estimado: **< 2 USD/mes** con uso normal del
-parque de 296 transformadores.
+Total operativo estimado: **< 2 USD/mes**.
 
-## 7. Rollback
+## 5. Rollback
 
-Si necesitas deshabilitar todo sin perder configuración:
+Si necesitas deshabilitar todo:
 
 ```bash
 firebase functions:delete onMuestraCreate cronAlertasDiarias
 ```
 
-O sólo desactivar el cron desde la UI (toggle en
-`admin/alertas.html`). El trigger `onMuestraCreate` seguiría
-activo (no envía emails, solo recalcula salud_actual).
+O desinstalar la Extension desde Firebase Console → Extensions.
+
+## 6. Cambiar el proveedor SMTP
+
+Si más adelante decides cambiar de Gmail a otro SMTP (SendGrid,
+Mailgun, Amazon SES, servidor propio), solo reconfigura la
+Extension con el nuevo SMTP URI. **El código Cloud Functions no
+cambia** porque solo escribe en `/mail`; la Extension absorbe el
+cambio de backend.
 
 ## Referencia normativa
 
 Las notificaciones automáticas se alinean con MO.00418
 §4.1 Nota Técnica C₂H₂ (frecuencia de muestreo intensivo) y
 §A9.2 (avisar al Profesional de Tx cuando hay propuesta FUR
-pendiente). El cron diario es un complemento al sistema de
-alertas cliente-side de F11/F26.
+pendiente). El cron diario complementa al sistema de alertas
+cliente-side de F11/F26.
