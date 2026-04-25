@@ -1,0 +1,435 @@
+<svg viewBox="0 0 755 752" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+  <defs>
+    <!-- Phase colors: subtle metal-with-glow para no competir con la foto -->
+    <linearGradient id="phaseR" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffd9a8"/>
+      <stop offset="100%" stop-color="#c98a3e"/>
+    </linearGradient>
+    <linearGradient id="phaseS" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#cae9ff"/>
+      <stop offset="100%" stop-color="#3a7fbf"/>
+    </linearGradient>
+    <linearGradient id="phaseT" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#e0d9ff"/>
+      <stop offset="100%" stop-color="#7558cc"/>
+    </linearGradient>
+    <linearGradient id="metalCool" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#e8eef5"/>
+      <stop offset="35%"  stop-color="#a8b5c7"/>
+      <stop offset="100%" stop-color="#4a586e"/>
+    </linearGradient>
+    <linearGradient id="porcelain" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#f5e6c5"/>
+      <stop offset="50%"  stop-color="#d8c08a"/>
+      <stop offset="100%" stop-color="#7a5e30"/>
+    </linearGradient>
+    <linearGradient id="sf6Tank" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%"   stop-color="#5a6478"/>
+      <stop offset="40%"  stop-color="#a6b0c2"/>
+      <stop offset="100%" stop-color="#3a4258"/>
+    </linearGradient>
+    <filter id="cableGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="1.4" in="SourceGraphic"/>
+    </filter>
+    <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="1.5"/>
+      <feOffset dx="1" dy="2"/>
+      <feComponentTransfer><feFuncA type="linear" slope=".55"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- ════════════ FOTO BASE (substación real) ═══════════════════ -->
+  <image href="substation-photo.png" x="0" y="0" width="755" height="752" preserveAspectRatio="xMidYMid slice"/>
+
+  <!-- ════════════ OVERLAY: equipos de potencia ══════════════════ -->
+  <!-- Layout: tower phase pickup → arresters → disconnects → CTs → breaker → transformer bushings.
+       Coordenadas calibradas a la foto (755×752). Las 3 fases R/S/T se mantienen separadas verticalmente
+       y la conexión es CONTINUA del lado izquierdo (torre) al derecho (bushings). -->
+
+  <g id="midfield-equipment" filter="url(#dropShadow)">
+
+    <!-- ───── Pararrayos (3 fases) ───────────────────────────── -->
+    <!-- Cilindros porcelana con anillos discharge + base de hormigón -->
+    <g id="arresters">
+      <!-- Pararrayo R -->
+      <g transform="translate(238 540)">
+        <rect x="-3" y="0" width="6" height="120" fill="url(#porcelain)" stroke="#5a4520" stroke-width=".4"/>
+        <rect x="-5" y="6"   width="10" height="3" fill="#a8855a"/>
+        <rect x="-5" y="20"  width="10" height="3" fill="#a8855a"/>
+        <rect x="-5" y="34"  width="10" height="3" fill="#a8855a"/>
+        <rect x="-5" y="48"  width="10" height="3" fill="#a8855a"/>
+        <rect x="-5" y="62"  width="10" height="3" fill="#a8855a"/>
+        <rect x="-5" y="76"  width="10" height="3" fill="#a8855a"/>
+        <rect x="-5" y="90"  width="10" height="3" fill="#a8855a"/>
+        <rect x="-5" y="104" width="10" height="3" fill="#a8855a"/>
+        <rect x="-7" y="120" width="14" height="6" fill="#5a5048"/>
+        <circle cx="0" cy="-2" r="2.5" fill="#3a3a44"/>
+        <text x="-12" y="135" font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#1a2438" text-anchor="middle" filter="none">DPS</text>
+      </g>
+      <!-- Pararrayo S -->
+      <g transform="translate(258 540)">
+        <rect x="-3" y="0" width="6" height="120" fill="url(#porcelain)" stroke="#5a4520" stroke-width=".4"/>
+        <rect x="-5" y="6"   width="10" height="3" fill="#a8855a"/>
+        <rect x="-5" y="20"  width="10" height="3" fill="#a8855a"/>
+        <rect x="-5" y="34"  width="10" height="3" fill="#a8855a"/>
+        <rect x="-5" y="48"  width="10" height="3" fill="#a8855a"/>
+        <rect x="-5" y="62"  width="10" height="3" fill="#a8855a"/>
+        <rect x="-5" y="76"  width="10" height="3" fill="#a8855a"/>
+        <rect x="-5" y="90"  width="10" height="3" fill="#a8855a"/>
+        <rect x="-5" y="104" width="10" height="3" fill="#a8855a"/>
+        <rect x="-7" y="120" width="14" height="6" fill="#5a5048"/>
+        <circle cx="0" cy="-2" r="2.5" fill="#3a3a44"/>
+      </g>
+      <!-- Pararrayo T -->
+      <g transform="translate(278 540)">
+        <rect x="-3" y="0" width="6" height="120" fill="url(#porcelain)" stroke="#5a4520" stroke-width=".4"/>
+        <rect x="-5" y="6"   width="10" height="3" fill="#a8855a"/>
+        <rect x="-5" y="20"  width="10" height="3" fill="#a8855a"/>
+        <rect x="-5" y="34"  width="10" height="3" fill="#a8855a"/>
+        <rect x="-5" y="48"  width="10" height="3" fill="#a8855a"/>
+        <rect x="-5" y="62"  width="10" height="3" fill="#a8855a"/>
+        <rect x="-5" y="76"  width="10" height="3" fill="#a8855a"/>
+        <rect x="-5" y="90"  width="10" height="3" fill="#a8855a"/>
+        <rect x="-5" y="104" width="10" height="3" fill="#a8855a"/>
+        <rect x="-7" y="120" width="14" height="6" fill="#5a5048"/>
+        <circle cx="0" cy="-2" r="2.5" fill="#3a3a44"/>
+      </g>
+    </g>
+
+    <!-- ───── Seccionadores (3 fases) — cuchillas horizontales ───── -->
+    <g id="disconnects">
+      <!-- Sec R -->
+      <g transform="translate(310 510)">
+        <!-- Columna izq aisladora -->
+        <rect x="-12" y="20" width="6" height="80" fill="url(#porcelain)" stroke="#5a4520" stroke-width=".4"/>
+        <rect x="-14" y="30" width="10" height="2" fill="#a8855a"/>
+        <rect x="-14" y="40" width="10" height="2" fill="#a8855a"/>
+        <rect x="-14" y="50" width="10" height="2" fill="#a8855a"/>
+        <rect x="-14" y="62" width="10" height="2" fill="#a8855a"/>
+        <rect x="-14" y="74" width="10" height="2" fill="#a8855a"/>
+        <rect x="-14" y="86" width="10" height="2" fill="#a8855a"/>
+        <!-- Columna der aisladora -->
+        <rect x="6" y="20" width="6" height="80" fill="url(#porcelain)" stroke="#5a4520" stroke-width=".4"/>
+        <rect x="4" y="30" width="10" height="2" fill="#a8855a"/>
+        <rect x="4" y="40" width="10" height="2" fill="#a8855a"/>
+        <rect x="4" y="50" width="10" height="2" fill="#a8855a"/>
+        <rect x="4" y="62" width="10" height="2" fill="#a8855a"/>
+        <rect x="4" y="74" width="10" height="2" fill="#a8855a"/>
+        <rect x="4" y="86" width="10" height="2" fill="#a8855a"/>
+        <!-- Cuchilla horizontal cerrada -->
+        <rect x="-10" y="14" width="20" height="3" fill="url(#metalCool)" stroke="#4a586e" stroke-width=".4"/>
+        <circle cx="-9" cy="15.5" r="2" fill="#5a6478" stroke="#3a4258"/>
+        <circle cx="9"  cy="15.5" r="2" fill="#5a6478" stroke="#3a4258"/>
+        <!-- Bornes superiores -->
+        <circle cx="-9" cy="11" r="2" fill="#3a4258"/>
+        <circle cx="9"  cy="11" r="2" fill="#3a4258"/>
+        <!-- Base hormigón -->
+        <rect x="-16" y="100" width="32" height="6" fill="#5a5048"/>
+        <text x="0" y="115" font-family="Inter,sans-serif" font-size="6.5" font-weight="700" fill="#1a2438" text-anchor="middle">89</text>
+      </g>
+      <!-- Sec S -->
+      <g transform="translate(335 510)">
+        <rect x="-12" y="20" width="6" height="80" fill="url(#porcelain)" stroke="#5a4520" stroke-width=".4"/>
+        <rect x="-14" y="30" width="10" height="2" fill="#a8855a"/>
+        <rect x="-14" y="40" width="10" height="2" fill="#a8855a"/>
+        <rect x="-14" y="50" width="10" height="2" fill="#a8855a"/>
+        <rect x="-14" y="62" width="10" height="2" fill="#a8855a"/>
+        <rect x="-14" y="74" width="10" height="2" fill="#a8855a"/>
+        <rect x="-14" y="86" width="10" height="2" fill="#a8855a"/>
+        <rect x="6" y="20" width="6" height="80" fill="url(#porcelain)" stroke="#5a4520" stroke-width=".4"/>
+        <rect x="4" y="30" width="10" height="2" fill="#a8855a"/>
+        <rect x="4" y="40" width="10" height="2" fill="#a8855a"/>
+        <rect x="4" y="50" width="10" height="2" fill="#a8855a"/>
+        <rect x="4" y="62" width="10" height="2" fill="#a8855a"/>
+        <rect x="4" y="74" width="10" height="2" fill="#a8855a"/>
+        <rect x="4" y="86" width="10" height="2" fill="#a8855a"/>
+        <rect x="-10" y="14" width="20" height="3" fill="url(#metalCool)" stroke="#4a586e" stroke-width=".4"/>
+        <circle cx="-9" cy="15.5" r="2" fill="#5a6478" stroke="#3a4258"/>
+        <circle cx="9"  cy="15.5" r="2" fill="#5a6478" stroke="#3a4258"/>
+        <circle cx="-9" cy="11" r="2" fill="#3a4258"/>
+        <circle cx="9"  cy="11" r="2" fill="#3a4258"/>
+        <rect x="-16" y="100" width="32" height="6" fill="#5a5048"/>
+      </g>
+      <!-- Sec T -->
+      <g transform="translate(360 510)">
+        <rect x="-12" y="20" width="6" height="80" fill="url(#porcelain)" stroke="#5a4520" stroke-width=".4"/>
+        <rect x="-14" y="30" width="10" height="2" fill="#a8855a"/>
+        <rect x="-14" y="40" width="10" height="2" fill="#a8855a"/>
+        <rect x="-14" y="50" width="10" height="2" fill="#a8855a"/>
+        <rect x="-14" y="62" width="10" height="2" fill="#a8855a"/>
+        <rect x="-14" y="74" width="10" height="2" fill="#a8855a"/>
+        <rect x="-14" y="86" width="10" height="2" fill="#a8855a"/>
+        <rect x="6" y="20" width="6" height="80" fill="url(#porcelain)" stroke="#5a4520" stroke-width=".4"/>
+        <rect x="4" y="30" width="10" height="2" fill="#a8855a"/>
+        <rect x="4" y="40" width="10" height="2" fill="#a8855a"/>
+        <rect x="4" y="50" width="10" height="2" fill="#a8855a"/>
+        <rect x="4" y="62" width="10" height="2" fill="#a8855a"/>
+        <rect x="4" y="74" width="10" height="2" fill="#a8855a"/>
+        <rect x="4" y="86" width="10" height="2" fill="#a8855a"/>
+        <rect x="-10" y="14" width="20" height="3" fill="url(#metalCool)" stroke="#4a586e" stroke-width=".4"/>
+        <circle cx="-9" cy="15.5" r="2" fill="#5a6478" stroke="#3a4258"/>
+        <circle cx="9"  cy="15.5" r="2" fill="#5a6478" stroke="#3a4258"/>
+        <circle cx="-9" cy="11" r="2" fill="#3a4258"/>
+        <circle cx="9"  cy="11" r="2" fill="#3a4258"/>
+        <rect x="-16" y="100" width="32" height="6" fill="#5a5048"/>
+      </g>
+    </g>
+
+    <!-- ───── Interruptor SF6 (52) — 3 columnas ──────────────── -->
+    <g id="breaker">
+      <!-- Br R -->
+      <g transform="translate(395 470)">
+        <!-- Columna porcelana inferior -->
+        <rect x="-4" y="40" width="8" height="100" fill="url(#porcelain)" stroke="#5a4520" stroke-width=".4"/>
+        <rect x="-6" y="55"  width="12" height="2" fill="#a8855a"/>
+        <rect x="-6" y="70"  width="12" height="2" fill="#a8855a"/>
+        <rect x="-6" y="85"  width="12" height="2" fill="#a8855a"/>
+        <rect x="-6" y="100" width="12" height="2" fill="#a8855a"/>
+        <rect x="-6" y="115" width="12" height="2" fill="#a8855a"/>
+        <rect x="-6" y="130" width="12" height="2" fill="#a8855a"/>
+        <!-- Tanque SF6 horizontal arriba -->
+        <rect x="-15" y="20" width="30" height="22" rx="3" fill="url(#sf6Tank)" stroke="#3a4258" stroke-width=".5"/>
+        <rect x="-13" y="22" width="26" height="3" rx="1" fill="rgba(255,255,255,.25)"/>
+        <!-- Bornes -->
+        <circle cx="-12" cy="20" r="2.5" fill="#3a4258" stroke="#1a2438"/>
+        <circle cx="12"  cy="20" r="2.5" fill="#3a4258" stroke="#1a2438"/>
+        <line x1="-12" y1="20" x2="-12" y2="14" stroke="#5a6478" stroke-width="1.5"/>
+        <line x1="12"  y1="20" x2="12"  y2="14" stroke="#5a6478" stroke-width="1.5"/>
+        <circle cx="-12" cy="13" r="1.8" fill="#3a4258"/>
+        <circle cx="12"  cy="13" r="1.8" fill="#3a4258"/>
+        <!-- Caja de mando -->
+        <rect x="-9" y="142" width="18" height="14" rx="1" fill="#5a6478" stroke="#3a4258"/>
+        <rect x="-7" y="146" width="4" height="3" fill="#1cc870"/>
+        <rect x="-1" y="146" width="4" height="3" fill="#ff3b30"/>
+        <!-- Base -->
+        <rect x="-12" y="156" width="24" height="6" fill="#5a5048"/>
+        <text x="0" y="172" font-family="Inter,sans-serif" font-size="6.5" font-weight="700" fill="#1a2438" text-anchor="middle">52</text>
+      </g>
+      <!-- Br S -->
+      <g transform="translate(427 470)">
+        <rect x="-4" y="40" width="8" height="100" fill="url(#porcelain)" stroke="#5a4520" stroke-width=".4"/>
+        <rect x="-6" y="55"  width="12" height="2" fill="#a8855a"/>
+        <rect x="-6" y="70"  width="12" height="2" fill="#a8855a"/>
+        <rect x="-6" y="85"  width="12" height="2" fill="#a8855a"/>
+        <rect x="-6" y="100" width="12" height="2" fill="#a8855a"/>
+        <rect x="-6" y="115" width="12" height="2" fill="#a8855a"/>
+        <rect x="-6" y="130" width="12" height="2" fill="#a8855a"/>
+        <rect x="-15" y="20" width="30" height="22" rx="3" fill="url(#sf6Tank)" stroke="#3a4258" stroke-width=".5"/>
+        <rect x="-13" y="22" width="26" height="3" rx="1" fill="rgba(255,255,255,.25)"/>
+        <circle cx="-12" cy="20" r="2.5" fill="#3a4258" stroke="#1a2438"/>
+        <circle cx="12"  cy="20" r="2.5" fill="#3a4258" stroke="#1a2438"/>
+        <line x1="-12" y1="20" x2="-12" y2="14" stroke="#5a6478" stroke-width="1.5"/>
+        <line x1="12"  y1="20" x2="12"  y2="14" stroke="#5a6478" stroke-width="1.5"/>
+        <circle cx="-12" cy="13" r="1.8" fill="#3a4258"/>
+        <circle cx="12"  cy="13" r="1.8" fill="#3a4258"/>
+        <rect x="-9" y="142" width="18" height="14" rx="1" fill="#5a6478" stroke="#3a4258"/>
+        <rect x="-7" y="146" width="4" height="3" fill="#1cc870"/>
+        <rect x="-1" y="146" width="4" height="3" fill="#ff3b30"/>
+        <rect x="-12" y="156" width="24" height="6" fill="#5a5048"/>
+      </g>
+      <!-- Br T -->
+      <g transform="translate(459 470)">
+        <rect x="-4" y="40" width="8" height="100" fill="url(#porcelain)" stroke="#5a4520" stroke-width=".4"/>
+        <rect x="-6" y="55"  width="12" height="2" fill="#a8855a"/>
+        <rect x="-6" y="70"  width="12" height="2" fill="#a8855a"/>
+        <rect x="-6" y="85"  width="12" height="2" fill="#a8855a"/>
+        <rect x="-6" y="100" width="12" height="2" fill="#a8855a"/>
+        <rect x="-6" y="115" width="12" height="2" fill="#a8855a"/>
+        <rect x="-6" y="130" width="12" height="2" fill="#a8855a"/>
+        <rect x="-15" y="20" width="30" height="22" rx="3" fill="url(#sf6Tank)" stroke="#3a4258" stroke-width=".5"/>
+        <rect x="-13" y="22" width="26" height="3" rx="1" fill="rgba(255,255,255,.25)"/>
+        <circle cx="-12" cy="20" r="2.5" fill="#3a4258" stroke="#1a2438"/>
+        <circle cx="12"  cy="20" r="2.5" fill="#3a4258" stroke="#1a2438"/>
+        <line x1="-12" y1="20" x2="-12" y2="14" stroke="#5a6478" stroke-width="1.5"/>
+        <line x1="12"  y1="20" x2="12"  y2="14" stroke="#5a6478" stroke-width="1.5"/>
+        <circle cx="-12" cy="13" r="1.8" fill="#3a4258"/>
+        <circle cx="12"  cy="13" r="1.8" fill="#3a4258"/>
+        <rect x="-9" y="142" width="18" height="14" rx="1" fill="#5a6478" stroke="#3a4258"/>
+        <rect x="-7" y="146" width="4" height="3" fill="#1cc870"/>
+        <rect x="-1" y="146" width="4" height="3" fill="#ff3b30"/>
+        <rect x="-12" y="156" width="24" height="6" fill="#5a5048"/>
+      </g>
+    </g>
+
+    <!-- ───── Transformadores de corriente CT (3 fases) ────────── -->
+    <g id="cts">
+      <!-- CT R -->
+      <g transform="translate(498 530)">
+        <ellipse cx="0" cy="0" rx="6" ry="3" fill="url(#metalCool)" stroke="#3a4258" stroke-width=".4"/>
+        <rect x="-3" y="0" width="6" height="100" fill="url(#porcelain)" stroke="#5a4520" stroke-width=".4"/>
+        <rect x="-5" y="14"  width="10" height="2" fill="#a8855a"/>
+        <rect x="-5" y="28"  width="10" height="2" fill="#a8855a"/>
+        <rect x="-5" y="42"  width="10" height="2" fill="#a8855a"/>
+        <rect x="-5" y="56"  width="10" height="2" fill="#a8855a"/>
+        <rect x="-5" y="70"  width="10" height="2" fill="#a8855a"/>
+        <rect x="-5" y="84"  width="10" height="2" fill="#a8855a"/>
+        <rect x="-7" y="100" width="14" height="6" fill="#5a5048"/>
+        <text x="0" y="118" font-family="Inter,sans-serif" font-size="6" font-weight="700" fill="#1a2438" text-anchor="middle">CT</text>
+      </g>
+      <!-- CT S -->
+      <g transform="translate(518 530)">
+        <ellipse cx="0" cy="0" rx="6" ry="3" fill="url(#metalCool)" stroke="#3a4258" stroke-width=".4"/>
+        <rect x="-3" y="0" width="6" height="100" fill="url(#porcelain)" stroke="#5a4520" stroke-width=".4"/>
+        <rect x="-5" y="14"  width="10" height="2" fill="#a8855a"/>
+        <rect x="-5" y="28"  width="10" height="2" fill="#a8855a"/>
+        <rect x="-5" y="42"  width="10" height="2" fill="#a8855a"/>
+        <rect x="-5" y="56"  width="10" height="2" fill="#a8855a"/>
+        <rect x="-5" y="70"  width="10" height="2" fill="#a8855a"/>
+        <rect x="-5" y="84"  width="10" height="2" fill="#a8855a"/>
+        <rect x="-7" y="100" width="14" height="6" fill="#5a5048"/>
+      </g>
+      <!-- CT T -->
+      <g transform="translate(538 530)">
+        <ellipse cx="0" cy="0" rx="6" ry="3" fill="url(#metalCool)" stroke="#3a4258" stroke-width=".4"/>
+        <rect x="-3" y="0" width="6" height="100" fill="url(#porcelain)" stroke="#5a4520" stroke-width=".4"/>
+        <rect x="-5" y="14"  width="10" height="2" fill="#a8855a"/>
+        <rect x="-5" y="28"  width="10" height="2" fill="#a8855a"/>
+        <rect x="-5" y="42"  width="10" height="2" fill="#a8855a"/>
+        <rect x="-5" y="56"  width="10" height="2" fill="#a8855a"/>
+        <rect x="-5" y="70"  width="10" height="2" fill="#a8855a"/>
+        <rect x="-5" y="84"  width="10" height="2" fill="#a8855a"/>
+        <rect x="-7" y="100" width="14" height="6" fill="#5a5048"/>
+      </g>
+    </g>
+
+  </g>
+
+  <!-- ════════════ CABLES interconectando 3 fases ═══════════════
+       Cada fase es UNA polilínea continua:
+         torre[fase n] → DPS_n → SEC_n → 52_n → CT_n → bushing_n del trafo
+       Color separado por fase para que se distinga la trazabilidad. -->
+  <g id="phase-cables" stroke-linecap="round" stroke-linejoin="round" fill="none">
+
+    <!-- Sombra/glow ambiente bajo los cables -->
+    <g filter="url(#cableGlow)" opacity=".55">
+      <!-- Fase R: amber -->
+      <path stroke="#c98a3e" stroke-width="3" d="
+        M 178 78
+        L 178 460
+        L 238 460  L 238 540  L 238 460
+        L 310 460  L 310 510  L 310 460
+        L 395 460  L 395 470  L 395 460
+        L 498 460  L 498 530  L 498 460
+        L 595 230"/>
+      <!-- Fase S: blue -->
+      <path stroke="#3a7fbf" stroke-width="3" d="
+        M 200 110
+        L 200 475
+        L 258 475  L 258 540  L 258 475
+        L 335 475  L 335 510  L 335 475
+        L 427 475  L 427 470  L 427 475
+        L 518 475  L 518 530  L 518 475
+        L 612 245"/>
+      <!-- Fase T: violet -->
+      <path stroke="#7558cc" stroke-width="3" d="
+        M 222 142
+        L 222 490
+        L 278 490  L 278 540  L 278 490
+        L 360 490  L 360 510  L 360 490
+        L 459 490  L 459 470  L 459 490
+        L 538 490  L 538 530  L 538 490
+        L 628 260"/>
+    </g>
+
+    <!-- Cables sólidos sobre el glow -->
+    <!-- Fase R -->
+    <path stroke="#1c2540" stroke-width="1.6" d="
+      M 178 78
+      L 178 460
+      L 238 460  L 238 540  L 238 460
+      L 310 460  L 310 510  L 310 460
+      L 395 460  L 395 470  L 395 460
+      L 498 460  L 498 530  L 498 460
+      L 595 230"/>
+    <path stroke="url(#phaseR)" stroke-width=".8" opacity=".9" d="
+      M 178 78
+      L 178 460
+      L 238 460  L 238 540  L 238 460
+      L 310 460  L 310 510  L 310 460
+      L 395 460  L 395 470  L 395 460
+      L 498 460  L 498 530  L 498 460
+      L 595 230"/>
+
+    <!-- Fase S -->
+    <path stroke="#1c2540" stroke-width="1.6" d="
+      M 200 110
+      L 200 475
+      L 258 475  L 258 540  L 258 475
+      L 335 475  L 335 510  L 335 475
+      L 427 475  L 427 470  L 427 475
+      L 518 475  L 518 530  L 518 475
+      L 612 245"/>
+    <path stroke="url(#phaseS)" stroke-width=".8" opacity=".9" d="
+      M 200 110
+      L 200 475
+      L 258 475  L 258 540  L 258 475
+      L 335 475  L 335 510  L 335 475
+      L 427 475  L 427 470  L 427 475
+      L 518 475  L 518 530  L 518 475
+      L 612 245"/>
+
+    <!-- Fase T -->
+    <path stroke="#1c2540" stroke-width="1.6" d="
+      M 222 142
+      L 222 490
+      L 278 490  L 278 540  L 278 490
+      L 360 490  L 360 510  L 360 490
+      L 459 490  L 459 470  L 459 490
+      L 538 490  L 538 530  L 538 490
+      L 628 260"/>
+    <path stroke="url(#phaseT)" stroke-width=".8" opacity=".9" d="
+      M 222 142
+      L 222 490
+      L 278 490  L 278 540  L 278 490
+      L 360 490  L 360 510  L 360 490
+      L 459 490  L 459 470  L 459 490
+      L 538 490  L 538 530  L 538 490
+      L 628 260"/>
+
+    <!-- Marcadores de bornes (puntos donde el cable conecta físicamente al equipo) -->
+    <g fill="#1a2438" stroke="rgba(255,255,255,.6)" stroke-width=".4">
+      <!-- Pickup en torre (3 puntos) -->
+      <circle cx="178" cy="78"  r="2"/>
+      <circle cx="200" cy="110" r="2"/>
+      <circle cx="222" cy="142" r="2"/>
+      <!-- Tops de DPS -->
+      <circle cx="238" cy="540" r="1.8"/>
+      <circle cx="258" cy="540" r="1.8"/>
+      <circle cx="278" cy="540" r="1.8"/>
+      <!-- Tops de seccionadores -->
+      <circle cx="310" cy="510" r="1.8"/>
+      <circle cx="335" cy="510" r="1.8"/>
+      <circle cx="360" cy="510" r="1.8"/>
+      <!-- Tanques de breakers -->
+      <circle cx="395" cy="475" r="1.8"/>
+      <circle cx="427" cy="475" r="1.8"/>
+      <circle cx="459" cy="475" r="1.8"/>
+      <!-- Tops de CTs -->
+      <circle cx="498" cy="530" r="1.8"/>
+      <circle cx="518" cy="530" r="1.8"/>
+      <circle cx="538" cy="530" r="1.8"/>
+      <!-- Bushings del transformador (terminación) -->
+      <circle cx="595" cy="230" r="2.2"/>
+      <circle cx="612" cy="245" r="2.2"/>
+      <circle cx="628" cy="260" r="2.2"/>
+    </g>
+
+  </g>
+
+  <!-- Etiquetas técnicas (texto pequeño debajo de algunos equipos para identificación) -->
+  <g fill="#1a2438" font-family="'SF Mono','JetBrains Mono',monospace" font-size="6" font-weight="700" text-anchor="middle" opacity=".85">
+    <text x="258" y="685">PARARRAYOS · DPS</text>
+    <text x="335" y="685">SECCIONADOR · 89</text>
+    <text x="427" y="685">INTERRUPTOR · 52</text>
+    <text x="518" y="685">CT · TRANSFORMADOR DE CORRIENTE</text>
+  </g>
+
+  <!-- Nameplate "Vano de transformación 110 kV" arriba a la derecha -->
+  <g transform="translate(540 35)" font-family="'SF Mono','JetBrains Mono',monospace">
+    <rect x="0" y="0" width="180" height="36" rx="6" fill="rgba(10,18,32,.55)" stroke="rgba(255,255,255,.25)" stroke-width=".5"/>
+    <text x="10" y="14" font-size="7" fill="#7fe0ff" font-weight="700">VANO · 110 kV</text>
+    <text x="10" y="24" font-size="6" fill="#cae9ff">SUBESTACIÓN · TRANSFORMACIÓN</text>
+    <text x="10" y="32" font-size="5.5" fill="#a8b5c7">SGM · TRANSPOWER</text>
+  </g>
+</svg>

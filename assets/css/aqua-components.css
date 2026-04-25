@@ -34,27 +34,29 @@ body.aqua *, body.aqua *::before, body.aqua *::after {
   mask-image: radial-gradient(ellipse 90% 70% at 50% 40%, #000 30%, transparent 85%);
 }
 
-/* Escena de potencia DOMINANTE en el fondo:
-   torre de alta tensión + cables en catenaria + transformador. */
+/* Escena de subestación DOMINANTE en el fondo:
+   foto real (substation-photo.png) + overlay SVG con equipos de
+   potencia (DPS, seccionadores, breakers SF6, CTs) interconectados
+   por las 3 fases (R/S/T) tower → equipos → bushings. */
 .aqua-power-scene {
   position: fixed;
   left: 0; right: 0; bottom: 0;
   width: 100%;
-  height: min(78vh, 900px);
+  height: min(82vh, 950px);
   z-index: -1;
   pointer-events: none;
-  opacity: .68;
-  background-image: url("../img/aqua/power-scene.svg");
+  opacity: .72;
+  background-image: url("../img/aqua/substation-scene.svg");
   background-repeat: no-repeat;
   background-position: center bottom;
   background-size: cover;
-  filter: saturate(115%) drop-shadow(0 28px 70px rgba(0,40,90,.18));
+  filter: saturate(108%) contrast(102%) drop-shadow(0 28px 70px rgba(0,40,90,.20));
 }
 @media (max-width: 1024px) {
-  .aqua-power-scene { opacity: .55; height: 60vh; }
+  .aqua-power-scene { opacity: .60; height: 64vh; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .aqua-power-scene { opacity: .60; }
+  .aqua-power-scene { opacity: .65; }
 }
 
 /* Versión legacy retro-compat (si algunas páginas aún usan
