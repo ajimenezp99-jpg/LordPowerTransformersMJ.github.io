@@ -18,6 +18,9 @@ npm-debug.log*
 .DS_Store
 Thumbs.db
 
+# Claude Code (worktrees, sesiones, memoria local — nunca al repo)
+.claude/
+
 # Build / caches
 .cache/
 .parcel-cache/
