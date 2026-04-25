@@ -66,6 +66,26 @@ service cloud.firestore {
       return v == '' || v == null || v in ['G1', 'G2', 'G3'];
     }
 
+    // ── Helpers de validación de enums F38–F39 (suministros) ──
+    function isTipoMovimientoValido(v) {
+      return v in ['INGRESO', 'EGRESO'];
+    }
+    function isUnidadValida(v) {
+      return v in ['Und', 'Lt', 'Kg', 'Mt', 'Gal', 'Otro'];
+    }
+    function isEstadoRepuestoValido(v) {
+      return v in ['OPERATIVA', 'OBSOLETA', 'N/A'];
+    }
+    function isTipoCorreccionValido(v) {
+      return v in ['matricula', 'tension', 'regulacion', 'stock', 'marca', 'otro'];
+    }
+    function isCodigoSuministroValido(v) {
+      return v is string && v.matches('^S[0-9]{2}$');
+    }
+    function isCodigoMovimientoValido(v) {
+      return v is string && v.matches('^MOV-[0-9]{4}-[0-9]{4}$');
+    }
+
     // ── /admins/{uid} — legacy bootstrap (F5) ──
     match /admins/{uid} {
       allow read:  if isSignedIn() && request.auth.uid == uid;
@@ -453,6 +473,112 @@ service cloud.firestore {
     // ── Gate legacy F12 cerrado ──
     match /gate_codes/{hash} {
       allow read, write: if false;
+    }
+
+    // ══════════════════════════════════════════════════════════
+    // F40 · Suministros / Repuestos / Stock
+    // ══════════════════════════════════════════════════════════
+
+    // ── /suministros/{id} ──
+    // docId == codigo (PK humana, decisión del plan).
+    match /suministros/{id} {
+      allow read: if isTeamMember();
+      allow create: if isAdmin()
+                    && isCodigoSuministroValido(request.resource.data.codigo)
+                    && request.resource.data.codigo == id
+                    && request.resource.data.nombre is string
+                    && request.resource.data.nombre.size() > 0
+                    && isUnidadValida(request.resource.data.unidad)
+                    && request.resource.data.stock_inicial is number
+                    && request.resource.data.stock_inicial >= 0
+                    && request.resource.data.valor_unitario is number
+                    && request.resource.data.valor_unitario >= 0;
+      allow update: if isAdmin()
+                    // Codigo es inmutable (PK humana).
+                    && (!('codigo' in request.resource.data)
+                        || request.resource.data.codigo == resource.data.codigo)
+                    && (!('unidad' in request.resource.data)
+                        || isUnidadValida(request.resource.data.unidad))
+                    && (!('stock_inicial' in request.resource.data)
+                        || (request.resource.data.stock_inicial is number
+                            && request.resource.data.stock_inicial >= 0));
+      allow delete: if isAdmin();
+    }
+
+    // ── /marcas/{id} ──
+    match /marcas/{id} {
+      allow read: if isTeamMember();
+      allow create: if isAdmin()
+                    && isCodigoSuministroValido(request.resource.data.suministro_id)
+                    && request.resource.data.marca is string
+                    && request.resource.data.marca.size() > 0;
+      allow update: if isAdmin()
+                    && (!('suministro_id' in request.resource.data)
+                        || isCodigoSuministroValido(request.resource.data.suministro_id))
+                    && (!('marca' in request.resource.data)
+                        || (request.resource.data.marca is string
+                            && request.resource.data.marca.size() > 0));
+      allow delete: if isAdmin();
+    }
+
+    // ── /movimientos/{id} ──
+    // Decisión 6·A del plan: WRITE solo admin. Tecnico/brigadista no
+    // crean movimientos. La aplicación cliente envuelve crear() en
+    // runTransaction (F39); aquí validamos invariantes server-side.
+    match /movimientos/{id} {
+      allow read: if isTeamMember();
+      allow create: if isAdmin()
+                    && isCodigoMovimientoValido(request.resource.data.codigo)
+                    && isTipoMovimientoValido(request.resource.data.tipo)
+                    && isCodigoSuministroValido(request.resource.data.suministro_id)
+                    && request.resource.data.cantidad is int
+                    && request.resource.data.cantidad >= 1
+                    && request.resource.data.transformador_id is string
+                    && request.resource.data.transformador_id.size() > 0
+                    && request.resource.data.matricula is string
+                    && request.resource.data.matricula.size() > 0
+                    && request.resource.data.anio is int
+                    && request.resource.data.anio >= 2000
+                    && request.resource.data.anio <= 2100
+                    && request.resource.data.valor_total is number
+                    && request.resource.data.valor_total >= 0;
+      // Update permitido solo para corregir typos de campos no críticos
+      // (observaciones, odt). Codigo, tipo, cantidad, suministro_id,
+      // transformador_id NO se pueden cambiar — para corregir un
+      // movimiento se elimina (con justificación) y se crea otro.
+      allow update: if isAdmin()
+                    && request.resource.data.codigo == resource.data.codigo
+                    && request.resource.data.tipo == resource.data.tipo
+                    && request.resource.data.cantidad == resource.data.cantidad
+                    && request.resource.data.suministro_id == resource.data.suministro_id
+                    && request.resource.data.transformador_id == resource.data.transformador_id;
+      allow delete: if isAdmin();
+    }
+
+    // ── /correcciones/{id} ──
+    // Append + update permitidos. Delete BLOQUEADO (traceability
+    // inmutable, regla del skill asset-tracking-system).
+    match /correcciones/{id} {
+      allow read: if isTeamMember();
+      allow create: if isAdmin()
+                    && request.resource.data.numero is int
+                    && request.resource.data.numero >= 1
+                    && isTipoCorreccionValido(request.resource.data.tipo)
+                    && request.resource.data.ubicacion is string
+                    && request.resource.data.ubicacion.size() > 0
+                    && request.resource.data.justificacion is string
+                    && request.resource.data.justificacion.size() > 0;
+      allow update: if isAdmin()
+                    && (!('tipo' in request.resource.data)
+                        || isTipoCorreccionValido(request.resource.data.tipo));
+      allow delete: if false;
+    }
+
+    // ── /suministros_config/{id} ──
+    // Singleton /suministros_config/global con permitirNegativo y umbrales.
+    match /suministros_config/{id} {
+      allow read: if isTeamMember();
+      allow write: if isAdmin();
     }
 
     // ── Resto: cerrado por defecto ──

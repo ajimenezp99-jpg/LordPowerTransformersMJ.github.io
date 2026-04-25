@@ -191,6 +191,67 @@
         { "fieldPath": "transformadorId", "order": "ASCENDING" },
         { "fieldPath": "codigo",          "order": "DESCENDING" }
       ]
+    },
+
+    {
+      "collectionGroup": "marcas",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "suministro_id", "order": "ASCENDING" },
+        { "fieldPath": "marca",         "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "movimientos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "anio",   "order": "DESCENDING" },
+        { "fieldPath": "codigo", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "movimientos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "suministro_id", "order": "ASCENDING" },
+        { "fieldPath": "anio",          "order": "DESCENDING" },
+        { "fieldPath": "codigo",        "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "movimientos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "transformador_id", "order": "ASCENDING" },
+        { "fieldPath": "anio",             "order": "DESCENDING" },
+        { "fieldPath": "codigo",           "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "movimientos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "zona",   "order": "ASCENDING" },
+        { "fieldPath": "anio",   "order": "DESCENDING" },
+        { "fieldPath": "codigo", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "movimientos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tipo",   "order": "ASCENDING" },
+        { "fieldPath": "anio",   "order": "DESCENDING" },
+        { "fieldPath": "codigo", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "correcciones",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "tipo",   "order": "ASCENDING" },
+        { "fieldPath": "numero", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []
