@@ -21,26 +21,47 @@
 
   <div class="page-header">
     <div class="breadcrumb">Suministros / Dashboard</div>
-    <h1 class="page-title">Dashboard <em>Ejecutivo</em></h1>
+    <h1 class="page-title">Dashboard <em>Suministros</em></h1>
     <p class="page-subtitle">
-      Indicadores operativos y económicos del módulo de suministros.
-      Ranking por descripción, distribución por zona/departamento y
-      vista cruzada filtrable.
+      Vista unificada del estado del módulo: KPIs operativos y económicos,
+      stock por ítem con semáforo de 6 estados, ranking, distribución por
+      zona/departamento y vista cruzada filtrable. Realtime sobre
+      <code>/suministros</code> + <code>/movimientos</code>.
     </p>
   </div>
 
+  <div id="infoBox" class="info-msg" style="display:none"></div>
+
   <!-- KPIs operativos -->
-  <h2 class="section-head">Operativos</h2>
+  <h2 class="section-head">KPIs operativos</h2>
+  <div class="kpi-row">
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-label">Stock inicial total</div>
+      <div class="kpi-value" id="kStockIni">—</div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-label">Disponible total</div>
+      <div class="kpi-value" id="kDisponible">—</div>
+    </div>
+    <div class="kpi-card kpi-orange">
+      <div class="kpi-label">Consumido total</div>
+      <div class="kpi-value" id="kConsumido">—</div>
+    </div>
+    <div class="kpi-card kpi-red">
+      <div class="kpi-label">Críticos / Agotados</div>
+      <div class="kpi-value" id="kCriticos">—</div>
+    </div>
+  </div>
   <div class="kpi-row">
     <div class="kpi-card kpi-slate">
-      <div class="kpi-label">Registros</div>
+      <div class="kpi-label">Movimientos registrados</div>
       <div class="kpi-value" id="kRegistros">—</div>
     </div>
     <div class="kpi-card kpi-teal">
       <div class="kpi-label">Unidades movidas</div>
       <div class="kpi-value" id="kUnidades">—</div>
     </div>
-    <div class="kpi-card kpi-orange">
+    <div class="kpi-card kpi-amber">
       <div class="kpi-label">Descripciones únicas</div>
       <div class="kpi-value" id="kDescripciones">—</div>
     </div>
@@ -51,7 +72,7 @@
   </div>
 
   <!-- KPIs económicos -->
-  <h2 class="section-head">Económicos</h2>
+  <h2 class="section-head">KPIs económicos</h2>
   <div class="kpi-row">
     <div class="kpi-card kpi-slate">
       <div class="kpi-label">Valor contrato</div>
@@ -71,8 +92,53 @@
     </div>
   </div>
 
-  <!-- Charts -->
-  <h2 class="section-head">Distribución</h2>
+  <!-- Stock por ítem -->
+  <h2 class="section-head">Stock por ítem</h2>
+  <div class="inv-toolbar">
+    <div class="inv-filters">
+      <div class="inv-search">
+        <i data-lucide="search"></i>
+        <input type="search" id="fBusqueda" placeholder="Buscar por código o nombre…" aria-label="Buscar">
+      </div>
+      <select class="form-select" id="fEstado" aria-label="Filtrar por estado">
+        <option value="">Todos los estados</option>
+        <option value="OK">🟢 OK</option>
+        <option value="MEDIO">🟡 Medio</option>
+        <option value="CRITICO">🟠 Crítico</option>
+        <option value="AGOTADO">⛔ Agotado</option>
+        <option value="NEGATIVO">🔴 Negativo</option>
+        <option value="SIN_STOCK">⚪ Sin stock</option>
+      </select>
+    </div>
+    <div id="counter" style="font-family: var(--font-mono); font-size: 12px; color: var(--ink-3);"></div>
+  </div>
+  <div class="table-wrap">
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th scope="col">Código</th>
+            <th scope="col">Nombre</th>
+            <th scope="col">Marca</th>
+            <th scope="col">Unidad</th>
+            <th scope="col" style="text-align:right">Inicial</th>
+            <th scope="col" style="text-align:right">+Ingresos</th>
+            <th scope="col" style="text-align:right">−Egresos</th>
+            <th scope="col" style="text-align:right">Disponible</th>
+            <th scope="col" style="text-align:right">% rest</th>
+            <th scope="col">Estado</th>
+            <th scope="col" style="text-align:right">Valor disp. (COP)</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="11" class="td-empty">Cargando stock…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Distribución (charts) -->
+  <h2 class="section-head">Distribución y ranking</h2>
   <div class="chart-grid">
     <div class="chart-card">
       <h3>Top 10 suministros por unidades consumidas</h3>
@@ -114,11 +180,9 @@
     <div id="cruzadoCount" style="font-family: var(--font-mono); font-size: 12px; color: var(--ink-3);"></div>
   </div>
   <div class="chart-card" style="margin-top: 14px;">
-    <h3>Ranking suministros (filtro aplicado)</h3>
+    <h3>Ranking suministros (filtros aplicados)</h3>
     <canvas id="chCruzado"></canvas>
   </div>
-
-  <div id="infoBox" class="info-msg" style="display:none; margin-top: 18px;"></div>
 
 </main>
 
