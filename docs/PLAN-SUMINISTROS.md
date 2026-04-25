@@ -532,6 +532,299 @@ sub-objeto sin requerirlo).
 
 ---
 
-> **Continúa en P4:** Bloque B (F42 importador) + Bloque C (F43–F46 admin UI). Estimado
-> 5 fases, sin deploy adicional (las funciones se llaman desde la UI; los datos viajan por
-> las rules ya desplegadas).
+### Bloque B · Importador (seed inicial idempotente)
+
+#### F42 · Importador XLSM/JSX → Firestore
+
+**Objetivo.** Sub-rutina reusable + UI admin que lee los archivos fuente y siembra
+Firestore. **Idempotente:** re-ejecutarla no duplica datos. Hace también el backfill
+del campo `repuesto` en `/transformadores` que F41 dejó pendiente.
+
+**Entregables.**
+- `assets/js/domain/importador_suministros.js` — parser puro (sin I/O Firebase):
+  - `parsearXlsmCatalogo(buffer)` → `{suministros: [...22], marcas: [...22]}` desde
+    Sheet2 + Sheet3 del .xlsm.
+  - `parsearXlsmEquipos(buffer)` → `[{matricula, ...}]` desde Sheet5 (206 filas).
+  - `parsearJsxTransformadores(text)` → `[{m, sub, zona, dep, re, ...}]` extrae el array
+    `TRANSFORMADORES` del JSX. Parsing seguro: regex extraction + `JSON.parse` con quoting fix
+    (NO `eval`/`Function` — superficie de ataque innecesaria).
+  - `reconciliar(equiposXlsm, equiposJsx)` — coalesce por matrícula; JSX gana en conflictos
+    (decisión 2·A). Reporta diferencias.
+  - `prepararPlanImportacion(parsedAll, existentesEnFirestore)` →
+    `{crear: [...], actualizar: [...], skip: [...], correcciones: [...]}`.
+  - `extraerCorreccionesEmbedded(jsxText)` → 3 correcciones que el JSX hardcodea (matrículas,
+    tensiones, regulación) para inyectarlas como docs en `/correcciones`.
+- `assets/js/data/importador_suministros.js` — runner con I/O:
+  - `ejecutarImportacion({plan, dryRun, onProgress})` — batches de 450 writes (límite Firestore).
+  - Registra **una sola** entrada `bulk_import_suministros` en `/auditoria` con metadata
+    granular del §3 (decisión 7·A).
+  - Backfill del campo `repuesto` para los 206 trafos (cumple compromiso F41).
+- `admin/importar-suministros.html` + `admin-importar-suministros.js` — UI:
+  - Drop-zone para subir el .xlsm y el .jsx (acepta versiones futuras).
+  - Botón **"Cargar desde repo"** atajo que hace fetch a
+    `/control_suministros-2.jsx` y `/Gestion_Suministros_Transformadores-2.xlsm`.
+  - Botón **SIMULAR** (dryRun): muestra plan en tabla — cuántos crea, cuántos actualiza,
+    conflictos por matrícula, correcciones embebidas.
+  - Botón **IMPORTAR**: ejecuta. Barra de progreso. Reporte final con summary completo
+    + link al doc de auditoría.
+- Tests: `tests/importador_suministros.test.js` con datos sintéticos (3 sumin + 5 trafos).
+
+**Patrón de referencia.** F17 importador Excel → Firestore en `admin/importar.html` +
+`assets/js/data/importar.js` (idempotencia por código, dryRun obligatorio antes del run real,
+batches de 450).
+
+**Decisiones a confirmar (mini-gating).**
+- ¿Las 3 correcciones que el JSX muestra hardcoded se importan automáticamente como docs
+  con `fuente='control_suministros-2.jsx'` y `numero=1,2,3`, o se difieren a entrada
+  manual en F46? **Auto-asunción mejor manera:** importar automáticamente — el director
+  las ve en F46 y puede editar / agregar más sin perder la traceability del fuente.
+- ¿Qué hacer con suministros / trafos huérfanos en Firestore (presentes en BD pero no en
+  el .xlsm/JSX)? **Auto-asunción:** marcarlos como `skip` y reportarlos en el summary;
+  NO eliminar (decisión 2·A no autoriza DELETE).
+
+**Anticipación de errores.**
+- **SheetJS:** cells vacías retornan `undefined`; coalesce a `''` antes de pasar al sanitizer
+  F38 (que rechaza `undefined` pero acepta string vacío).
+- **Parsing del JSX:** el array `TRANSFORMADORES` es JS literal con comillas dobles y nulls.
+  Estrategia: regex captura el bloque `[...]`, se reemplaza `null` por `null` (ya válido en
+  JSON), se quita comma trailing si existe, se valida con `JSON.parse`. **Cero `eval`.**
+- **Race condition en re-importación concurrente:** dos admins importando a la vez generan
+  dos audit entries pero los docs quedan consistentes (UPDATEs idempotentes por matrícula).
+- **Memoria:** 206 trafos × ~4 KB cada uno + 22 sumin = ~900 KB en buffer — sin problema
+  para client-side.
+- **Backfill `repuesto`:** los trafos que el JSX trae con `re:null` se sanean a
+  `repuesto.estado='N/A'` (regla del sanitizer F41). Se loguea en el summary cuántos
+  pasaron de "sin campo" a "N/A" para evidencia.
+
+**Validación / criterio de cierre.**
+- Tests sintéticos: parsear, generar plan, ejecutar, verificar Firestore mock.
+- Manual: dryRun en UI muestra exactamente 22 suministros + 22 marcas + 206 trafos +
+  3 correcciones.
+- Manual: ejecutar real, verificar entrada de audit con `sha256(.xlsm)`, `sha256(.jsx)`
+  y summary completo.
+- Re-ejecutar: el plan resulta `crear:0, actualizar:228, skip:0` — confirma idempotencia.
+
+**Tests.** 18 tests.
+
+**Commit msg.** `feat(suministros): F42 importador idempotente XLSM/JSX → Firestore + UI admin + 18 tests`
+
+**Estimación.** 4 h.
+
+**Sin deploy** (rules ya cubren las colecciones desde F40).
+
+---
+
+### Bloque C · Admin UI (CRUD operativo)
+
+#### F43 · Admin Catálogo de Suministros (CRUD)
+
+**Objetivo.** Tabla + modal CRUD de los 22 ítems de catálogo. Realtime con `suscribir`.
+Solo admin escribe; team lee.
+
+**Entregables.**
+- `admin/suministros-catalogo.html`:
+  - Topbar + sidebar via aqua-shell (body class="aqua").
+  - Toolbar: filtros (unidad, búsqueda por nombre/código) + botón "Nuevo".
+  - Tabla columnas: codigo · nombre · unidad · stock_inicial · marcas_disponibles (chips) ·
+    valor_unitario · acciones (Editar / Eliminar).
+  - Modal Nuevo/Editar con validación cliente.
+  - Confirmación de borrado con conteo de movimientos asociados.
+- `assets/js/admin/admin-suministros-catalogo.js` — controller usando `data/suministros.js`.
+- `assets/css/suministros.css` — pills por unidad, badge para chips de marcas.
+
+**Patrón de referencia.** `admin/inventario.html` + `admin-inventario.js` — molde idéntico
+(toolbar → tabla → modal).
+
+**Decisiones a confirmar.** Ninguna nueva.
+
+**Anticipación de errores.**
+- **PK humana inmutable:** el modal deshabilita el campo `codigo` en modo edición. Renombrar
+  un código forzaría reescribir FKs en `/marcas` y `/movimientos` — fuera de alcance.
+- **Eliminación con FK pendiente:** si el suministro tiene movimientos asociados, mostrar
+  warning con conteo y pedir confirmación explícita. Si se confirma, los movimientos quedan
+  con `suministro_nombre` snapshot pero `suministro_id` huérfano (que el dashboard maneja).
+  Mejor: **bloquear delete** y obligar al admin a eliminar/reasignar movimientos primero.
+- **`marcas_disponibles` read-only en este panel:** el CRUD de marcas vive en F44; aquí solo
+  se renderizan como chips. Click en chip lleva a F44 con filtro pre-aplicado.
+
+**Validación / criterio de cierre.**
+- CRUD funciona end-to-end con admin login real.
+- Realtime: editar en una pestaña → refleja en otra sin recargar.
+- `npm run lint:html` limpio.
+
+**Tests.** Sin tests automatizados (UI; lógica testeada en F39).
+
+**Commit msg.** `feat(suministros): F43 admin catálogo · CRUD + realtime + Aqua shell`
+
+**Estimación.** 2.5 h.
+
+---
+
+#### F44 · Admin Marcas (CRUD + sync con `marcas_disponibles`)
+
+**Objetivo.** Panel para gestionar el mapeo Suministro → Marca(s) que en el .xlsm
+vive en Sheet3 (tblMarcas). Sync automático con `/suministros[*].marcas_disponibles[]`.
+
+**Entregables.**
+- `admin/suministros-marcas.html` — tabla 4 columnas: suministro · marca · observaciones · acciones.
+- `assets/js/admin/admin-suministros-marcas.js`.
+- Extender `assets/js/data/marcas.js` con sync callback que tras cada `crear/actualizar/eliminar`
+  releee todas las marcas del mismo suministro y actualiza el campo
+  `/suministros/{id}.marcas_disponibles[]`. Hecho en cliente para no requerir Cloud Function.
+
+**Patrón de referencia.** F43 (mismo molde con menos campos).
+
+**Decisiones a confirmar (mini-gating).**
+- ¿Una sola marca por suministro (modelo del .xlsm: 22 filas, 1 marca cada una) o
+  N marcas por suministro? **Auto-asunción mejor manera:** N marcas — el .xlsm hoy tiene
+  1, pero el campo plural `marcas_disponibles[]` ya está en el schema F38 anticipando
+  vendor diversification. Si el director quiere cap a 1, lo enforzo en validador F38.
+
+**Anticipación de errores.**
+- **Sync de `marcas_disponibles[]`:** si dos admins crean marcas para el mismo suministro
+  simultáneamente, las dos updates concurrentes al campo array producen un last-writer-wins
+  que pierde una marca. **Mitigación:** usar `arrayUnion` en lugar de overwrite. Probado
+  con dos pestañas → ambas marcas sobreviven.
+- **Delete de la última marca:** dejar `marcas_disponibles[]` vacío, no `null`. El form
+  F45 maneja array vacío mostrando "Sin marca asignada".
+
+**Validación.**
+- CRUD funciona; al crear marca para S02, panel F43 muestra el chip nuevo en realtime.
+
+**Tests.** Sin tests automatizados (UI).
+
+**Commit msg.** `feat(suministros): F44 admin marcas · CRUD + sync con marcas_disponibles`
+
+**Estimación.** 2 h.
+
+---
+
+#### F45 · Admin Movimientos · Formulario "Entrega"
+
+**Objetivo.** El núcleo operativo del módulo. Formulario INGRESO/EGRESO con autocomplete
+en cascada (DESC → marca/unidad/valor; matrícula → sub/zona/depto/etc), validación de
+stock, persistencia atómica via `data/movimientos.js`.
+
+**Entregables.**
+- `admin/suministros-movimiento.html`:
+  - Form layout (campos del JSX + columnas del .xlsm Sheet7 "Entrega"):
+    - **Cabecera:** Año (dropdown 2023-2030) · Tipo (radio INGRESO / EGRESO) · Usuario (texto).
+    - **Suministro:** DESC (input + datalist sobre `/suministros`) → auto: marca · unidad ·
+      valor_unitario · stock_actual.
+    - **Equipo:** Matrícula (input + datalist sobre `/transformadores`) → auto: subestación ·
+      zona · departamento · código · serial · potencia · grupo · UUCC · refrigeración ·
+      regulación · tensiones (vp, vs, vt).
+    - **Detalle movimiento:** Cantidad (numérico ≥ 1) · Valor total (calculado) · ODT
+      (texto) · Observaciones (textarea).
+  - Botones: GUARDAR · LIMPIAR.
+  - Banner feedback (ok/err) consistente con admin existente.
+- `assets/js/admin/admin-suministros-movimiento.js` — controller.
+- `assets/css/suministros.css` — clases para el form con color coding del skill:
+  - 🔵 azul (`--cell-manual`): inputs manuales (Año, Tipo, Cantidad, Usuario, ODT, Obs).
+  - 🟡 amber (`--cell-keyfield`): la **matrícula** (segunda lookup key crítica).
+  - 🟢 verde (`--cell-auto`): campos auto-completados via lookup.
+  - 🟠 naranja (`--cell-calc`): valor_total calculado.
+- Tests: `tests/movimiento_form_logic.test.js` (lógica pura del autocomplete + cálculo).
+
+**Patrón de referencia.** `admin/ordenes.html` (modal con select dinámico + validación);
+JSX `view==='formulario'` (estructura del form); skill (color coding + amber para 2da key).
+
+**Decisiones a confirmar (mini-gating).**
+- ¿Autocomplete con `<datalist>` HTML5 nativo (simple, cero deps) o componente custom
+  fuzzy-search? **Auto-asunción:** datalist nativo en F45 inicial (eficiente con 22 + 206
+  entries); si el director pide búsqueda fuzzy, se itera en F46 o F50.
+- ¿Tras GUARDAR exitoso, qué se conserva en el form? **Auto-asunción:** Año + Tipo +
+  Usuario (típico flow: muchos registros del mismo usuario en la misma sesión); el resto
+  se limpia. Editable.
+
+**Anticipación de errores.**
+- **Validación cliente debe replicar la rule** (cantidad > 0, tipo enum, transformador_id no
+  nulo) — feedback inmediato sin trip a Firestore. Discrepancia entre cliente y rule = bug
+  visible.
+- **Stock insuficiente:** si `permitirNegativo=false` (default F39) y el EGRESO dejaría
+  stock < 0, mostrar error específico con el faltante:
+  `"Stock S02: 5 disponibles, 8 solicitados — falta 3 unidades"`.
+- **Datalist de matrículas con 206+ entries:** acepta input parcial; navegador autocompleta.
+  Si el director escribe matrícula no listada (p.ej. typo), validar contra el array y
+  bloquear submit con error claro.
+- **Race condition en correlativo:** delegada a la tx F39; el form solo confía en la respuesta.
+
+**Validación / criterio de cierre.**
+- Crear 5 movimientos en el mismo año: códigos `MOV-2026-0001..0005` sin saltos.
+- Editar un suministro en otra pestaña → el form refleja el nuevo `valor_unitario` en su
+  datalist sin recargar.
+- Intentar EGRESO de cantidad > stock → form bloquea con mensaje específico.
+
+**Tests.** 12 tests.
+
+**Commit msg.** `feat(suministros): F45 admin movimientos · formulario INGRESO/EGRESO + autocomplete cascada + validación stock + 12 tests`
+
+**Estimación.** 4 h.
+
+---
+
+#### F46 · Admin Histórico de Movimientos + Correcciones
+
+**Objetivo.** Tabla del histórico completo con filtros avanzados. Panel separado para
+gestionar la hoja Correcciones.
+
+**Entregables.**
+- `admin/suministros-historico.html`:
+  - Toolbar: filtros (año · zona · departamento · tipo · suministro · búsqueda libre).
+  - Tabla 12 columnas (N° · Año · Código MOV · Tipo · DESC · Marca · Unidad · Matrícula ·
+    Subestación · Zona · Cantidad · Valor · Acciones).
+  - Acción **Ver:** modal con detalle completo + audit trail del movimiento.
+  - Acción **Eliminar:** pide justificación obligatoria, requiere confirmación, registra
+    en audit (la rule ya valida que justificación esté presente).
+  - Botón **Exportar CSV** (rápido; el .xlsm 1:1 viene en F49).
+- `admin/suministros-correcciones.html`:
+  - Tabla 6 columnas (N° · Tipo · Ubicación · Original · Corregido · Justificación).
+  - Modal Nuevo Corrección.
+  - Listado de las correcciones que F42 inyectó automáticamente desde el JSX
+    (matriculas, tensiones, regulación) — visibles, editables, no eliminables (append-only).
+- `assets/js/admin/admin-suministros-historico.js`.
+- `assets/js/admin/admin-suministros-correcciones.js`.
+
+**Patrón de referencia.** `admin/ordenes.html` (tabla + filtros + acciones);
+`admin/auditoria.html` (modal de detalle).
+
+**Decisiones a confirmar.** Ninguna nueva (la decisión sobre las 3 correcciones
+hardcoded ya está tomada en F42).
+
+**Anticipación de errores.**
+- **Filtros 3+ where simultáneos:** requieren índice compuesto. Las queries del histórico
+  usan al menos 2 dimensiones (año + algo más); los 5 índices de movimientos en F40 cubren
+  todas las combinaciones operativas. Si llega una combinación nueva, se añade índice.
+- **Búsqueda libre:** client-side sobre el resultado de `suscribir` (no Firestore full-text,
+  que requeriría Algolia/Typesense). Aceptable hasta ~5000 movimientos/año.
+- **Correcciones append-only:** la rule debe rechazar `delete` en `/correcciones` (solo
+  `update` permitido para corregir typos del registro, nunca borrado). Ajustar F40 si
+  no quedó así.
+
+**Validación.**
+- Crear 5 movimientos en F45 → todos visibles en F46 sin recarga.
+- Filtrar zona=BOLIVAR → solo BOLIVAR.
+- Eliminar uno con justificación → desaparece de la tabla; aparece en `/auditoria`.
+- Crear corrección → aparece en panel; intentar eliminar → bloqueado por rule.
+
+**Tests.** Sin tests automatizados (UI; lógica de filtros pura ya testeada en F39).
+
+**Commit msg.** `feat(suministros): F46 admin histórico + correcciones · filtros + delete con audit + export CSV`
+
+**Estimación.** 3.5 h.
+
+---
+
+**Resumen Bloques B+C:**
+- 5 microfases · 5 commits aislados.
+- ~30 tests nuevos (18 de F42 + 12 de F45).
+- 0 deploys adicionales (rules y índices ya desplegados desde F40).
+- Tiempo estimado: 16 h efectivas.
+- Estado del repo al cierre: el director ya puede importar el seed inicial y operar
+  movimientos completos vía web. La capa pública (consulta solo lectura para tecnico) y
+  el export 1:1 con macros vienen en P5.
+
+---
+
+> **Continúa en P5:** Bloque D (F47–F48 público) + Bloque E (F49–F50 export XLSM 1:1
+> + cierre v2.2.0) + §5 riesgos consolidados + §6 estimación total + §7 anti-patrones.
