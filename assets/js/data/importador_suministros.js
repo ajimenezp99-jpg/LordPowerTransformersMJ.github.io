@@ -178,11 +178,22 @@ export async function ejecutarImportacion({
   };
 
   // ── 1. /suministros ──────────────────────────────────────────
+  // No incluimos marcas_disponibles en el payload aquí: ese campo
+  // se mantiene vivo vía arrayUnion en el step 2 (marcas). Si
+  // pasáramos marcas_disponibles=[] en cada import, sobrescribiría
+  // las marcas previamente sincronizadas (merge reemplaza arrays).
+  const limpiarPayloadSuministro = (s) => {
+    const { marcas_disponibles, ...rest } = s;
+    return rest;
+  };
   let i = 0;
   for (const s of plan.suministros.crear) {
     if (!dryRun) {
       batch.set(doc(d, COL_SUMINISTROS, s.codigo), {
-        ...s,
+        ...limpiarPayloadSuministro(s),
+        // En CREAR sí inicializamos el array vacío para que el
+        // doc tenga el campo presente y arrayUnion funcione luego.
+        marcas_disponibles: [],
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         createdBy: uid
@@ -195,7 +206,7 @@ export async function ejecutarImportacion({
   for (const s of plan.suministros.actualizar) {
     if (!dryRun) {
       batch.set(doc(d, COL_SUMINISTROS, s.codigo), {
-        ...s,
+        ...limpiarPayloadSuministro(s),
         updatedAt: serverTimestamp()
       }, { merge: true });
     }
@@ -206,6 +217,7 @@ export async function ejecutarImportacion({
   await flush();
 
   // ── 2. /marcas + sync marcas_disponibles ─────────────────────
+  // Crear las que no existen.
   i = 0;
   for (const m of plan.marcas.crear) {
     if (!dryRun) {
@@ -216,19 +228,33 @@ export async function ejecutarImportacion({
         updatedAt: serverTimestamp(),
         createdBy: uid
       });
-      // arrayUnion en el suministro padre (en el mismo batch).
-      batch.set(
-        doc(d, COL_SUMINISTROS, m.suministro_id),
-        { marcas_disponibles: arrayUnion(m.marca), updatedAt: serverTimestamp() },
-        { merge: true }
-      );
       idsCreados.marcas.push(ref.id);
     } else {
       idsCreados.marcas.push('(dry-run)');
     }
     await enqueue();
-    await enqueue();  // dos writes por marca
     reportProgress('marcas', ++i, plan.marcas.crear.length);
+  }
+  // Sync idempotente: reconstruye marcas_disponibles[] de cada
+  // suministro afectado uniendo TODAS las marcas parseadas (no
+  // solo las nuevas). Así la re-importación garantiza que el array
+  // refleja el estado real de /marcas, incluso si en pasadas
+  // anteriores quedó wipeado por bugs o ediciones manuales.
+  if (!dryRun) {
+    const marcasPorSum = new Map();
+    for (const m of (parsed && parsed.marcas) || []) {
+      if (!m.suministro_id || !m.marca) continue;
+      if (!marcasPorSum.has(m.suministro_id)) marcasPorSum.set(m.suministro_id, []);
+      marcasPorSum.get(m.suministro_id).push(m.marca);
+    }
+    for (const [sid, lista] of marcasPorSum) {
+      batch.set(
+        doc(d, COL_SUMINISTROS, sid),
+        { marcas_disponibles: arrayUnion(...lista), updatedAt: serverTimestamp() },
+        { merge: true }
+      );
+      await enqueue();
+    }
   }
   await flush();
 

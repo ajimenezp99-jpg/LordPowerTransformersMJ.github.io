@@ -8,6 +8,11 @@ import {
   UNIDADES, unidadLabel, isReady
 } from '../data/suministros.js';
 import { listar as listarMovimientos } from '../data/movimientos.js';
+import {
+  listar as listarMarcas,
+  crear as crearMarca,
+  eliminar as eliminarMarca
+} from '../data/marcas.js';
 
 // ── Elementos ──
 const $ = (id) => document.getElementById(id);
@@ -23,7 +28,10 @@ const fUnidadMain = $('fUnidadMain');
 const fStockInicial = $('fStockInicial');
 const fValorUnitario = $('fValorUnitario');
 const fObs        = $('fObs');
-const marcasChips = $('marcasChips');
+const marcasChipsEdit = $('marcasChipsEdit');
+const marcasInputRow  = $('marcasInputRow');
+const fNuevaMarca = $('fNuevaMarca');
+const btnAddMarca = $('btnAddMarca');
 const formMsg     = $('formMsg');
 const btnSave     = $('btnSave');
 const fUnidadFilter = $('fUnidad');
@@ -32,6 +40,9 @@ const fBusqueda   = $('fBusqueda');
 // ── Estado local (alimentado por suscripción realtime) ──
 let cacheRows = [];
 let unsub = null;
+// Marcas del suministro en edición. Cada item: {id, marca}.
+let marcasEnEdicion = [];
+let suministroEnEdicion = null;
 
 // ── Poblar selects ──
 function fillSelects() {
@@ -112,6 +123,8 @@ function openModal(editing) {
   formMsg.textContent = '';
   // El código es PK humana inmutable: solo se edita en alta.
   fCodigo.disabled = !!editing;
+  // Sección de marcas inline solo en edición (necesita codigo conocido).
+  marcasInputRow.hidden = !editing;
   modal.style.display = 'flex';
   setTimeout(() => (editing ? fNombre : fCodigo).focus(), 50);
 }
@@ -120,8 +133,38 @@ function closeModal() {
   form.reset();
   fId.value = '';
   fCodigo.disabled = false;
-  marcasChips.innerHTML = '<small style="opacity:.6">Se gestionan desde el panel de Marcas.</small>';
+  marcasInputRow.hidden = true;
+  marcasChipsEdit.innerHTML = '<small style="opacity:.6">Disponible solo en edición.</small>';
+  marcasEnEdicion = [];
+  suministroEnEdicion = null;
 }
+
+function renderMarcasChipsEdit() {
+  if (!suministroEnEdicion) {
+    marcasChipsEdit.innerHTML = '<small style="opacity:.6">Disponible solo en edición.</small>';
+    return;
+  }
+  if (marcasEnEdicion.length === 0) {
+    marcasChipsEdit.innerHTML = '<small style="opacity:.6">Sin marcas todavía. Agregue una con el campo de abajo.</small>';
+    return;
+  }
+  marcasChipsEdit.innerHTML = marcasEnEdicion.map((m) =>
+    `<span class="marca-chip-edit">${escHtml(m.marca)}<button type="button" class="marca-x" data-marca-id="${escHtml(m.id)}" aria-label="Quitar ${escHtml(m.marca)}">&times;</button></span>`
+  ).join(' ');
+  window.sgmRefreshIcons?.();
+}
+
+async function cargarMarcasDe(suministroId) {
+  try {
+    const list = await listarMarcas({ suministro_id: suministroId });
+    marcasEnEdicion = list.map((m) => ({ id: m.id, marca: m.marca }));
+  } catch (err) {
+    console.warn('No se pudieron cargar marcas:', err);
+    marcasEnEdicion = [];
+  }
+  renderMarcasChipsEdit();
+}
+
 function fillForm(s) {
   fId.value     = s.id || '';
   fCodigo.value = s.codigo || '';
@@ -130,10 +173,12 @@ function fillForm(s) {
   fStockInicial.value = s.stock_inicial ?? 0;
   fValorUnitario.value = s.valor_unitario ?? 0;
   fObs.value    = s.observaciones || '';
-  const marcas = Array.isArray(s.marcas_disponibles) ? s.marcas_disponibles : [];
-  marcasChips.innerHTML = marcas.length === 0
-    ? '<small style="opacity:.6">Sin marcas. Gestionar en el panel de Marcas.</small>'
-    : marcas.map((m) => `<span class="marca-chip">${escHtml(m)}</span>`).join(' ');
+  suministroEnEdicion = s;
+  // Mostrar las marcas del array como provisional, mientras la query realtime trae las reales.
+  const arr = Array.isArray(s.marcas_disponibles) ? s.marcas_disponibles : [];
+  marcasEnEdicion = arr.map((mk) => ({ id: null, marca: mk }));
+  renderMarcasChipsEdit();
+  cargarMarcasDe(s.codigo);
 }
 function readForm() {
   return {
@@ -230,6 +275,71 @@ form.addEventListener('submit', async (e) => {
   } finally {
     btnSave.disabled = false;
     btnSave.textContent = orig;
+  }
+});
+
+// ── Marcas inline (agregar / quitar) ──
+btnAddMarca.addEventListener('click', async () => {
+  if (!suministroEnEdicion) return;
+  const marcaTxt = fNuevaMarca.value.trim().toUpperCase();
+  if (!marcaTxt) return;
+  // Duplicado check en cliente.
+  if (marcasEnEdicion.some((m) => m.marca === marcaTxt)) {
+    formMsg.className = 'msg err';
+    formMsg.textContent = `✗ La marca "${marcaTxt}" ya está asignada.`;
+    return;
+  }
+  const orig = btnAddMarca.textContent;
+  btnAddMarca.disabled = true;
+  btnAddMarca.textContent = 'Guardando…';
+  try {
+    const uid = window.__sgmSession && window.__sgmSession.user && window.__sgmSession.user.uid;
+    const docId = await crearMarca({
+      suministro_id:     suministroEnEdicion.codigo,
+      suministro_nombre: suministroEnEdicion.nombre,
+      marca:             marcaTxt,
+      observaciones:     ''
+    }, uid);
+    marcasEnEdicion.push({ id: docId, marca: marcaTxt });
+    renderMarcasChipsEdit();
+    fNuevaMarca.value = '';
+    formMsg.className = 'msg ok';
+    formMsg.textContent = `✓ Marca "${marcaTxt}" añadida.`;
+  } catch (err) {
+    formMsg.className = 'msg err';
+    formMsg.textContent = '✗ ' + (err.message || err);
+  } finally {
+    btnAddMarca.disabled = false;
+    btnAddMarca.textContent = orig;
+  }
+});
+
+fNuevaMarca.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); btnAddMarca.click(); }
+});
+
+marcasChipsEdit.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.marca-x');
+  if (!btn) return;
+  const marcaId = btn.dataset.marcaId;
+  if (!marcaId || marcaId === 'null') {
+    formMsg.className = 'msg err';
+    formMsg.textContent = '✗ Esta marca aún no está sincronizada en /marcas. Cierre el modal y vuelva a abrir.';
+    return;
+  }
+  const m = marcasEnEdicion.find((x) => x.id === marcaId);
+  if (!m) return;
+  if (!confirm(`¿Quitar la marca "${m.marca}" de ${suministroEnEdicion.codigo}?`)) return;
+  try {
+    const uid = window.__sgmSession && window.__sgmSession.user && window.__sgmSession.user.uid;
+    await eliminarMarca(marcaId, { uid });
+    marcasEnEdicion = marcasEnEdicion.filter((x) => x.id !== marcaId);
+    renderMarcasChipsEdit();
+    formMsg.className = 'msg ok';
+    formMsg.textContent = `✓ Marca "${m.marca}" eliminada.`;
+  } catch (err) {
+    formMsg.className = 'msg err';
+    formMsg.textContent = '✗ ' + (err.message || err);
   }
 });
 
