@@ -327,3 +327,117 @@ export function bucketDesdeHI(hi) {
 // ── Versionado del schema (usado por migraciones) ──────────────
 
 export const SCHEMA_VERSION = 2;
+
+// ══════════════════════════════════════════════════════════════
+// F38 · Suministros / Repuestos / Stock — enums de dominio
+// ══════════════════════════════════════════════════════════════
+
+// ── Tipo de movimiento ─────────────────────────────────────────
+// Replica la data validation del .xlsm Sheet7!C6.
+export const TIPOS_MOVIMIENTO = Object.freeze([
+  { value: 'INGRESO', label: 'Ingreso' },
+  { value: 'EGRESO',  label: 'Egreso'  }
+]);
+
+// ── Estado del repuesto (sub-section de transformador) ─────────
+// MO.00418 — clasificación contractual del repuesto asignado al
+// transformador. `N/A` cuando el activo no tiene repuesto.
+export const ESTADOS_REPUESTO = Object.freeze([
+  { value: 'OPERATIVA', label: 'Operativa' },
+  { value: 'OBSOLETA',  label: 'Obsoleta'  },
+  { value: 'N/A',       label: 'No aplica' }
+]);
+
+// ── Tipos de corrección (apéndice de fidelidad) ────────────────
+// Skill `asset-tracking-system` Rule 4: traceability. Cada
+// corrección a los datos fuente queda documentada.
+export const TIPOS_CORRECCION = Object.freeze([
+  { value: 'matricula',  label: 'Matrícula'  },
+  { value: 'tension',    label: 'Tensión'    },
+  { value: 'regulacion', label: 'Regulación' },
+  { value: 'stock',      label: 'Stock'      },
+  { value: 'marca',      label: 'Marca'      },
+  { value: 'otro',       label: 'Otro'       }
+]);
+
+// ── Unidades de medida ─────────────────────────────────────────
+// Set abierto anticipando vendor diversification (silica gel
+// líquida, lubricantes, etc.). El .xlsm fuente actual solo usa Und.
+export const UNIDADES = Object.freeze([
+  { value: 'Und',  label: 'Unidad'  },
+  { value: 'Lt',   label: 'Litro'   },
+  { value: 'Kg',   label: 'Kilo'    },
+  { value: 'Mt',   label: 'Metro'   },
+  { value: 'Gal',  label: 'Galón'   },
+  { value: 'Otro', label: 'Otro'    }
+]);
+
+// ── Semáforo de stock (6 estados) · Skill asset-tracking-system ─
+// Orden de precedencia: SIN_STOCK > NEGATIVO > AGOTADO > CRITICO
+// > MEDIO > OK. Los items con stock_inicial=0 son legítimos
+// (decisión 3·A del plan v2.2) y se distinguen de los AGOTADO por
+// consumo: SIN_STOCK = "contractualmente sin stock"; AGOTADO =
+// "tenía stock y se consumió todo".
+export const ESTADOS_STOCK = Object.freeze([
+  { value: 'SIN_STOCK', label: 'Sin stock',  prefix: '⚪', color: '#94A3B8' },
+  { value: 'NEGATIVO',  label: 'Negativo',   prefix: '🔴', color: '#DC2626' },
+  { value: 'AGOTADO',   label: 'Agotado',    prefix: '⛔', color: '#EF4444' },
+  { value: 'CRITICO',   label: 'Crítico',    prefix: '🟠', color: '#EA580C' },
+  { value: 'MEDIO',     label: 'Medio',      prefix: '🟡', color: '#F59E0B' },
+  { value: 'OK',        label: 'OK',         prefix: '🟢', color: '#16A34A' }
+]);
+
+// ── Patrones de código ─────────────────────────────────────────
+// Suministro: S01..S99 (lo que el .xlsm Sheet2!B usa).
+export const SUMINISTRO_CODIGO_PATTERN = /^S\d{2}$/;
+// Movimiento: MOV-YYYY-NNNN (correlativo anual, decisión auto F39).
+export const MOVIMIENTO_CODIGO_PATTERN = /^MOV-\d{4}-\d{4}$/;
+
+// ── Helper: estado de stock dadas (disponible, inicial) ────────
+// Pure function, sin I/O. Usada por la UI pública (F47), por la
+// rule de movimiento que rechaza negativo (F40) y por el motor de
+// alertas (post-v2.2).
+//
+// Args:
+//   disponible — stock_inicial + Σingresos − Σegresos
+//   inicial    — stock contractual del catálogo (Sheet2!E)
+//   opts       — { umbral_critico_pct=0.20, umbral_medio_pct=0.50 }
+//
+// Returns: una de las keys de ESTADOS_STOCK.
+export function estadoStock(disponible, inicial, opts = {}) {
+  const critPct  = opts.umbral_critico_pct ?? 0.20;
+  const medioPct = opts.umbral_medio_pct   ?? 0.50;
+  const i = +inicial;
+  const d = +disponible;
+  if (!Number.isFinite(i) || i === 0) return 'SIN_STOCK';
+  if (!Number.isFinite(d)) return 'AGOTADO';
+  if (d < 0) return 'NEGATIVO';
+  if (d === 0) return 'AGOTADO';
+  const pct = d / i;
+  if (pct < critPct)  return 'CRITICO';
+  if (pct < medioPct) return 'MEDIO';
+  return 'OK';
+}
+
+// ── Helper: generador de código MOV-YYYY-NNNN ──────────────────
+// Pure function. La I/O de obtener el `secuencial` del último
+// movimiento del año vive en data layer (F39, dentro de la tx).
+export function generarCodigoMov(anio, secuencial) {
+  const a = +anio;
+  const s = +secuencial;
+  if (!Number.isInteger(a) || a < 2000 || a > 2100) {
+    throw new Error(`generarCodigoMov: año inválido ${anio}`);
+  }
+  if (!Number.isInteger(s) || s < 1 || s > 9999) {
+    throw new Error(`generarCodigoMov: secuencial inválido ${secuencial}`);
+  }
+  return `MOV-${a}-${String(s).padStart(4, '0')}`;
+}
+
+// ── Helpers de label para los nuevos enums ─────────────────────
+
+export function tipoMovimientoLabel(v)   { return lookupLabel(TIPOS_MOVIMIENTO, v); }
+export function estadoRepuestoLabel(v)   { return lookupLabel(ESTADOS_REPUESTO, v); }
+export function tipoCorreccionLabel(v)   { return lookupLabel(TIPOS_CORRECCION, v); }
+export function unidadLabel(v)           { return lookupLabel(UNIDADES, v); }
+export function estadoStockLabel(v)      { return lookupLabel(ESTADOS_STOCK, v); }
