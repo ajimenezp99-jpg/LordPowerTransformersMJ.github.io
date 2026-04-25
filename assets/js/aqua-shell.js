@@ -125,6 +125,7 @@
         <a href="${u('admin/subestaciones.html')}" class="sb-item sb-admin" data-key="subestaciones"><span class="i"><i data-lucide="factory"></i></span>Subestaciones</a>
         <a href="${u('admin/contratos.html')}" class="sb-item sb-admin" data-key="contratos"><span class="i"><i data-lucide="file-text"></i></span>Contratos</a>
         <a href="${u('admin/catalogos.html')}" class="sb-item sb-admin" data-key="catalogos"><span class="i"><i data-lucide="book-open"></i></span>Catálogos</a>
+        <a href="${u('admin/suministros-catalogo.html')}" class="sb-item sb-admin" data-key="suministros-catalogo"><span class="i"><i data-lucide="package"></i></span>Suministros · Catálogo</a>
         <a href="${u('admin/importar.html')}" class="sb-item sb-admin" data-key="importar"><span class="i"><i data-lucide="upload-cloud"></i></span>Importar Excel</a>
         <a href="${u('admin/importar-suministros.html')}" class="sb-item sb-admin" data-key="importar-suministros"><span class="i"><i data-lucide="package-plus"></i></span>Importar Suministros</a>
         <a href="${u('admin/auditoria.html')}" class="sb-item sb-admin" data-key="auditoria"><span class="i"><i data-lucide="scroll-text"></i></span>Auditoría</a>
