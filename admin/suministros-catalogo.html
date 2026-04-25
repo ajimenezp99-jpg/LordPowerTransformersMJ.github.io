@@ -118,9 +118,16 @@
         </div>
         <div class="form-group">
           <label class="form-label">Marcas disponibles</label>
-          <div id="marcasChips" class="marcas-chips">
-            <small style="opacity:.6">Se gestionan desde el panel de Marcas.</small>
+          <div id="marcasChipsEdit" class="marcas-chips-edit">
+            <small style="opacity:.6">Disponible solo en edición.</small>
           </div>
+          <div id="marcasInputRow" class="marcas-input-row" hidden>
+            <input class="form-input" type="text" id="fNuevaMarca" maxlength="80" placeholder="Agregar marca (ABB, MESSKO, …)">
+            <button type="button" class="btn-secondary" id="btnAddMarca">
+              <i data-lucide="plus"></i> Agregar
+            </button>
+          </div>
+          <small class="form-hint">Cada marca se persiste como doc en <code>/marcas</code> y se sincroniza con este array.</small>
         </div>
       </fieldset>
 
