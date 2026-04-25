@@ -1034,8 +1034,9 @@ panel de KPIs.
 | Último tag                  | **`v2.1.0-aqua`** (Liquid Glass redesign · light perla iOS 26) |
 | Tag previo                  | `v2.0.8` (refactor DRY persistirAuditoria) |
 | Referencia normativa activa | MO.00418.DE-GAC-AX.01 Ed. 02 (14/10/2025) |
-| Sistema de diseño activo    | **Aqua light perla** · `assets/css/aqua-tokens.css` + `aqua-components.css` + `assets/js/aqua.js` + `aqua-shell.js`. SVGs en `assets/img/aqua/`. body class="aqua" en todas las páginas. |
-| Próxima movida              | **Plan v2.2 + Aqua redesign cerrados. Próxima sesión: responder a peticiones específicas del director o feedback de campo.** |
+| Sistema de diseño activo    | **Aqua light perla** · `assets/css/aqua-tokens.css` + `aqua-components.css` + `assets/js/aqua.js` + `aqua-shell.js`. body class="aqua" en todas las páginas. |
+| **Estado al 2026-04-25**    | **PR #54 mergeado a main** (Aqua base) · **PR #55 OPEN** con 4 commits adicionales (foto subestación + transparencia subida + Steel Corporate Navy + .gitignore .claude/). Pendiente: merge de PR #55 desde GitHub.com web. Pendiente: foto hi-res (la actual 755×752 pixela en viewports grandes). Pendiente: revocar PAT. |
+| Próxima movida              | Mergear PR #55 → ajustes finos visuales si los pide el director → conseguir foto hi-res → cerrar branch. Ver [memoria project_aqua_state.md](#) para decisiones cerradas, no re-debatir. |
 | Servicios dinámicos activos | Firebase (Auth + Firestore + Storage) · Cloud Functions deployable (F32 stubs + cron/Resend) |
 
 ### 7.1 Inventario del repo post-v2.0.8
@@ -1125,3 +1126,130 @@ integración SCADA, etc.):
 - **Fase 18** — Motor de Salud de Activos conforme MO.00418 Ed. 02. Implementa los calificadores oficiales de las 7 variables con tests de conformidad numérica: DGA (TDGC de 4 gases + CO + CO₂ + C₂H₂ — corrigiendo los errores §D1/§D2 del Excel), ADFQ (RD NTC 3284/ASTM D1816 + IC = TI/NN, corrigiendo §D3/§D4), FUR con curva de Chedong (DP + %vida_utilizada + %vida_remanente, CIGRÉ 445), CRG = MAX(CP/AP, CS/AS, CT/AT) con override automático a HI ≥ 4 cuando CRG=5 (§A5), EDAD anclada a CREG 085/2018 (corrigiendo §D6), HER por **ubicación dominante** de fuga (no por componente como el Excel §D7), PYT escala 1–5 (antes solo 1/5). `calcularHIBruto` aplica la Tabla 10 canónica (35/30/15/5/5/5/5) con redistribución proporcional cuando falta una variable. `aplicarOverrides` implementa §A5 (FUR≥4 solo si aprobado por experto, CRG=5 automático) y §A9.1 (C₂H₂=5 con aceleración ≥ umbral → HI ≥ 4; sin aceleración queda como marker informativo). `snapshotSaludCompleto` produce el sub-objeto `salud_actual` listo para persistir. Módulos nuevos `dga_diagnostico.js` (Duval Triangle 1 IEC 60599 + Rogers + Doernenburg + alerta arco D2 cuando C₂H₂/C₂H₄ ≥ 3), `sobrecarga_admisible.js` (tablas IEEE C57.91 §7 + FAA Arrhenius + `proponerPlanMitigacionSobrecarga` para F24/F30), `monitoreo_intensivo.js` (A9.1: `calcularVelocidadC2H2`, `evaluarOverrideC2H2` R1/R2/R3, batería ETU de 5 pruebas, `crearEstadoMonitoreoIntensivo`), `juicio_experto_fur.js` (A9.2: `crearPropuestaReclasificacionFUR` solo si FUR≥4, workflow de 3 decisiones expertas con audit trail, `puedeAbrirOrden` que bloquea órdenes distintas a reemplazo/retiro/OTC tras aprobación). Baselines oficiales en `umbrales_salud_baseline.js` con verificación estructural + `mergeConBaseline(custom)` para respetar overrides de la colección `/umbrales_salud/global`. Data layer `data/umbrales_salud.js` con CRUD + suscripción realtime + subcolección `historial` append-only. Rules v2.1 (`/umbrales_salud`, `/monitoreo_intensivo`, `/propuestas_reclasificacion_fur`). UI admin: `motor-salud.html` (sandbox que recibe entrada manual para los 7 factores y muestra HI + bucket + overrides aplicados + diagnóstico DGA + alerta D2) y `umbrales-salud.html` (formulario con baseline-chip al lado de cada input + botón "restaurar baseline oficial"). 95 tests nuevos (total 158/158). Tag `v2.0.0-f18`.
 
 - **Fase 16** — Refactor del modelo de datos v2 · MO.00418.DE-GAC-AX.01 Ed. 02. Primera microfase de la evolución v2.0 (CARIBEMAR DE LA COSTA S.A.S E.S.P · Afinia · Grupo EPM). Nuevo paquete de dominio puro `assets/js/domain/` con `schema.js` (enums canónicos: `TIPOS_ACTIVO`, `ZONAS`, `GRUPOS`, `DEPARTAMENTOS`+zona, `ESTADOS_SERVICIO` ampliado con `fallado`, `ESTADOS_ESPECIALES` §A9.3, `CONDICIONES` 1–5 con nombres oficiales §A9.7, `BUCKETS_HI`, `NIVELES_CRITICIDAD`, `UBICACIONES_FUGA`, `ROLES` F28, `NORMATIVAS`, `PESOS_HI` con verificación de suma=1.0 en tiempo de carga conforme Tabla 10 §A9.8), `transformador_schema.js` (sanitizador por secciones `identificacion`/`placa`/`ubicacion`/`electrico`/`mecanico`/`refrigeracion`/`protecciones`/`fabricacion`/`servicio` + sub-objetos derivados `salud_actual`/`criticidad`/`restricciones_operativas` reservados para F18/F29/F36 + `validarTransformador` + `proyeccionV1` para retrocompat con vistas legacy), `subestacion_schema.js` (entidad FK nueva). Data layer `assets/js/data/` reescrito: `transformadores.js` acepta shape v1 (plano) o shape v2 (secciones) y escribe AMBOS para que las vistas sin migrar sigan leyendo del nivel raíz; `subestaciones.js` nueva; `transformadores_subcolecciones.js` con `placas_historicas` e `historial_hi` append-only. `scripts/migrate/v1-to-v2-transformadores.js` con función pura `migrarDocV1aV2` + runner defensivo `ejecutarMigracion({list, write, dryRun, limite})` reutilizable por F17. `firestore.rules` v2: helpers `isTipoActivoValido`/`isEstadoServicioValido`/`isZonaValida`/`isDeptoValido`/`isGrupoValido`, validación por sección, coherencia root(v1) ↔ secciones(v2), subcolecciones append-only, nueva colección `/subestaciones`, roles F28 aceptados en `/usuarios/{uid}` (`admin`, `tecnico`, `director_proyectos`, `analista_tx`, `gestor_contractual`, `brigadista`, `auditor_campo`). `firestore.indexes.json` +8 índices compuestos (`ubicacion.zona+codigo`, `identificacion.grupo+codigo`, `identificacion.tipo_activo+salud_actual.hi_final`, `ubicacion.subestacionId+codigo`, `salud_actual.bucket+ubicacion.zona`, `estado_servicio+codigo`, 2 de subestaciones, 1 de `historial_hi` como collection-group). Runner de tests: Node native `node --test` + `"type": "module"` en `package.json`, scripts `npm run test:unit` y `npm test` (lint + tests). 63 tests unitarios (4 files) cubriendo pesos HI/enums/UUCC CREG 085 (N4T1–N4T19 + N5T1–N5T25 reguladas, rango general N3T1–N5T25)/buckets/roles/sanitizadores/validadores/proyección v1/migración v1→v2 idempotente/runner defensivo. `docs/MODELO-DATOS-v2.md` con diagrama ER, diccionario completo de campos, catálogo de rules/índices, referencia normativa por sección y plan de migración. README.md y CLAUDE.md actualizados con estado v2 y tabla F16–F37. Tag `v2.0.0-f16`.
+
+---
+
+## 9. Rediseño Aqua iOS 26 / macOS Tahoe (v2.1.0-aqua · 2026-04-25)
+
+> **Esta sección es el handoff entre sesiones de Claude Code.** Si
+> arrancas una sesión nueva, lee primero §0 (permisos push), luego
+> esta §9 antes de tocar cualquier cosa visual.
+
+### 9.1 Estado al cierre de sesión
+
+| Concepto | Valor |
+|---|---|
+| Tag | `v2.1.0-aqua` (pusheado) |
+| PR #54 | ✅ MERGEADO a `main` el 2026-04-25 14:21 UTC (12 commits) |
+| PR #55 | 🟡 OPEN · 4 commits adicionales tras el tag |
+| Último commit del branch | `4e24111` (chore gitignore .claude/) |
+| Branch worktree | `claude/distracted-hoover-43da2d` |
+| Sitio en producción | `ajimenezp99-jpg.github.io` (con base Aqua de PR #54) |
+
+### 9.2 Decisiones del director (NO re-debatir)
+
+1. **Paleta:** Light Perla Apple (Opción C). Descartado dark navy
+   industrial, descartado mesh con magentas/rosas.
+2. **Imagen de fondo:** foto real `assets/img/aqua/substation-photo.png`
+   (subestación con torre + transformador + panels solares + atardecer
+   dorado). **Tal cual sin overlay.** El director ya rechazó dos
+   intentos: (a) SVG ilustrativo de torre+cables+trafo, (b) foto +
+   overlay SVG de equipos por fase. La foto va a plena visibilidad
+   como fondo fixed full-viewport.
+3. **Layout:** topbar fixed 64px + sidebar vertical permanente 264px
+   a la izquierda (estilo Finder Tahoe). En mobile (≤1024px) sidebar
+   se oculta, topbar se ajusta.
+4. **Glass material:** Tahoe real con blur 32-72px + saturate 200% +
+   brightness 108%, specular en 4 capas, refracción prismática
+   conic-gradient en blend-mode soft-light, ring 3D con borde
+   superior brillante (`rgba(255,255,255,.98)`).
+5. **Texto:** Steel Corporate Navy. Tokens en `aqua-tokens.css`:
+   - `--ink-1: #0d1f38` (títulos / KPIs)
+   - `--ink-2: #1f3656` (cuerpo / items de menú)
+   - `--ink-3: #4d6485` (meta / muted)
+   - `--ink-4: #8093ad` (placeholder / disabled)
+   - Text-shadow blanca sutil en `.page-title`/`.section-title`
+     para legibilidad sobre la foto.
+6. **Transparencia "alta":** glass-thin .22/.10, glass-regular
+   .30/.16, glass-thick .42/.24, topbar .30/.18 (idle) → .50/.36
+   (scrolled), sidebar .36/.22. Foto al 100% visibilidad (no .68 ni
+   .35 como intentos previos).
+
+### 9.3 Pendientes que conoce el director
+
+1. **Foto en baja resolución** — la actual es 755×752 px y se
+   pixela en viewports >1200px. El director intentó exportar el
+   original desde Photos pero terminó con el thumbnail otra vez
+   (mismo md5 73d65545…). Camino para conseguir hi-res:
+   - Photos → File → Export → **Export Unmodified Original**, y
+     verificar dimensiones reales en Finder Get Info antes de mover
+     al repo.
+   - O conseguir URL web de origen y descargar directamente.
+2. **Mergear PR #55** desde GitHub.com web (el director prefiere
+   esa vía sobre GitHub Desktop).
+3. **Revocar el PAT** que el director dio inline en el chat de la
+   sesión 2026-04-25 (token clásico con scope `repo`, usado para
+   push de PR #54 y PR #55). Borrar en
+   https://github.com/settings/tokens. El valor literal NO se
+   versiona en el repo (Push Protection bloquea); vive solo en el
+   historial del chat de Claude.
+
+### 9.4 Inventario de archivos del rediseño
+
+| Archivo | Estado | Propósito |
+|---|---|---|
+| `assets/css/aqua-tokens.css` | Activo | Variables: paleta Light Perla + ink Steel Navy + glass tokens + motion + radii iOS + aliases legacy (--space-*, --surface-*, --brand-500, etc.) |
+| `assets/css/aqua-components.css` | Activo | Componentes: glass, topbar, sidebar 264px, hero, stat, panel, alert, qc, modal, tabs, breadcrumb, page-head, hring + overrides legacy |
+| `assets/js/aqua.js` | Activo | Particles, glint cursor, topbar scroll state, IntersectionObserver reveal, Lucide auto-init |
+| `assets/js/aqua-shell.js` | Activo | Auto-inyecta topbar + sidebar + escena en cualquier `<body class="aqua">`. Marca item activo según URL, lee `window.__sgmSession` para role-chip + iniciales + ocultar links admin a no-admins |
+| `assets/img/aqua/substation-photo.png` | Activo (BAJA RES) | Foto real de fondo |
+| `assets/img/aqua/substation-scene.svg` | **Inactivo** | SVG con foto embedded + overlay de equipos (DPS, 89, 52, CT). Rechazado por el director. Queda en repo por compat |
+| `assets/img/aqua/power-scene.svg` | **Inactivo** | SVG ilustrativo torre+cables+trafo. Rechazado por el director |
+| `assets/img/aqua/{transformer,tower,logo-aqua}.svg` | Logo activo | Bundle inicial de Claude Design |
+
+### 9.5 Páginas migradas (35)
+
+- **Login:** `index.html` con `<body class="aqua">`, escena Aqua,
+  auth-card glass-ultra, Firebase Auth 100% intacto.
+- **Home:** `home.html` con shell auto-inject + KPIs realtime.
+- **13 públicas en `/pages/`:** about, alertas, cobertura,
+  contacto, dashboard, documentos, inventario, kpis, mapa,
+  matriz-riesgo, normativa, ordenes, _firebase-test.
+- **22 admin en `/admin/`:** alertas, auditoria, catalogos,
+  contramuestras, contratos, demo-seed, desempeno-aliados,
+  documentos, fallados, importar, index, inventario, kpis, mapa,
+  motor-salud, muestras, ordenes, plan-inversion, propuestas-fur,
+  subestaciones, umbrales-salud, usuarios.
+
+Todas usan `aqua-shell.js` para inyectar topbar + sidebar.
+Lógica de Firestore intacta en todas.
+
+### 9.6 Cómo hacer un cambio visual en sesión nueva
+
+1. **Identificar tipo:** token (color, espaciado, radius) → editar
+   `aqua-tokens.css`. Componente específico (sidebar, modal) →
+   editar `aqua-components.css`. Lógica de inyección → editar
+   `aqua-shell.js`.
+2. **Verificar:** `npm run lint:html` debe quedar limpio.
+3. **Tests intactos:** `npm test` debe seguir 282/282 verde. NUNCA
+   tocar `assets/js/data/`, `assets/js/domain/`, `firestore.rules`,
+   `firestore.indexes.json`, `storage.rules`, `functions/` para un
+   cambio visual.
+4. **Push inline con PAT** (CLAUDE.md §0.1) si el director lo
+   provee.
+5. **PR contra `main`**, mergear desde GitHub.com web.
+
+### 9.7 Reglas duras de feedback (cumplidas en esta sesión)
+
+- Si el director pide imagen de fondo X, X va a plena visibilidad
+  como fondo fixed (no en una esquina, no a opacity .35).
+- Si dice "tal cual", no agregar overlays ni capas encima.
+- Si pide "más transparencia", subir alpha de glass + topbar +
+  sidebar (no del fondo de la foto).
+- Si pide "color corporativo serio", proponer paleta concreta hex
+  y aplicarla — no pedir más opciones para elegir.
+- Cero emojis en UI ni copy del producto.
+- Si reporta que algo "no se ve" en `ajimenezp99-jpg.github.io`,
+  verificar primero si los commits están en `origin/main` antes
+  de asumir que la implementación está mal.
+
