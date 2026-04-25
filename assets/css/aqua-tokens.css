@@ -1,0 +1,196 @@
+/* ═══════════════════════════════════════════════════════════════
+   AQUA · LIGHT PERLA — Tokens maestros v3 (Opción C)
+   SGM · TRANSPOWER — iOS 26 / macOS Tahoe Liquid Glass
+   Paleta clara perla + acentos iOS azul/cian/teal/ambar (sin rosa).
+═══════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* ── SUPERFICIES (perla luminoso) ─────────────────────── */
+  --bg-void:    #ffffff;
+  --bg-0:       #f4f6fb;   /* perla base */
+  --bg-1:       #e9eef8;   /* perla elevado */
+  --bg-2:       #dde5f1;   /* perla profundo */
+  --bg-3:       #c8d4e8;
+  --bg-line:    #b5c2d8;
+
+  /* Mesh global: blue · cyan · teal · soft amber — NUNCA rosa/magenta */
+  --bg-mesh:
+    radial-gradient(ellipse 90% 60% at 12% 4%,   rgba(0,122,255,.18) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 88% 10%,  rgba(0,184,212,.14) 0%, transparent 65%),
+    radial-gradient(ellipse 80% 50% at 50% 100%, rgba(48,209,176,.12) 0%, transparent 70%),
+    radial-gradient(ellipse 55% 38% at 92% 88%,  rgba(255,184,76,.10) 0%, transparent 65%),
+    linear-gradient(180deg, #f7f9fd 0%, #eef3fa 50%, #e6edf7 100%);
+
+  /* ── VIDRIO LIQUID (4 materiales) ─────────────────────── */
+  --glass-thin:    linear-gradient(135deg, rgba(255,255,255,.55) 0%, rgba(244,249,255,.32) 100%);
+  --glass-regular: linear-gradient(135deg, rgba(255,255,255,.66) 0%, rgba(244,249,255,.44) 100%);
+  --glass-thick:   linear-gradient(135deg, rgba(255,255,255,.78) 0%, rgba(240,247,255,.58) 100%);
+  --glass-ultra:   linear-gradient(135deg, rgba(255,255,255,.90) 0%, rgba(240,247,255,.74) 100%);
+
+  --glass-blur-thin:    blur(20px) saturate(180%);
+  --glass-blur-regular: blur(28px) saturate(180%);
+  --glass-blur-thick:   blur(40px) saturate(200%);
+
+  /* Ring 3D — luz arriba/lados claros, sombra abajo (clave del 3D) */
+  --glass-border-top:    rgba(255,255,255,.95);
+  --glass-border-bottom: rgba(0,40,90,.08);
+  --glass-ring:
+    inset 0 1px 0 rgba(255,255,255,.92),
+    inset 0 -1px 0 rgba(0,40,90,.08),
+    inset 1px 0 0 rgba(255,255,255,.6),
+    inset -1px 0 0 rgba(0,40,90,.04);
+
+  /* Specular — destello blanco superior (capa ::before) */
+  --glass-specular:
+    radial-gradient(ellipse 70% 40% at 30% -8%, rgba(255,255,255,.78) 0%, transparent 60%),
+    linear-gradient(180deg, rgba(255,255,255,.34) 0%, transparent 30%, transparent 75%, rgba(0,40,90,.05) 100%);
+
+  /* Refracción prismática sutil (capa ::after opcional) */
+  --glass-refraction:
+    conic-gradient(from 200deg at 80% 0%, rgba(0,122,255,.08), rgba(0,184,212,.06), rgba(48,209,176,.05), rgba(0,122,255,.07));
+
+  /* ── ACENTOS (iOS palette, sin rosa) ──────────────────── */
+  --brand:        #007aff;   /* iOS blue */
+  --brand-hi:     #2a90ff;
+  --brand-deep:   #0051d5;
+  --brand-glow:   rgba(0,122,255,.35);
+
+  --cyan:         #00b8d4;
+  --cyan-deep:    #0091ad;
+
+  --teal:         #30d1b0;
+  --teal-deep:    #1ba98c;
+
+  --steel:        #5a7297;
+  --steel-dark:   #3e5378;
+
+  --success:      #1cc870;
+  --warn:         #ff9500;
+  --danger:       #ff3b30;
+  --amber:        #ffb800;
+  --purple:       #7e57ff;
+
+  --ink-on-brand: #ffffff;
+
+  /* Gradientes verticales 3D (botones / iconos) */
+  --grad-brand:   linear-gradient(180deg, #4aa3ff 0%, #007aff 50%, #0051d5 100%);
+  --grad-cyan:    linear-gradient(180deg, #4ad9f5 0%, #00b8d4 50%, #0080a0 100%);
+  --grad-teal:    linear-gradient(180deg, #6fe6c8 0%, #30d1b0 50%, #16886d 100%);
+  --grad-steel:   linear-gradient(180deg, #8e9bb5 0%, #5a7297 50%, #3a4a68 100%);
+  --grad-danger:  linear-gradient(180deg, #ff6b66 0%, #ff3b30 50%, #c91a14 100%);
+  --grad-warn:    linear-gradient(180deg, #ffb866 0%, #ff9500 50%, #b85f00 100%);
+  --grad-success: linear-gradient(180deg, #5fdb95 0%, #1cc870 50%, #008f4a 100%);
+
+  /* ── TEXTO (sobre perla claro) ────────────────────────── */
+  --ink-1: #0a1628;   /* títulos, números KPI */
+  --ink-2: #2a3a52;   /* cuerpo */
+  --ink-3: #5a6c87;   /* meta / muted */
+  --ink-4: #8896ad;   /* placeholder / disabled */
+
+  /* ── TIPOGRAFÍA ───────────────────────────────────────── */
+  --font-sans:  -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', sans-serif;
+  --font-serif: 'Instrument Serif', 'Times New Roman', Georgia, serif;
+  --font-mono:  'SF Mono', 'JetBrains Mono', Menlo, monospace;
+
+  --size-hero:  clamp(2.6rem, 6.4vw, 5.4rem);
+  --size-5xl:   clamp(2.10rem, 4.4vw, 3.4rem);
+  --size-4xl:   clamp(1.65rem, 3.0vw, 2.4rem);
+  --size-3xl:   1.75rem;
+  --size-2xl:   1.375rem;
+  --size-xl:    1.125rem;
+  --size-base:  1rem;
+  --size-sm:    0.875rem;
+  --size-xs:    0.78rem;
+  --size-mono:  0.72rem;
+
+  --tracking-tight: -0.03em;
+  --tracking-snug:  -0.015em;
+  --tracking-wide:  0.08em;
+  --tracking-caps:  0.14em;
+
+  /* ── RADII iOS (sin valores intermedios) ──────────────── */
+  --r-xs:  6px;
+  --r-sm:  10px;
+  --r-md:  14px;
+  --r-lg:  20px;
+  --r-xl:  28px;
+  --r-2xl: 36px;
+  --r-pill: 999px;
+
+  /* ── SHADOWS (light) ──────────────────────────────────── */
+  --sh-sm:  0 1px 2px rgba(0,40,90,.08);
+  --sh-md:  0 6px 18px rgba(0,40,90,.10), 0 2px 4px rgba(0,40,90,.06);
+  --sh-lg:  0 14px 40px rgba(0,40,90,.14), 0 6px 12px rgba(0,40,90,.08);
+  --sh-xl:  0 30px 70px rgba(0,40,90,.18), 0 10px 20px rgba(0,40,90,.10);
+  --sh-glow-brand: 0 0 0 1px rgba(0,122,255,.30), 0 8px 24px rgba(0,122,255,.22), 0 16px 48px rgba(0,122,255,.10);
+  --sh-glow-cyan:  0 0 24px rgba(0,184,212,.30), 0 0 48px rgba(0,184,212,.15);
+
+  /* ── MOTION ───────────────────────────────────────────── */
+  --ease-out:    cubic-bezier(0.25, 0.1, 0.25, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-ios:    cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --dur-fast: 180ms;
+  --dur-med:  320ms;
+  --dur-slow: 600ms;
+  --dur-cinema: 900ms;
+
+  --z-nav:   200;
+  --z-modal: 500;
+  --z-toast: 1000;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BASE — solo cuando se opt-in con [data-aqua] o body.aqua
+   (Para no romper páginas legacy. A2 añade la clase.)
+═══════════════════════════════════════════════════════════════ */
+
+body.aqua,
+html[data-aqua] body {
+  font-family: var(--font-sans);
+  color: var(--ink-2);
+  background: var(--bg-mesh);
+  background-attachment: fixed;
+  min-height: 100vh;
+  letter-spacing: var(--tracking-snug);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+body.aqua h1, body.aqua h2, body.aqua h3,
+body.aqua h4, body.aqua h5, body.aqua h6,
+html[data-aqua] body h1, html[data-aqua] body h2,
+html[data-aqua] body h3, html[data-aqua] body h4 {
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: var(--tracking-tight);
+  color: var(--ink-1);
+  line-height: 1.05;
+}
+
+body.aqua em.serif,
+body.aqua h1 em, body.aqua h2 em,
+html[data-aqua] body em.serif {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+}
+
+body.aqua .mono { font-family: var(--font-mono); letter-spacing: var(--tracking-wide); }
+
+body.aqua p, html[data-aqua] body p { color: var(--ink-2); line-height: 1.55; }
+
+body.aqua a { color: var(--brand); text-decoration: none; transition: opacity var(--dur-fast) var(--ease-out); }
+body.aqua a:hover { opacity: .82; }
+
+body.aqua ::selection { background: rgba(0,122,255,.32); color: #fff; }
+
+@media (prefers-reduced-motion: reduce) {
+  body.aqua *, body.aqua *::before, body.aqua *::after {
+    animation-duration: .01ms !important;
+    transition-duration: .01ms !important;
+  }
+}
