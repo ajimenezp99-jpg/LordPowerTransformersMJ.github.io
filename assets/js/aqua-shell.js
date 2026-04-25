@@ -126,6 +126,7 @@
         <a href="${u('admin/contratos.html')}" class="sb-item sb-admin" data-key="contratos"><span class="i"><i data-lucide="file-text"></i></span>Contratos</a>
         <a href="${u('admin/catalogos.html')}" class="sb-item sb-admin" data-key="catalogos"><span class="i"><i data-lucide="book-open"></i></span>Catálogos</a>
         <a href="${u('admin/importar.html')}" class="sb-item sb-admin" data-key="importar"><span class="i"><i data-lucide="upload-cloud"></i></span>Importar Excel</a>
+        <a href="${u('admin/importar-suministros.html')}" class="sb-item sb-admin" data-key="importar-suministros"><span class="i"><i data-lucide="package-plus"></i></span>Importar Suministros</a>
         <a href="${u('admin/auditoria.html')}" class="sb-item sb-admin" data-key="auditoria"><span class="i"><i data-lucide="scroll-text"></i></span>Auditoría</a>
         <a href="${u('admin/plan-inversion.html')}" class="sb-item sb-admin" data-key="plan-inversion"><span class="i"><i data-lucide="trending-up"></i></span>Plan Inversión</a>
         <a href="${u('admin/desempeno-aliados.html')}" class="sb-item sb-admin" data-key="desempeno"><span class="i"><i data-lucide="award"></i></span>Desempeño aliados</a>
