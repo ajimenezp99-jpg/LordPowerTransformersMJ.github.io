@@ -1,8 +1,7 @@
 // ══════════════════════════════════════════════════════════════
-// SGM · TRANSPOWER — Shell del módulo Suministros (R1 · v2.3)
-// Wrapper fino sobre module-shell genérico.
+// SGM · TRANSPOWER — Shell del módulo Salud del Activo (R2 · v2.3)
 // ══════════════════════════════════════════════════════════════
 
 import { initModuleShell } from './ui/module-shell.js';
 
-initModuleShell('suministrosTabs', { defaultTab: 'dashboard' });
+initModuleShell('saludTabs', { defaultTab: 'muestras' });

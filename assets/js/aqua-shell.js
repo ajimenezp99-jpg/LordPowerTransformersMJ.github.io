@@ -122,16 +122,11 @@
         <div class="sb-group-title">Análisis</div>
         <a href="${u('pages/dashboard.html')}" class="sb-item" data-key="dashboard"><span class="i"><i data-lucide="layout-grid"></i></span>Dashboard</a>
         <a href="${u('pages/kpis.html')}" class="sb-item" data-key="kpis"><span class="i"><i data-lucide="bar-chart-3"></i></span>KPIs &amp; RAM</a>
-        <a href="${u('pages/matriz-riesgo.html')}" class="sb-item" data-key="matriz"><span class="i"><i data-lucide="grid-3x3"></i></span>Matriz Riesgo</a>
         <a href="${u('pages/alertas.html')}" class="sb-item" data-key="alertas"><span class="i"><i data-lucide="bell-ring"></i></span>Alertas</a>
       </div>
       <div class="sb-group">
         <div class="sb-group-title">Salud del activo</div>
-        <a href="${u('pages/muestras.html')}" class="sb-item" data-key="muestras"><span class="i"><i data-lucide="flask-conical"></i></span>Muestras</a>
-        <a href="${u('admin/motor-salud.html')}" class="sb-item sb-admin" data-key="motor-salud"><span class="i"><i data-lucide="activity"></i></span>Motor de Salud</a>
-        <a href="${u('admin/propuestas-fur.html')}" class="sb-item sb-admin" data-key="propuestas-fur"><span class="i"><i data-lucide="gavel"></i></span>Propuestas FUR</a>
-        <a href="${u('admin/contramuestras.html')}" class="sb-item sb-admin" data-key="contramuestras"><span class="i"><i data-lucide="repeat-2"></i></span>Contramuestras</a>
-        <a href="${u('admin/fallados.html')}" class="sb-item sb-admin" data-key="fallados"><span class="i"><i data-lucide="alert-octagon"></i></span>Fallados + RCA</a>
+        <a href="${u('pages/salud.html')}" class="sb-item" data-key="salud"><span class="i"><i data-lucide="heart-pulse"></i></span>Salud del Activo</a>
       </div>
       <div class="sb-group sb-admin-group" hidden>
         <div class="sb-group-title">Administración</div>

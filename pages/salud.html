@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="es" data-aqua>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <meta name="theme-color" content="#f4f6fb"/>
+  <meta name="color-scheme" content="light"/>
+  <title>SGM · TRANSPOWER — Salud del Activo</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/aqua/logo-aqua.svg"/>
+  <script type="module" src="../assets/js/auth/page-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="../assets/css/aqua-tokens.css"/>
+  <link rel="stylesheet" href="../assets/css/aqua-components.css"/>
+  <link rel="stylesheet" href="../assets/css/inventario.css"/>
+  <link rel="stylesheet" href="../assets/css/tabs.css"/>
+</head>
+<body class="aqua">
+<main class="app-main page-container">
+
+  <div class="page-header">
+    <div class="breadcrumb">Operación / Salud del Activo</div>
+    <h1 class="page-title">Salud del <em>Activo</em></h1>
+    <p class="page-subtitle">
+      Análisis integral de la condición del parque: muestras de
+      laboratorio, motor de salud (HI), propuestas FUR, contramuestras,
+      fallados con RCA y matriz de riesgo. Una sola vista con pestañas.
+    </p>
+  </div>
+
+  <div class="sgm-tabs" id="saludTabs">
+    <div role="tablist" class="tab-bar" aria-label="Secciones del módulo Salud del Activo">
+      <button type="button" role="tab" data-tab="muestras">
+        <span class="i"><i data-lucide="flask-conical"></i></span>Muestras
+      </button>
+      <button type="button" role="tab" data-tab="motor" data-admin="1">
+        <span class="i"><i data-lucide="activity"></i></span>Motor de Salud
+      </button>
+      <button type="button" role="tab" data-tab="fur" data-admin="1">
+        <span class="i"><i data-lucide="gavel"></i></span>Propuestas FUR
+      </button>
+      <button type="button" role="tab" data-tab="contramuestras" data-admin="1">
+        <span class="i"><i data-lucide="repeat-2"></i></span>Contramuestras
+      </button>
+      <button type="button" role="tab" data-tab="fallados" data-admin="1">
+        <span class="i"><i data-lucide="alert-octagon"></i></span>Fallados + RCA
+      </button>
+      <button type="button" role="tab" data-tab="matriz">
+        <span class="i"><i data-lucide="grid-3x3"></i></span>Matriz Riesgo
+      </button>
+    </div>
+
+    <div class="tab-panels">
+      <div role="tabpanel" data-tab-panel="muestras">
+        <iframe class="tab-iframe" data-src="muestras.html" title="Muestras" loading="lazy"></iframe>
+      </div>
+      <div role="tabpanel" data-tab-panel="motor" hidden>
+        <iframe class="tab-iframe" data-src="../admin/motor-salud.html" title="Motor de Salud" loading="lazy"></iframe>
+      </div>
+      <div role="tabpanel" data-tab-panel="fur" hidden>
+        <iframe class="tab-iframe" data-src="../admin/propuestas-fur.html" title="Propuestas FUR" loading="lazy"></iframe>
+      </div>
+      <div role="tabpanel" data-tab-panel="contramuestras" hidden>
+        <iframe class="tab-iframe" data-src="../admin/contramuestras.html" title="Contramuestras" loading="lazy"></iframe>
+      </div>
+      <div role="tabpanel" data-tab-panel="fallados" hidden>
+        <iframe class="tab-iframe" data-src="../admin/fallados.html" title="Fallados + RCA" loading="lazy"></iframe>
+      </div>
+      <div role="tabpanel" data-tab-panel="matriz" hidden>
+        <iframe class="tab-iframe" data-src="matriz-riesgo.html" title="Matriz de Riesgo" loading="lazy"></iframe>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script type="module" src="../assets/js/salud-shell.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+<script src="../assets/js/aqua.js" defer></script>
+<script src="../assets/js/aqua-shell.js" defer></script>
+</body>
+</html>
