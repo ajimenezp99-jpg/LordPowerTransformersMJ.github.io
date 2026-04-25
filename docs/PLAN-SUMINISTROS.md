@@ -956,5 +956,314 @@ Equivalente a los views `dashboard` y `cruzado` del JSX.
 
 ---
 
-> **Continúa en P5b:** Bloque E · F49 (export XLSM 1:1 con template binario via JSZip,
-> el más complejo del plan) + §5 riesgos consolidados.
+### Bloque E · Export & Cierre
+
+#### F49 · Export XLSM 1:1 con template binario (JSZip + parche XML)
+
+**Objetivo crítico.** Generar un .xlsm idéntico al fuente con: 10 hojas (las 8 del fuente
++ Correcciones + Portada), VBA preservado byte-a-byte, Office Add-in preservado, charts
+intactos, formato condicional intacto, themes intactos. **Cero regeneración de XML
+que no sea estrictamente necesaria.**
+
+**Estrategia (decidida tras evaluar 3 paths).**
+
+| Path | Pros | Contras | Veredicto |
+|---|---|---|---|
+| ExcelJS browser-side | API moderna, tipada | Reserializa todo el zip → **destruye `vbaProject.bin`** y `webextensions/` | ❌ Descartado |
+| `xlsx-populate` | Preserva VBA según docs | Requiere npm install, +500 KB browser | 🟡 Backup |
+| **JSZip + parche XML directo** | Cero regeneración del zip; tocamos solo los XMLs de hojas; `vbaProject.bin` y `webextensions/` jamás se reescriben | DOM XML manual, más código bajo nivel | ✅ **Elegido** |
+
+Bajo el approach **JSZip + parche XML**: leemos el .xlsm como zip, modificamos sólo
+`xl/worksheets/sheet2.xml` (Catalogo_Suministros · stock_inicial), `xl/worksheets/sheet5.xml`
+(Equipos), `xl/worksheets/sheet6.xml` (Movimientos · datos vivos), añadimos
+`xl/worksheets/sheet9.xml` (Correcciones nueva), `xl/worksheets/sheet10.xml` (Portada nueva),
+ajustamos `xl/workbook.xml` para registrar las nuevas hojas en el orden tab requerido por
+decisión 1·C, y actualizamos `[Content_Types].xml` y `xl/_rels/workbook.xml.rels`.
+Recomprimimos. Listo. **Las fórmulas SUMIFS de Sheet2 (F y G) y de Dashboard se mantienen
+sin tocarse — recalculan solas al abrir Excel.**
+
+**Entregables.**
+- `/assets/templates/Gestion_Suministros_Transformadores-2.xlsm` — template inmutable
+  (~80 KB, copia exacta del fuente).
+- `assets/js/exports/xlsm_suministros.js`:
+  - `cargarTemplate()` → fetch del template como `ArrayBuffer`.
+  - `descomprimirZip(buffer)` → JSZip instance.
+  - `parchearSheet2(zip, suministros)` — reescribe celdas H4:H25 (stock_inicial) en
+    `xl/worksheets/sheet2.xml` preservando estilos, fórmulas existentes y formato condicional.
+  - `parchearSheet5(zip, transformadores)` — reescribe rango B4:J209 con los 206 trafos.
+  - `parchearSheet6(zip, movimientos)` — reescribe `tblMovimientos` con datos vivos +
+    actualiza `xl/tables/table4.xml` con el nuevo `ref` para que la tabla se expanda
+    correctamente.
+  - `inyectarHojaCorrecciones(zip, correcciones)` — agrega `xl/worksheets/sheet9.xml` +
+    actualiza `xl/workbook.xml` (sheets, sheetId, rId) + `xl/_rels/workbook.xml.rels`
+    (rId nuevo apuntando a sheet9.xml) + `[Content_Types].xml`.
+  - `inyectarHojaPortada(zip, metadata)` — agrega `xl/worksheets/sheet10.xml` con título,
+    fecha de exportación, contrato, autor, hash del template; lo prependea como hoja 1
+    en `xl/workbook.xml` (sheetId más bajo, primer item del array).
+  - `recomprimirZip(zip)` → `Uint8Array`.
+  - `generarXlsm(snapshot)` orquesta los 6 pasos y retorna el `Uint8Array` listo para descarga.
+- `/assets/vendor/jszip.min.js` o CDN unpkg con SRI.
+- Test E2E `tests/export_xlsm_e2e.test.js`:
+  1. Carga template fixture.
+  2. Genera con datos sintéticos (3 sumin, 5 trafos, 2 movs, 1 corrección).
+  3. Re-parsea el output con `jszip` → verifica que `xl/vbaProject.bin` está presente y
+     tiene **mismo SHA-256** que el del fuente (preservación byte-a-byte).
+  4. Verifica `xl/webextensions/webextension1.xml` presente con string `claude.fileId`.
+  5. Verifica que `xl/workbook.xml` lista 10 hojas con orden correcto.
+  6. Verifica que `xl/charts/chart1.xml` y `chart2.xml` no se modificaron (SHA-256 igual al fuente).
+  7. Re-parsea sheet2.xml con `xmldom` → verifica celdas H4:H25 contienen los stock_inicial
+     esperados.
+- Botón **"Exportar XLSM"** en `admin/suministros-historico.html` (F46) y opcionalmente
+  en `admin/suministros-catalogo.html` (F43) — solo admin lo ve. Spinner durante generación
+  (~3-5 s para 1000 movimientos).
+
+**Patrón de referencia.** No hay precedente en el repo (es un mecanismo nuevo). Sí está
+`assets/js/exports/xlsx.js` (SheetJS wrapper) que sirve para CSV pero no para preservar VBA.
+La técnica JSZip+XML es el approach canónico documentado en la comunidad para este caso.
+
+**Decisiones a confirmar (mini-gating).**
+- ¿Si el test E2E #3 falla (VBA SHA-256 diverge) en alguna iteración del approach JSZip,
+  saltamos a fallback Cloud Function Python con `openpyxl`? **Auto-asunción mejor manera:**
+  sí. El fallback tiene presupuesto de +4 h en F49 (presupuesto total 8+4=12 h). El plan
+  reserva la decisión de saltar al primer indicio binario divergente, no después de
+  intentar parches superficiales.
+- ¿La hoja Portada incluye el logo de la empresa? **Auto-asunción:** placeholder de texto
+  con metadata; embed de imagen en XML excede el alcance de F49. Si el director quiere
+  logo embebido, se itera post-tag.
+
+**Anticipación de errores (lista detallada).**
+1. **Reserialización destruye VBA:** confirmado en ExcelJS y SheetJS. El approach JSZip
+   evita esto al no tocar nunca `xl/vbaProject.bin`.
+2. **Parche del XML rompe `calcChain.xml`:** si añadimos celdas con fórmulas que no estaban
+   antes, Excel se queja al abrir. Mitigación: las celdas de datos no tienen fórmulas
+   (las fórmulas viven en columnas F y G de Sheet2 y son invariantes). `calcChain.xml`
+   se deja sin tocar; Excel lo regenera al primer recálculo.
+3. **`tblMovimientos` ref desactualizado:** si añadimos 50 filas pero el `ref` de la
+   tabla en `xl/tables/table4.xml` sigue siendo `B4:Q5`, Excel muestra "tabla corrupta".
+   Mitigación: actualizar `<table ref="B4:Q{N+4}">` en cada generación.
+4. **Hojas nuevas (Correcciones, Portada) sin estilos:** si los XMLs nuevos no referencian
+   `xl/styles.xml`, las celdas se ven sin formato. Mitigación: aplicar `s="0"` (style 0,
+   default) o referenciar estilos existentes vía índice.
+5. **`sharedStrings.xml`:** si añadimos textos nuevos (encabezados de Correcciones,
+   "Portada · SGM TRANSPOWER", etc.), hay dos opciones: (a) usar `inline strings` en cada
+   celda (`<is><t>...</t></is>` con `t="inlineStr"`), o (b) extender `sharedStrings.xml`.
+   **Decisión:** (a) inline strings en hojas nuevas; cero modificación del shared strings.
+6. **Office Add-in (`claude.fileId`):** vive en `xl/webextensions/webextension1.xml` y
+   `xl/webextensions/_rels/taskpanes.xml.rels`. **Nunca tocarlos.**
+7. **Encoding UTF-8:** los XMLs deben empezar con `<?xml version="1.0" encoding="UTF-8"
+   standalone="yes"?>`. Cualquier acento (Cesar, Bolívar, Magdalena, Córdoba) requiere
+   UTF-8 estricto en el writer JSZip (`compression: DEFLATE`).
+8. **Archivos > 25 MB:** si el cliente exporta con 50000 movimientos, el zip supera el
+   límite de cookies/headers de algunos browsers. Mitigación: streaming-friendly write
+   con FileSaver.js o Blob URL — JSZip soporta `generateAsync({type: "blob"})`.
+9. **Race condition en suscripciones:** generar mientras `suscribirStockGlobal` está activa
+   puede leer un snapshot a medio camino. Mitigación: la función `generarXlsm` recibe
+   un snapshot frozen como argumento (no se suscribe ella misma).
+10. **Test E2E binario diff:** dos exports consecutivos con el mismo dataset deben producir
+    `Uint8Array` idénticos byte-a-byte (determinismo). Mitigación: ordenar entries del zip
+    alfabéticamente, usar timestamps fijos en compression, sin random IDs.
+
+**Validación / criterio de cierre.**
+- El test E2E `tests/export_xlsm_e2e.test.js` verde con todos los 7 sub-checks.
+- Manual: exportar con datos reales, abrir en Excel desktop:
+  - Las 3 macros del VBA (`ConfirmarMovimiento`, `AutoCompletarManual`, `ReiniciarStock`)
+    se ven en ALT+F11 y ejecutan sin errores.
+  - El add-in claude se carga (panel derecho).
+  - Las gráficas Chart1 y Chart2 muestran datos actualizados.
+  - Las fórmulas SUMIFS de Sheet2 recalculan stock_actual.
+  - Las hojas Correcciones y Portada se ven con datos.
+
+**Tests.** 1 test E2E con 7 sub-checks + manual.
+
+**Commit msg.** `feat(suministros): F49 export XLSM 1:1 con template binario · JSZip + parche XML + tests E2E + botón UI`
+
+**Estimación.** 8 h (path JSZip) + 4 h reserva si va a fallback Python = 8–12 h.
+
+**Deploy condicional.** Solo si va a fallback: `firebase deploy --only functions:exportarSuministrosXlsm`.
+
+---
+
+#### F50 · Sidebar + nav + cache PWA + tag v2.2.0
+
+**Objetivo.** Cierre del plan. Integrar los entry points nuevos al sidebar y home,
+bumpear cache PWA, validación E2E final, tag `v2.2.0`.
+
+**Entregables.**
+- `assets/js/aqua-shell.js` — nuevo grupo **"Suministros"** entre "Salud del activo" y
+  "Administración" con los items:
+  - Stock (`pages/suministros-stock.html`) · icon `package`
+  - Dashboard (`pages/suministros-dashboard.html`) · icon `bar-chart-3`
+  - Catálogo admin (`admin/suministros-catalogo.html`) · icon `clipboard-list` · clase `sb-admin`
+  - Marcas admin (`admin/suministros-marcas.html`) · icon `tag` · `sb-admin`
+  - Movimientos admin (`admin/suministros-movimiento.html`) · icon `arrow-right-left` · `sb-admin`
+  - Histórico admin (`admin/suministros-historico.html`) · icon `history` · `sb-admin`
+  - Correcciones admin (`admin/suministros-correcciones.html`) · icon `file-edit` · `sb-admin`
+  - Importar admin (`admin/importar-suministros.html`) · icon `file-up` · `sb-admin`
+- `home.html` — KPI card adicional **"Stock crítico"** que cuenta items con estado
+  `CRITICO` o `AGOTADO`. Realtime via `suscribirStockGlobal`.
+- `sw.js` — bump `CACHE_VERSION` de `sgm-v3-1-0` a `sgm-v3-2-0`. Añadir las 8 rutas
+  nuevas + `/assets/templates/Gestion_Suministros_Transformadores-2.xlsm` al array `SHELL`.
+- `CHANGELOG.md` — entrada `v2.2.0` con summary de F38–F50.
+- `CLAUDE.md` §5 — añadir bloque "Evolución v2.2 · Suministros (F38–F50)" con la tabla
+  de microfases. §7 — actualizar tabla de progreso, último tag, sistema activo.
+- `docs/PLAN-SUMINISTROS.md` — marcar como **completado** con fecha de cierre.
+
+**Validación E2E manual.**
+1. Login admin → ver grupo "Suministros" en sidebar.
+2. Importar (F42) datos desde el repo → verificar 22 sumin + 22 marcas + 206 trafos +
+   3 correcciones + 1 entrada de audit `bulk_import_suministros`.
+3. Crear movimiento INGRESO (F45) → ver en histórico (F46) en realtime.
+4. Public dashboard (F47) muestra stock recalculado en otra pestaña.
+5. Export XLSM (F49) → abrir en Excel → 3 macros VBA ejecutan + add-in carga + 2 charts
+   + 10 hojas + Correcciones poblada + Portada con metadata correcta.
+6. Logout y login como `tecnico` → ve "Suministros · Stock" y "Dashboard"; NO ve los 6 items
+   admin.
+
+**Patrón de referencia.** F37 cierre del plan v2.0 (tag + CHANGELOG + actualización CLAUDE.md).
+
+**Anticipación de errores.**
+- **Cache PWA stale:** si no se bumpea `CACHE_VERSION`, los clientes con sw.js antiguo
+  no ven los HTML nuevos hasta hard reload. **Crítico no olvidar.**
+- **Orden del grupo en sidebar:** "Suministros" debe ir entre "Salud del activo" y
+  "Administración" (decisión visual). Verificar con captura antes del tag.
+- **Visibilidad por rol:** `aqua-shell.js` lee `window.__sgmSession.role` y oculta los
+  `sb-admin` a no-admins. Validar con dos sesiones.
+- **Migración doble:** F50 NO ejecuta `v1-to-v2-transformadores-add-repuesto`; ese
+  backfill ya lo hizo F42. Confirmar que `npm test` pasa sin necesitar nuevo run.
+
+**Tests.** Sin tests automatizados nuevos (manual E2E). Total acumulado del plan:
+~109 tests nuevos sobre los 282 actuales = ~391 tests verdes.
+
+**Commit msg.** `chore(suministros): F50 sidebar + nav + PWA cache bump + tag v2.2.0`
+
+**Tag.** `git tag -a v2.2.0 -m "Integración Suministros + Repuestos · 13 microfases F38-F50"`
+
+**Estimación.** 2 h.
+
+**Sin deploy** (merge a main → Pages auto-redeploy).
+
+---
+
+**Resumen Bloque E:**
+- 2 microfases · 2 commits aislados.
+- Tests E2E del export + manual de cierre.
+- 0–1 deploys (solo si F49 va a fallback Python).
+- Tiempo estimado: 10–14 h efectivas.
+
+---
+
+## §5 Riesgos consolidados
+
+| # | Riesgo | Probabilidad | Impacto | Fase | Mitigación |
+|---|---|---|---|---|---|
+| R1 | ExcelJS/SheetJS destruyen el VBA al guardar | **Alta** (confirmado por docs) | Crítico (decisión 4·A no se cumple) | F49 | Approach JSZip + parche XML; jamás se reescribe `vbaProject.bin`. Test E2E #3 verifica SHA-256 byte-a-byte. Fallback Python con presupuesto reservado. |
+| R2 | Race condition en correlativo de movimientos | Media | Alto (códigos colisionan) | F39 | `runTransaction` lee y escribe correlativo en el mismo batch. Test simula 10 inserts paralelos. |
+| R3 | Stock negativo no detectado | Baja | Alto (datos inconsistentes) | F39 | Tx valida `stock_actual >= 0` antes de escribir. Flag `permitirNegativo=false` por defecto. |
+| R4 | Importador F42 duplica docs en re-ejecución | Baja | Medio | F42 | Idempotencia por `codigo` (suministro) y `matricula` (trafo). Test re-ejecuta 2 veces y verifica `crear:0`. |
+| R5 | `marcas_disponibles[]` desincronizada por updates concurrentes | Media | Medio (chips faltantes en UI) | F44 | Usar `arrayUnion` en lugar de overwrite. Probar con dos pestañas. |
+| R6 | Datalist con 200+ trafos lento en mobile | Baja | Bajo (lag de input) | F45 | Datalist nativo es eficiente; si reporta lag, iterar a virtual scroll en F50. |
+| R7 | Cache PWA stale en F50 oculta cambios al usuario | Media | Alto (director no ve nada nuevo) | F50 | Bump explícito `CACHE_VERSION`. Documentar en commit que es obligatorio. |
+| R8 | Reglas Firestore desplegadas antes de índices fallan queries | Media | Alto (página rota en prod) | F40 | Orden estricto en aviso de deploy: índices → esperar build → rules. |
+| R9 | Backfill `repuesto.estado` reescribe trafos con datos divergentes | Baja | Medio | F42 | Sanitizer F41 normaliza `null` → `'N/A'` antes de escribir; preserva resto del doc intacto. |
+| R10 | `parsearJsxTransformadores` con `eval` introduce XSS | Eliminado | Crítico | F42 | Estrategia documentada: regex extraction + `JSON.parse`. Cero `eval`/`Function`. |
+| R11 | Concurrent imports duplican audit entries | Baja | Bajo (audit log con dos rows) | F42 | Aceptable; los docs operativos quedan consistentes. |
+| R12 | Director sube nueva versión del .xlsm/.jsx mid-plan | Media | Alto (plan obsoleto) | Todo | Sufijo de versión obligatorio (`-v3`); abrir sub-plan. Documentado en §0. |
+| R13 | Test E2E del export determinista falla por timestamps en zip | Alta sin mitigación | Bajo (CI rojo intermitente) | F49 | Forzar timestamps fijos al generar zip; ordenar entries alfabéticamente. |
+| R14 | Cloud Function fallback agrega dependencia Python | Si se activa | Medio (deploy nuevo) | F49 | Decisión documentada con golden master diff. Path A (JSZip) tiene 90% probabilidad de éxito. |
+| R15 | Decisión 1·C (10 hojas) confunde al auditor que esperaba 8 | Baja | Bajo | F49 | Hoja Portada explica el origen de las 2 hojas extra; hoja Correcciones es estándar del skill. |
+
+**Bloqueantes técnicos sin mitigación:** ninguno. Cada riesgo tiene mitigación documentada
+o fallback aceptable.
+
+---
+
+## §6 Estimación total
+
+| Bloque | Microfases | Tests nuevos | Tiempo efectivo | Deploys |
+|---|---|---|---|---|
+| **A — Cimientos** | F38 · F39 · F40 · F41 | ~73 | 7 h | 1 (rules + índices) |
+| **B — Importador** | F42 | 18 | 4 h | 0 |
+| **C — Admin UI** | F43 · F44 · F45 · F46 | 12 | 12 h | 0 |
+| **D — Public UI** | F47 · F48 | 6 | 6.5 h | 0 |
+| **E — Export & cierre** | F49 · F50 | E2E + manual | 10–14 h | 0–1 (fallback) |
+| **TOTAL** | **13** | **~109** | **39.5–43.5 h** | **1–2** |
+
+**Tests verdes esperados al cierre:** 282 + 109 = **~391**.
+
+**Tag final:** `v2.2.0`.
+
+**Cadencia recomendada:** una microfase por sesión chat para evitar timeouts y permitir
+revisión por el director antes de avanzar. Cada cierre de fase = commit aislado + push
+inline + screenshot opcional para evidencia visual.
+
+---
+
+## §7 Anti-patrones (cosas que NO se harán durante la ejecución)
+
+Lista derivada del skill `asset-tracking-system` y de las convenciones del repo. Cada
+anti-patrón está documentado para que el director pueda llamarme la atención si lo viola.
+
+1. **Cero datos inventados.** Si una matrícula del JSX trae `re:null`, va como `'N/A'`,
+   no como `'OPERATIVA'` por defecto. Si una fecha no está en el .xlsm, se muestra `—`,
+   no se interpola. Si una marca está vacía, se muestra `Por definir`, no se adivina vendor.
+
+2. **Cero `eval` en parser del JSX.** El array `TRANSFORMADORES` se extrae con regex y se
+   parsea con `JSON.parse` tras quoting fix. Nunca `Function('return ' + str)()`.
+
+3. **Cero re-importación silenciosa.** Cada ejecución de F42 con `dryRun=false` deja
+   evidencia en `/auditoria` con metadata granular. Si el director re-importa, ve dos
+   entries y puede comparar.
+
+4. **Cero modificación de `vbaProject.bin`.** El binario VBA del template solo se mueve
+   dentro del zip; nunca se reescribe ni se intenta regenerar.
+
+5. **Cero modificación del Office Add-in.** `webextensions/webextension1.xml` y su
+   `_rels/taskpanes.xml.rels` se mueven con el zip; el `claude.fileId` queda intacto.
+
+6. **Cero cambios de schema sin dual-write.** F41 introduce `repuesto` como sub-section
+   y como flat `re` simultáneamente. Las vistas legacy siguen funcionando.
+
+7. **Cero deploy automático de rules antes de índices.** El aviso de deploy en F40 lista
+   el orden estricto. Romper el orden = páginas vivas con `FAILED_PRECONDITION`.
+
+8. **Cero delete masivo en F42.** Trafos huérfanos en Firestore se reportan en summary,
+   no se eliminan. La limpieza requiere sub-paso explícito con confirmación.
+
+9. **Cero confirmación implícita.** Antes de transformar datos fuente (renombrar columnas,
+   ocultar items con stock=0, consolidar duplicados), preguntar al director con 2–4
+   opciones concretas. Las decisiones de §3 ya cubren las 7 transformaciones macro;
+   cualquier transformación nueva detectada durante la ejecución abre mini-gating.
+
+10. **Cero comentarios decorativos.** Convención del repo (CLAUDE.md): código sin
+    comentarios salvo cuando el WHY no sea obvio. No "// método que crea suministro" sobre
+    `crear()`. Sí "// stock_actual snapshot al momento del movimiento, no se actualiza
+    aunque cambie el catálogo después" sobre la línea relevante en F39.
+
+11. **Cero scope creep.** El plan tiene 13 microfases; una feature nueva (ej. notificaciones
+    email cuando stock crítico) abre un sub-plan post-v2.2.0, no se mete dentro de las
+    fases existentes.
+
+12. **Cero override de `localStorage` heredado del JSX.** El JSX persistía en
+    `ctrl_suministros_trafos_v6`. La integración a Firestore deja ese localStorage huérfano
+    (los datos viven en Firestore desde F42). No se lee ni se escribe el localStorage; el
+    director puede limpiarlo manualmente si quiere.
+
+---
+
+## Cierre del plan
+
+Plan v2.2 completo desde §0 hasta §7. Listo para tu aprobación final.
+
+**Aprobación esperada:**
+- Plan completo: ✅/❌
+- Auto-asunciones de §3: ✅/❌ (15 auto-asunciones distribuidas entre las fases)
+- Decisión sobre fallback Python en F49 si VBA SHA-256 diverge: ✅/❌
+- Cadencia "una microfase por sesión chat": ✅/❌
+
+Una vez aprobado, F38 arranca con un mensaje del director explícito: `"ejecuta F38"`.
+El plan no se ejecuta solo.
+
+---
+
+> **Versión del plan:** P5c · 2026-04-25 · `claude/fix-menu-colors-AJek5`
+> **Tags previstos durante ejecución:** ninguno hasta `v2.2.0` al cierre de F50.
