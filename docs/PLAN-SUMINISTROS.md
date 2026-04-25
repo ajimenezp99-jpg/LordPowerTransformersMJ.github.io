@@ -286,5 +286,252 @@ Conforme a CLAUDE.md §0.1.1, el director ejecutará:
 
 ---
 
-> **Continúa en P3:** Bloque A (F38–F41 cimientos) — dominio puro, data layer, rules,
-> sub-section `repuesto`. Estimado 4 fases, 1 deploy manual de rules+índices.
+## §4 Plan de microfases
+
+### Bloque A · Cimientos (sin UI visible para el director)
+
+#### F38 · Dominio puro · schemas + sanitizers + validadores
+
+**Objetivo.** Definir la forma canónica de los 4 conceptos nuevos (suministro, marca,
+movimiento, corrección) como módulos puros sin Firebase, importables desde Node tests
+y desde Cloud Functions. Cero I/O.
+
+**Entregables.**
+- `assets/js/domain/suministro_schema.js` — `sanitizarSuministro(input)`, `validarSuministro(doc)`.
+- `assets/js/domain/marca_schema.js`
+- `assets/js/domain/movimiento_schema.js` — incluye helper puro `generarCodigoMov(anio, secuencial)` que devuelve `MOV-2026-0001`.
+- `assets/js/domain/correccion_schema.js`
+- Extensión a `assets/js/domain/schema.js`:
+  - `TIPOS_MOVIMIENTO = ['INGRESO','EGRESO']`
+  - `ESTADOS_REPUESTO = ['OPERATIVA','OBSOLETA','N/A']`
+  - `TIPOS_CORRECCION = ['matricula','tension','regulacion','stock','marca','otro']`
+  - `UNIDADES = ['Und','Lt','Kg','Mt','Gal','Otro']`
+  - `ESTADOS_STOCK = ['SIN_STOCK','NEGATIVO','AGOTADO','CRITICO','MEDIO','OK']` (semáforo del skill)
+  - Helper `estadoStock(disponible, inicial)` puro que devuelve la key del semáforo.
+- Tests: `tests/suministro_schema.test.js`, `tests/marca_schema.test.js`,
+  `tests/movimiento_schema.test.js`, `tests/correccion_schema.test.js`,
+  `tests/estado_stock.test.js`.
+
+**Patrón de referencia.** `assets/js/domain/transformador_schema.js` para sanitizado por
+secciones; `assets/js/domain/orden_schema.js` para validador que devuelve array de errores.
+
+**Decisiones a confirmar (mini-gating).**
+- ¿`UNIDADES` se restringe solo a `['Und']` (única que aparece en el .xlsm fuente) o se
+  abre al set completo? **Auto-asunción mejor manera:** abrir al set completo desde F38
+  para evitar romper el schema cuando el director añada un suministro líquido (silica gel ya
+  podría serlo).
+
+**Anticipación de errores.**
+- Códigos `S01..S22` deben validar con regex `/^S\d{2}$/i` y normalizarse a uppercase en el sanitizer.
+- `cantidad` en movimientos debe ser **entero ≥ 1** (no fracciones, no cero) — coincide con
+  la data validation del .xlsm Sheet7!W (whole > 0).
+- `tipo` movimiento normalizado a uppercase (`INGRESO|EGRESO`) tanto en sanitizer como en validador
+  para evitar discrepancia con rules server-side.
+- `valor_unitario` y `valor_total` se almacenan como `Number`; el formateo COP es responsabilidad
+  del renderer (ver `fmtCOP` en F47).
+- `estadoStock(0, 0)` debe devolver `SIN_STOCK` (no `AGOTADO`) — los items contractuales con
+  stock_inicial=0 son legítimos (decisión 3·A) y deben distinguirse de los agotados por consumo.
+
+**Validación / criterio de cierre.**
+- `npm test` — 282 + ~25 = ~307 tests verdes.
+- Sanitizer rechaza objetos sin keys obligatorias (devuelve `null` o lanza, según convención del repo).
+- Validador retorna `[]` si OK, `[{campo, mensaje}]` si no.
+
+**Tests.** 25 tests (5 por archivo).
+
+**Commit msg.** `feat(suministros): F38 dominio puro · schemas + sanitizers + validadores + 25 tests`
+
+**Estimación.** 1.5 h.
+
+**Sin deploy.** No toca Firestore.
+
+---
+
+#### F39 · Data layer + audit hooks + transacciones de stock
+
+**Objetivo.** API CRUD sobre Firestore para las 4 colecciones nuevas. Movimientos
+en transacción atómica que valida stock antes de escribir. Cada write registrado en `/auditoria`.
+
+**Entregables.**
+- `assets/js/data/suministros.js` — `listar`, `obtener`, `crear`, `actualizar`,
+  `eliminar`, `suscribir` (signature idéntica a `transformadores.js`).
+- `assets/js/data/marcas.js` — mismo patrón + filtro por `suministro_id`.
+- `assets/js/data/movimientos.js`:
+  - `crear(payload)` envuelto en `runTransaction()`:
+    1. Lee el último `MOV-{anio}-NNNN` para generar correlativo sin colisión.
+    2. Calcula stock_actual recomputando agregado de movimientos previos del mismo `suministro_id`.
+    3. Si quedaría negativo y `permitirNegativo=false`, lanza `StockInsuficienteError`.
+    4. Crea el doc + entrada de audit en el mismo batch.
+  - `eliminar(id)` con audit obligatorio (justificación requerida en payload).
+  - `suscribir(filtros, onData, onError)` con realtime.
+  - `computarStock(suministroId)` puro: agregación de movimientos.
+  - `suscribirStockGlobal(onData, onError)` que combina `/suministros` + `/movimientos`
+    con debounce 250 ms — patrón de `alertas.js` `suscribirComputo`.
+- `assets/js/data/correcciones.js` — CRUD simple.
+- `assets/js/data/suministros_config.js` — singleton `/suministros_config/global` con
+  `permitirNegativo`, `umbral_critico_pct=0.20`, `umbral_medio_pct=0.50`.
+- Tests: `tests/suministros_data.test.js`, `tests/movimientos_data.test.js` (con mock Firestore).
+
+**Patrón de referencia.** `assets/js/data/transformadores.js` (CRUD + audit hooks),
+`assets/js/data/ordenes.js` (suscribir con filtros), `assets/js/data/alertas.js`
+(`suscribirComputo` con debounce).
+
+**Decisiones a confirmar (mini-gating).**
+- ¿`permitirNegativo` por defecto = `false` (rechazo duro) o `true` (alerta pero permite)?
+  El skill cita "user approved 'alert but allow'" en sesión real. **Auto-asunción mejor manera:**
+  `false` por seguridad — el director puede flipear el flag en `/suministros_config/global`
+  desde la UI cuando lo necesite.
+- ¿Formato del código de movimiento: `MOV-2026-0001` (correlativo anual) o
+  `MOV-20260425-001` (correlativo diario)? **Auto-asunción:** anual, consistente con
+  `ordenes.codigo` y más legible.
+
+**Anticipación de errores.**
+- **Race condition en correlativo:** sin tx, dos admins crean simultáneamente y colisionan.
+  Mitigación: la lectura del último correlativo va dentro del mismo `runTransaction` que el create.
+- **Snapshot del valor unitario:** se copia al movimiento en `crear()` (no se referencia al
+  catálogo). Si después cambia el precio en `/suministros`, el histórico no se distorsiona.
+- **Eliminación de movimiento:** permitida pero con audit obligatorio (`justificacion`
+  required en payload). La función rechaza si no se provee.
+- **Carga inicial de stock cero:** `computarStock` debe devolver `{inicial:0, ingresado:0,
+  egresado:0, actual:0}` cuando no hay movimientos, no `null`.
+- **Querying por `transformador_id`:** la FK en `/movimientos` se actualiza al crear; si el
+  trafo se elimina (cascada raras vez deseable), el movimiento queda huérfano — política del
+  proyecto: no eliminar trafos con movimientos asociados (el delete del trafo lo bloqueará F39).
+
+**Validación / criterio de cierre.**
+- Tests con mock Firestore validan: tx rechaza con stock negativo cuando flag=false; acepta
+  cuando flag=true; correlativos secuenciales sin colisión bajo carga simulada (10 inserts
+  paralelos generan `MOV-2026-0001..0010` sin saltos).
+
+**Tests.** 20 tests.
+
+**Commit msg.** `feat(suministros): F39 data layer · CRUD + tx atómica de stock + audit hooks + 20 tests`
+
+**Estimación.** 3 h.
+
+**Sin deploy todavía** (las rules vienen en F40).
+
+---
+
+#### F40 · Reglas Firestore + 8 índices compuestos
+
+**Objetivo.** Persistir las 4 colecciones nuevas con RBAC restrictivo (lectura team,
+escritura admin) y validación de enums server-side.
+
+**Entregables.**
+- `firestore.rules` con bloques nuevos:
+  ```
+  /suministros/{id}   — read team, write admin, valida codigo regex, unidad enum, stock_inicial >= 0
+  /marcas/{id}        — read team, write admin, valida suministro_id no vacío
+  /movimientos/{id}   — read team, WRITE ADMIN ONLY (decisión 6·A), valida tipo enum,
+                        cantidad > 0, transformador_id no nulo, suministro_id no nulo
+  /correcciones/{id}  — read team, write admin, valida tipo enum
+  /suministros_config/{id} — read team, write admin
+  ```
+- Helpers nuevos: `isTipoMovimientoValido()`, `isUnidadValida()`, `isEstadoRepuestoValido()`.
+- `firestore.indexes.json` con los 8 índices compuestos del §2.
+
+**Patrón de referencia.** `firestore.rules` líneas 53-67 (helpers de enum), match de
+`/transformadores/{id}` (validación por sección), match de `/transformadores/{id}/historial`
+(append-only — patrón aplicable si en el futuro se mueven movimientos a sub-colección).
+
+**Decisiones a confirmar.** Ninguna nueva.
+
+**Anticipación de errores.**
+- Si se despliegan rules sin desplegar índices primero, las queries con `orderBy + where`
+  fallan con `FAILED_PRECONDITION`. **Orden correcto: índices → esperar build → rules.**
+- Validación de enums server-side debe ser **case-sensitive uppercase** (sanitizer F38 ya
+  fuerza uppercase). Si el cliente manda lowercase, el rule lo rechaza explícitamente —
+  síntoma claro de bug en sanitizer.
+- El campo `valor_total` debe permitir floats grandes (hasta 10^12 COP); el rule no debe
+  imponer techo numérico.
+
+**Validación / criterio de cierre.**
+- Test manual con Firestore Emulator (`firebase emulators:start`):
+  - Como admin: CRUD completo en las 4 colecciones funciona.
+  - Como tecnico: solo `read`; cualquier `write` rechazado con `permission-denied`.
+  - Como anonymous: rechazado con `permission-denied` desde el primer `get`.
+- Test manual: query `where('zona','==','BOLIVAR') orderBy('anio','desc')` sobre `/movimientos`
+  retorna sin error tras desplegar el índice correspondiente.
+
+**Tests.** Sin tests automatizados (las rules se prueban con Firestore Emulator;
+documentar comando en commit).
+
+**Commit msg.** `feat(suministros): F40 firestore rules + 8 índices compuestos`
+
+**Estimación.** 1 h.
+
+**⚠ Requiere deploy manual del director (orden estricto):**
+```bash
+firebase deploy --only firestore:indexes      # paso 1: esperar build complete
+firebase deploy --only firestore:rules        # paso 2: tras índices listos
+```
+
+---
+
+#### F41 · Sub-section `repuesto` en transformador_schema (dual-write retrocompat)
+
+**Objetivo.** Añadir el campo `repuesto` (estado: OPERATIVA/OBSOLETA/N/A) a
+`/transformadores/{id}` sin romper vistas existentes. Estrategia dual-write:
+sanitizer escribe **ambos** niveles (sub-section nueva `repuesto` + flat `re` en raíz),
+de modo que `pages/inventario.html` y todas las vistas legacy sigan renderizando sin tocar.
+
+**Entregables.**
+- `assets/js/domain/transformador_schema.js`:
+  - Sub-section nueva `repuesto: {estado, serial_repuesto, notas}`.
+  - `proyeccionV1()` extendida para incluir `re` flat.
+  - Coherencia bidireccional: si input trae `re` plano, sanitizer infiere `repuesto.estado`;
+    si trae `repuesto`, regenera `re`.
+- `assets/js/domain/schema.js` — `ESTADOS_REPUESTO` (ya añadido en F38, solo se referencia).
+- `firestore.rules` — añadir validación opcional de `repuesto.estado` enum si presente
+  (no requerido, el campo es opcional).
+- Tests: extender `tests/transformador_schema.test.js` con casos de coherencia v1↔v2.
+
+**Migración de datos diferida a F42.** El backfill de `repuesto.estado` para los 206
+trafos existentes se hace dentro del importador F42 (que va a tocar todos los docs igualmente
+al re-sembrar desde el JSX). Esto evita doble pase sobre la misma colección.
+
+**Patrón de referencia.** F16 estableció la convención dual-write (raíz aplanada + secciones);
+seguirla idéntica.
+
+**Decisiones a confirmar.** Ninguna nueva (la decisión de diferir migración a F42 ya está tomada).
+
+**Anticipación de errores.**
+- Si `repuesto.estado` queda `undefined` al leer un doc viejo (pre-F42), las queries que
+  filtren por ese campo lo excluyen del resultado. **Mitigación:** sanitizer aplica `'N/A'`
+  por defecto cuando el campo falta — los reads vía data layer siempre obtienen el campo.
+- La proyección plana `re` debe estar **siempre en sync** con `repuesto.estado`. Test
+  explícito: editar un doc con shape v1 y verificar que `repuesto.estado` se infirió;
+  editar con shape v2 y verificar que `re` se regeneró.
+- El JSX original tiene algunos `re: null` (no `'N/A'`). Sanitizer trata `null` como
+  ausencia → defaultea a `'N/A'`. Tests cubren este caso.
+
+**Validación / criterio de cierre.**
+- Tests cubren: shape v1 (`{re:'OPERATIVA'}`) → produce `repuesto.estado='OPERATIVA'`;
+  shape v2 (`{repuesto:{estado:'OBSOLETA'}}`) → produce `re='OBSOLETA'`; doc sin ningún
+  campo → ambos lados quedan en `'N/A'`; doc con `re:null` → ambos lados quedan en `'N/A'`.
+
+**Tests.** +8 tests al archivo existente.
+
+**Commit msg.** `feat(suministros): F41 transformador.repuesto · sub-section + dual-write retrocompat + 8 tests`
+
+**Estimación.** 1.5 h.
+
+**Sin deploy** (las rules ya cubren el campo opcional desde F40 si la regla acepta el
+sub-objeto sin requerirlo).
+
+---
+
+**Resumen Bloque A:**
+- 4 microfases · 4 commits aislados.
+- ~73 tests nuevos (25+20+0+8 plus algunos de soporte).
+- 1 deploy manual del director (F40).
+- Tiempo estimado: 7 h efectivas.
+- Estado del repo al cierre del bloque: backend listo para recibir datos; UI todavía sin
+  cambios visibles; el director no ve nada nuevo en `home.html`.
+
+---
+
+> **Continúa en P4:** Bloque B (F42 importador) + Bloque C (F43–F46 admin UI). Estimado
+> 5 fases, sin deploy adicional (las funciones se llaman desde la UI; los datos viajan por
+> las rules ya desplegadas).
