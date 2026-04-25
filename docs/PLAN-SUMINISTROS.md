@@ -956,5 +956,132 @@ Equivalente a los views `dashboard` y `cruzado` del JSX.
 
 ---
 
-> **Continúa en P5b:** Bloque E · F49 (export XLSM 1:1 con template binario via JSZip,
-> el más complejo del plan) + §5 riesgos consolidados.
+### Bloque E · Export & Cierre
+
+#### F49 · Export XLSM 1:1 con template binario (JSZip + parche XML)
+
+**Objetivo crítico.** Generar un .xlsm idéntico al fuente con: 10 hojas (las 8 del fuente
++ Correcciones + Portada), VBA preservado byte-a-byte, Office Add-in preservado, charts
+intactos, formato condicional intacto, themes intactos. **Cero regeneración de XML
+que no sea estrictamente necesaria.**
+
+**Estrategia (decidida tras evaluar 3 paths).**
+
+| Path | Pros | Contras | Veredicto |
+|---|---|---|---|
+| ExcelJS browser-side | API moderna, tipada | Reserializa todo el zip → **destruye `vbaProject.bin`** y `webextensions/` | ❌ Descartado |
+| `xlsx-populate` | Preserva VBA según docs | Requiere npm install, +500 KB browser | 🟡 Backup |
+| **JSZip + parche XML directo** | Cero regeneración del zip; tocamos solo los XMLs de hojas; `vbaProject.bin` y `webextensions/` jamás se reescriben | DOM XML manual, más código bajo nivel | ✅ **Elegido** |
+
+Bajo el approach **JSZip + parche XML**: leemos el .xlsm como zip, modificamos sólo
+`xl/worksheets/sheet2.xml` (Catalogo_Suministros · stock_inicial), `xl/worksheets/sheet5.xml`
+(Equipos), `xl/worksheets/sheet6.xml` (Movimientos · datos vivos), añadimos
+`xl/worksheets/sheet9.xml` (Correcciones nueva), `xl/worksheets/sheet10.xml` (Portada nueva),
+ajustamos `xl/workbook.xml` para registrar las nuevas hojas en el orden tab requerido por
+decisión 1·C, y actualizamos `[Content_Types].xml` y `xl/_rels/workbook.xml.rels`.
+Recomprimimos. Listo. **Las fórmulas SUMIFS de Sheet2 (F y G) y de Dashboard se mantienen
+sin tocarse — recalculan solas al abrir Excel.**
+
+**Entregables.**
+- `/assets/templates/Gestion_Suministros_Transformadores-2.xlsm` — template inmutable
+  (~80 KB, copia exacta del fuente).
+- `assets/js/exports/xlsm_suministros.js`:
+  - `cargarTemplate()` → fetch del template como `ArrayBuffer`.
+  - `descomprimirZip(buffer)` → JSZip instance.
+  - `parchearSheet2(zip, suministros)` — reescribe celdas H4:H25 (stock_inicial) en
+    `xl/worksheets/sheet2.xml` preservando estilos, fórmulas existentes y formato condicional.
+  - `parchearSheet5(zip, transformadores)` — reescribe rango B4:J209 con los 206 trafos.
+  - `parchearSheet6(zip, movimientos)` — reescribe `tblMovimientos` con datos vivos +
+    actualiza `xl/tables/table4.xml` con el nuevo `ref` para que la tabla se expanda
+    correctamente.
+  - `inyectarHojaCorrecciones(zip, correcciones)` — agrega `xl/worksheets/sheet9.xml` +
+    actualiza `xl/workbook.xml` (sheets, sheetId, rId) + `xl/_rels/workbook.xml.rels`
+    (rId nuevo apuntando a sheet9.xml) + `[Content_Types].xml`.
+  - `inyectarHojaPortada(zip, metadata)` — agrega `xl/worksheets/sheet10.xml` con título,
+    fecha de exportación, contrato, autor, hash del template; lo prependea como hoja 1
+    en `xl/workbook.xml` (sheetId más bajo, primer item del array).
+  - `recomprimirZip(zip)` → `Uint8Array`.
+  - `generarXlsm(snapshot)` orquesta los 6 pasos y retorna el `Uint8Array` listo para descarga.
+- `/assets/vendor/jszip.min.js` o CDN unpkg con SRI.
+- Test E2E `tests/export_xlsm_e2e.test.js`:
+  1. Carga template fixture.
+  2. Genera con datos sintéticos (3 sumin, 5 trafos, 2 movs, 1 corrección).
+  3. Re-parsea el output con `jszip` → verifica que `xl/vbaProject.bin` está presente y
+     tiene **mismo SHA-256** que el del fuente (preservación byte-a-byte).
+  4. Verifica `xl/webextensions/webextension1.xml` presente con string `claude.fileId`.
+  5. Verifica que `xl/workbook.xml` lista 10 hojas con orden correcto.
+  6. Verifica que `xl/charts/chart1.xml` y `chart2.xml` no se modificaron (SHA-256 igual al fuente).
+  7. Re-parsea sheet2.xml con `xmldom` → verifica celdas H4:H25 contienen los stock_inicial
+     esperados.
+- Botón **"Exportar XLSM"** en `admin/suministros-historico.html` (F46) y opcionalmente
+  en `admin/suministros-catalogo.html` (F43) — solo admin lo ve. Spinner durante generación
+  (~3-5 s para 1000 movimientos).
+
+**Patrón de referencia.** No hay precedente en el repo (es un mecanismo nuevo). Sí está
+`assets/js/exports/xlsx.js` (SheetJS wrapper) que sirve para CSV pero no para preservar VBA.
+La técnica JSZip+XML es el approach canónico documentado en la comunidad para este caso.
+
+**Decisiones a confirmar (mini-gating).**
+- ¿Si el test E2E #3 falla (VBA SHA-256 diverge) en alguna iteración del approach JSZip,
+  saltamos a fallback Cloud Function Python con `openpyxl`? **Auto-asunción mejor manera:**
+  sí. El fallback tiene presupuesto de +4 h en F49 (presupuesto total 8+4=12 h). El plan
+  reserva la decisión de saltar al primer indicio binario divergente, no después de
+  intentar parches superficiales.
+- ¿La hoja Portada incluye el logo de la empresa? **Auto-asunción:** placeholder de texto
+  con metadata; embed de imagen en XML excede el alcance de F49. Si el director quiere
+  logo embebido, se itera post-tag.
+
+**Anticipación de errores (lista detallada).**
+1. **Reserialización destruye VBA:** confirmado en ExcelJS y SheetJS. El approach JSZip
+   evita esto al no tocar nunca `xl/vbaProject.bin`.
+2. **Parche del XML rompe `calcChain.xml`:** si añadimos celdas con fórmulas que no estaban
+   antes, Excel se queja al abrir. Mitigación: las celdas de datos no tienen fórmulas
+   (las fórmulas viven en columnas F y G de Sheet2 y son invariantes). `calcChain.xml`
+   se deja sin tocar; Excel lo regenera al primer recálculo.
+3. **`tblMovimientos` ref desactualizado:** si añadimos 50 filas pero el `ref` de la
+   tabla en `xl/tables/table4.xml` sigue siendo `B4:Q5`, Excel muestra "tabla corrupta".
+   Mitigación: actualizar `<table ref="B4:Q{N+4}">` en cada generación.
+4. **Hojas nuevas (Correcciones, Portada) sin estilos:** si los XMLs nuevos no referencian
+   `xl/styles.xml`, las celdas se ven sin formato. Mitigación: aplicar `s="0"` (style 0,
+   default) o referenciar estilos existentes vía índice.
+5. **`sharedStrings.xml`:** si añadimos textos nuevos (encabezados de Correcciones,
+   "Portada · SGM TRANSPOWER", etc.), hay dos opciones: (a) usar `inline strings` en cada
+   celda (`<is><t>...</t></is>` con `t="inlineStr"`), o (b) extender `sharedStrings.xml`.
+   **Decisión:** (a) inline strings en hojas nuevas; cero modificación del shared strings.
+6. **Office Add-in (`claude.fileId`):** vive en `xl/webextensions/webextension1.xml` y
+   `xl/webextensions/_rels/taskpanes.xml.rels`. **Nunca tocarlos.**
+7. **Encoding UTF-8:** los XMLs deben empezar con `<?xml version="1.0" encoding="UTF-8"
+   standalone="yes"?>`. Cualquier acento (Cesar, Bolívar, Magdalena, Córdoba) requiere
+   UTF-8 estricto en el writer JSZip (`compression: DEFLATE`).
+8. **Archivos > 25 MB:** si el cliente exporta con 50000 movimientos, el zip supera el
+   límite de cookies/headers de algunos browsers. Mitigación: streaming-friendly write
+   con FileSaver.js o Blob URL — JSZip soporta `generateAsync({type: "blob"})`.
+9. **Race condition en suscripciones:** generar mientras `suscribirStockGlobal` está activa
+   puede leer un snapshot a medio camino. Mitigación: la función `generarXlsm` recibe
+   un snapshot frozen como argumento (no se suscribe ella misma).
+10. **Test E2E binario diff:** dos exports consecutivos con el mismo dataset deben producir
+    `Uint8Array` idénticos byte-a-byte (determinismo). Mitigación: ordenar entries del zip
+    alfabéticamente, usar timestamps fijos en compression, sin random IDs.
+
+**Validación / criterio de cierre.**
+- El test E2E `tests/export_xlsm_e2e.test.js` verde con todos los 7 sub-checks.
+- Manual: exportar con datos reales, abrir en Excel desktop:
+  - Las 3 macros del VBA (`ConfirmarMovimiento`, `AutoCompletarManual`, `ReiniciarStock`)
+    se ven en ALT+F11 y ejecutan sin errores.
+  - El add-in claude se carga (panel derecho).
+  - Las gráficas Chart1 y Chart2 muestran datos actualizados.
+  - Las fórmulas SUMIFS de Sheet2 recalculan stock_actual.
+  - Las hojas Correcciones y Portada se ven con datos.
+
+**Tests.** 1 test E2E con 7 sub-checks + manual.
+
+**Commit msg.** `feat(suministros): F49 export XLSM 1:1 con template binario · JSZip + parche XML + tests E2E + botón UI`
+
+**Estimación.** 8 h (path JSZip) + 4 h reserva si va a fallback Python = 8–12 h.
+
+**Deploy condicional.** Solo si va a fallback: `firebase deploy --only functions:exportarSuministrosXlsm`.
+
+---
+
+> **Continúa en P5c:** F50 cierre v2.2.0 + §5 riesgos consolidados + §6 estimación total +
+> §7 anti-patrones derivados del skill.
