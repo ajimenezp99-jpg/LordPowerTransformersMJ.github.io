@@ -7,6 +7,62 @@ Formato inspirado en [Keep a Changelog](https://keepachangelog.com/).
 Semver por tag. Pulido post-v2.0 incrementa el patch (v2.0.1,
 v2.0.2, …) sin promesas de incompatibilidad.
 
+## v2.1.0-aqua · post-tag · PR #55 (2026-04-25)
+
+Ajustes finos del rediseño Aqua tras feedback del director sobre el
+PR #54 (que ya quedó mergeado a `main`). Estos 4 commits viven en
+`claude/distracted-hoover-43da2d` esperando merge.
+
+### `d688999` · foto real + overlay SVG con equipos (REVERTIDO)
+
+Primer intento tras feedback "no tuviste en cuenta la imagen": añadí
+foto de subestación + overlay SVG con DPS/89/52/CT interconectados
+por las 3 fases. El director rechazó el overlay ("manten la imagen
+tal cual"). El SVG `assets/img/aqua/substation-scene.svg` queda en
+repo pero inactivo.
+
+### `0025a8b` · foto sin overlay + más transparencia
+
+- `.aqua-power-scene` apunta directo a `substation-photo.png` (no al
+  SVG). `position: inset 0` cubre toda la viewport. `opacity: 1`
+  (era .72). Solo un velo perla muy ligero (12-22%) sobre el cielo
+  para asegurar contraste de texto.
+- Glass más transparente: thin .42→.22 / .22→.10, regular .52→.30 /
+  .32→.16, thick .66→.42 / .44→.24, ultra .82→.62 / .62→.42.
+- Topbar idle .55→.30 / .40→.18 (scrolled .78→.50 / .62→.36).
+- Sidebar .62→.36 / .48→.22, brand-head .42→.22.
+- Blur compensa: 32/48/64px (era 28/44/60).
+
+### `e6e04fe` · texto Steel Corporate Navy + text-shadow
+
+- `--ink-1: #0a1628 → #0d1f38` (títulos · steel navy deep).
+- `--ink-2: #2a3a52 → #1f3656` (cuerpo · corporate steel).
+- `--ink-3: #5a6c87 → #4d6485` (meta · muted blue-gray).
+- `--ink-4: #8896ad → #8093ad` (placeholder · light blue-gray).
+- Misma familia cromática que `--brand: #007aff` pero saturada y
+  oscura. Estilo corporativo del sector energía (GE, Siemens, ISA).
+- `text-shadow: 0 1px 0 rgba(255,255,255,.55), 0 2px 8px rgba(244,
+  249,255,.42)` en `.page-title`/`.section-title`/`.page-sub`/
+  `.section-sub` para legibilidad sobre la foto (zonas claras del
+  cielo y zonas oscuras del transformador).
+
+### `4e24111` · `.gitignore` excluye `.claude/`
+
+- Una línea: `.claude/` añadida al `.gitignore`.
+- Resuelve el "commit fantasma" que GitHub Desktop mostraba en
+  `main` al ver la carpeta del worktree de Claude Code como
+  cambio nuevo.
+
+### Pendientes en PR #55
+
+- Foto en alta resolución (la actual 755×752 pixela en viewports
+  >1200px). Pendiente que el director exporte el original desde
+  Photos (Export Unmodified Original) o provea URL de origen.
+- Merge del PR desde GitHub.com web.
+- Revocar el PAT clásico que dio inline durante la sesión.
+
+---
+
 ## v2.1.0-aqua · 2026-04-25 · Liquid Glass redesign (iOS 26 / macOS Tahoe)
 
 Rediseño visual integral a **Apple Aqua light perla** (iOS 26 /
