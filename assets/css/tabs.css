@@ -1,0 +1,136 @@
+/* ══════════════════════════════════════════════════════════════
+   SGM · TRANSPOWER — Tabs reusables (R0 · refactor v2.3)
+   Estilo Aqua liquid-glass para los módulos consolidados.
+   ══════════════════════════════════════════════════════════════ */
+
+.sgm-tabs {
+  margin-bottom: 24px;
+}
+
+/* Barra de tabs (sticky bajo el page-header) */
+.tab-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 6px;
+  margin-bottom: 18px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .42);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, .55);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .65),
+              0 1px 2px rgba(0, 40, 90, .04);
+  position: sticky;
+  top: 78px;            /* respeta el topbar fixed (64px) + margen */
+  z-index: 20;
+}
+
+.tab-bar [role="tab"] {
+  flex: 0 1 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border: 0;
+  background: transparent;
+  color: var(--ink-2);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: -.005em;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background .12s ease, color .12s ease, transform .08s ease;
+}
+
+.tab-bar [role="tab"]:hover {
+  background: rgba(0, 40, 90, .06);
+  color: var(--ink-1);
+}
+
+.tab-bar [role="tab"].is-active,
+.tab-bar [role="tab"][aria-selected="true"] {
+  background: rgba(0, 122, 255, .14);
+  color: var(--brand-deep);
+  font-weight: 600;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55),
+              0 1px 2px rgba(0, 122, 255, .12);
+}
+
+.tab-bar [role="tab"]:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+.tab-bar [role="tab"] .i {
+  width: 18px;
+  height: 18px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.tab-bar [role="tab"] .i svg,
+.tab-bar [role="tab"] .i i {
+  width: 15px;
+  height: 15px;
+}
+
+/* Badge contador opcional (ej: Movimientos · 12) */
+.tab-bar [role="tab"] .tab-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 18px;
+  padding: 0 6px;
+  margin-left: 4px;
+  font-size: 10.5px;
+  font-weight: 700;
+  border-radius: 10px;
+  background: rgba(0, 40, 90, .10);
+  color: var(--ink-2);
+}
+.tab-bar [role="tab"].is-active .tab-badge {
+  background: rgba(0, 122, 255, .22);
+  color: var(--brand-deep);
+}
+
+/* Paneles */
+.tab-panels [role="tabpanel"] {
+  outline: none;
+}
+.tab-panels [role="tabpanel"][hidden] {
+  display: none;
+}
+
+/* Animación sutil al mostrar (respeta reduced motion) */
+@media (prefers-reduced-motion: no-preference) {
+  .tab-panels [role="tabpanel"].is-active {
+    animation: sgm-tab-fade-in .18s ease-out;
+  }
+  @keyframes sgm-tab-fade-in {
+    from { opacity: 0; transform: translateY(2px); }
+    to   { opacity: 1; transform: none; }
+  }
+}
+
+/* Mobile: tabs scrollables horizontalmente */
+@media (max-width: 700px) {
+  .tab-bar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-snap-type: x proximity;
+  }
+  .tab-bar::-webkit-scrollbar { height: 4px; }
+  .tab-bar::-webkit-scrollbar-thumb {
+    background: rgba(0, 40, 90, .15);
+    border-radius: 2px;
+  }
+  .tab-bar [role="tab"] {
+    scroll-snap-align: start;
+    white-space: nowrap;
+  }
+}
