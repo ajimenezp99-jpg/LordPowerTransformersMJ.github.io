@@ -34,29 +34,33 @@ body.aqua *, body.aqua *::before, body.aqua *::after {
   mask-image: radial-gradient(ellipse 90% 70% at 50% 40%, #000 30%, transparent 85%);
 }
 
-/* Escena de subestación DOMINANTE en el fondo:
-   foto real (substation-photo.png) + overlay SVG con equipos de
-   potencia (DPS, seccionadores, breakers SF6, CTs) interconectados
-   por las 3 fases (R/S/T) tower → equipos → bushings. */
+/* Foto de subestación DOMINANTE en el fondo (tal cual, sin overlay).
+   Toda la pantalla disponible para que se aprecie completa. */
 .aqua-power-scene {
   position: fixed;
-  left: 0; right: 0; bottom: 0;
-  width: 100%;
-  height: min(82vh, 950px);
+  inset: 0;                       /* cubre toda la viewport, no solo abajo */
   z-index: -1;
   pointer-events: none;
-  opacity: .72;
-  background-image: url("../img/aqua/substation-scene.svg");
+  opacity: 1;                      /* foto a plena visibilidad */
+  background-image: url("../img/aqua/substation-photo.png");
   background-repeat: no-repeat;
-  background-position: center bottom;
+  background-position: center center;
   background-size: cover;
-  filter: saturate(108%) contrast(102%) drop-shadow(0 28px 70px rgba(0,40,90,.20));
+  filter: saturate(106%) contrast(102%);
 }
-@media (max-width: 1024px) {
-  .aqua-power-scene { opacity: .60; height: 64vh; }
+/* Velo muy ligero solo para asegurar contraste de texto en zonas claras
+   de la foto (cielo) — sin ocultar el fondo, solo unifica el tono. */
+.aqua-power-scene::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg,
+    rgba(244,249,255,.18) 0%,
+    rgba(244,249,255,.12) 35%,
+    rgba(244,249,255,.22) 100%);
+  pointer-events: none;
 }
 @media (prefers-reduced-motion: reduce) {
-  .aqua-power-scene { opacity: .65; }
+  .aqua-power-scene { opacity: 1; }
 }
 
 /* Versión legacy retro-compat (si algunas páginas aún usan
@@ -152,24 +156,26 @@ body.aqua *, body.aqua *::before, body.aqua *::after {
   }
 }
 
-/* ─── TOPBAR (Tahoe Finder · fixed full-width sobre sidebar) ── */
+/* ─── TOPBAR (Tahoe Finder · fixed · más translúcido para ver la foto) ─ */
 .tb {
   position: fixed; top: 0; left: 264px; right: 0; z-index: var(--z-nav);
   display: grid; grid-template-columns: auto 1fr auto;
   gap: 24px; align-items: center;
   padding: 12px 32px;
-  background: linear-gradient(180deg, rgba(255,255,255,.55) 0%, rgba(255,255,255,.40) 100%);
-  backdrop-filter: blur(40px) saturate(200%) brightness(108%);
-  -webkit-backdrop-filter: blur(40px) saturate(200%) brightness(108%);
-  border-bottom: 1px solid rgba(255,255,255,.55);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.85), 0 1px 0 rgba(0,40,90,.08);
+  background: linear-gradient(180deg, rgba(255,255,255,.30) 0%, rgba(255,255,255,.18) 100%);
+  backdrop-filter: blur(44px) saturate(200%) brightness(108%);
+  -webkit-backdrop-filter: blur(44px) saturate(200%) brightness(108%);
+  border-bottom: 1px solid rgba(255,255,255,.45);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.75), 0 1px 0 rgba(0,40,90,.06);
   transition: background var(--dur-med) var(--ease-out), backdrop-filter var(--dur-med) var(--ease-out);
   height: 64px;
 }
 .tb.is-scrolled {
-  background: linear-gradient(180deg, rgba(255,255,255,.78) 0%, rgba(255,255,255,.62) 100%);
-  backdrop-filter: blur(56px) saturate(220%) brightness(110%);
-  -webkit-backdrop-filter: blur(56px) saturate(220%) brightness(110%);
+  /* Cuando se hace scroll, opacar UN POCO para que el texto del contenido
+     no compita con el de la topbar — pero seguimos mostrando la foto. */
+  background: linear-gradient(180deg, rgba(255,255,255,.50) 0%, rgba(255,255,255,.36) 100%);
+  backdrop-filter: blur(60px) saturate(220%) brightness(110%);
+  -webkit-backdrop-filter: blur(60px) saturate(220%) brightness(110%);
 }
 @media (max-width: 1024px) {
   .tb { left: 0; padding: 12px 18px; }
@@ -227,15 +233,15 @@ body.aqua *, body.aqua *::before, body.aqua *::after {
   background: rgba(0,40,90,.06); border-radius: var(--r-pill);
 }
 
-/* ─── SIDEBAR (Finder Tahoe vertical · Liquid Glass) ─────── */
+/* ─── SIDEBAR (Finder Tahoe vertical · Liquid Glass · más transparente) ── */
 .sb {
   position: fixed; top: 0; left: 0; bottom: 0; width: 264px;
   padding: 78px 12px 28px;
   overflow-y: auto;
-  background: linear-gradient(180deg, rgba(255,255,255,.62) 0%, rgba(255,255,255,.48) 100%);
-  backdrop-filter: blur(48px) saturate(200%) brightness(108%);
-  -webkit-backdrop-filter: blur(48px) saturate(200%) brightness(108%);
-  border-right: 1px solid rgba(255,255,255,.55);
+  background: linear-gradient(180deg, rgba(255,255,255,.36) 0%, rgba(255,255,255,.22) 100%);
+  backdrop-filter: blur(52px) saturate(200%) brightness(108%);
+  -webkit-backdrop-filter: blur(52px) saturate(200%) brightness(108%);
+  border-right: 1px solid rgba(255,255,255,.45);
   box-shadow:
     inset -1px 0 0 rgba(0,40,90,.08),
     1px 0 0 rgba(255,255,255,.4),
@@ -243,12 +249,12 @@ body.aqua *, body.aqua *::before, body.aqua *::after {
   z-index: 100;
   isolation: isolate;
 }
-/* Capa de specular interno del sidebar (highlight superior) */
+/* Capa de specular interno del sidebar (highlight superior, más sutil) */
 .sb::before {
   content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
   background:
-    radial-gradient(ellipse 100% 30% at 30% -5%, rgba(255,255,255,.55), transparent 60%),
-    linear-gradient(180deg, rgba(255,255,255,.18) 0%, transparent 28%);
+    radial-gradient(ellipse 100% 30% at 30% -5%, rgba(255,255,255,.40), transparent 60%),
+    linear-gradient(180deg, rgba(255,255,255,.10) 0%, transparent 28%);
 }
 .sb > * { position: relative; z-index: 1; }
 
@@ -324,9 +330,9 @@ body.aqua *, body.aqua *::before, body.aqua *::after {
   position: absolute; top: 0; left: 0; right: 0;
   padding: 16px 18px;
   display: flex; align-items: center; gap: 12px;
-  background: rgba(255,255,255,.42);
-  backdrop-filter: blur(18px);
-  border-bottom: 1px solid rgba(0,40,90,.08);
+  background: rgba(255,255,255,.22);
+  backdrop-filter: blur(28px);
+  border-bottom: 1px solid rgba(255,255,255,.30);
   z-index: 2;
 }
 .sb-brand-head .logo {
