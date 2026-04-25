@@ -826,5 +826,135 @@ hardcoded ya está tomada en F42).
 
 ---
 
-> **Continúa en P5:** Bloque D (F47–F48 público) + Bloque E (F49–F50 export XLSM 1:1
-> + cierre v2.2.0) + §5 riesgos consolidados + §6 estimación total + §7 anti-patrones.
+### Bloque D · Public UI (consulta solo lectura)
+
+#### F47 · Public Stock Dashboard
+
+**Objetivo.** Vista pública (rol team) de la tabla de stock con semáforo de 6 estados
+del skill. Equivalente al view `stock` del JSX pero alimentado en realtime desde Firestore.
+
+**Entregables.**
+- `pages/suministros-stock.html`:
+  - 5 KPIs operativos arriba: stock_inicial · consumido · disponible · agotados · críticos.
+  - 3 KPIs económicos: valor_contrato · valor_consumido · valor_disponible.
+  - Tabla 22 filas × 15 columnas: codigo · nombre · marca · unidad · valor_unit ·
+    stock_inicial · cons_BOL · cons_OCC · cons_ORI · cons_total · disponible ·
+    valor_consumido · valor_disponible · % rest · estado_pill.
+  - Filtros: zona · departamento · búsqueda por código/nombre.
+  - Toolbar con botón "Exportar CSV" (rápido, no es el .xlsm 1:1; ese vive en F49 y solo
+    es accesible para admin).
+- `assets/js/suministros-stock-public.js` — controller usando `data/movimientos.js`
+  `suscribirStockGlobal` (ya implementado en F39 con debounce 250 ms).
+- `assets/css/suministros.css` — extender con clases del semáforo:
+  - `.estado-pill.SIN_STOCK` — fondo `slate-200`, texto `slate-600`, prefix `⚪`.
+  - `.estado-pill.NEGATIVO` — fondo `red-200`, texto `red-700`, prefix `🔴`, animación pulse.
+  - `.estado-pill.AGOTADO` — fondo `red-100`, texto `red-700`, prefix `⛔`.
+  - `.estado-pill.CRITICO` — fondo `orange-100`, texto `orange-700`, prefix `🟠`.
+  - `.estado-pill.MEDIO` — fondo `amber-100`, texto `amber-700`, prefix `🟡`.
+  - `.estado-pill.OK` — fondo `green-100`, texto `green-700`, prefix `🟢`.
+- Test `tests/estado_stock_render.test.js` — 6 tests para los cutoffs (SIN_STOCK con
+  stock_inicial=0, NEGATIVO con disponible<0, AGOTADO con disponible=0,
+  CRITICO con %rest<0.20, MEDIO con %rest entre 0.20 y 0.50, OK con %rest≥0.50).
+
+**Patrón de referencia.** `pages/inventario.html` (vista pública con KPIs + tabla);
+JSX `view==='stock'` (estructura de columnas).
+
+**Decisiones a confirmar.** Ninguna nueva.
+
+**Anticipación de errores.**
+- **Cálculo client-side de agregación zona×suministro:** la query a `/movimientos` puede
+  retornar miles de docs en parques activos. Mitigación: `suscribirStockGlobal` ya filtra
+  en cliente con índices construidos en memoria; tope práctico 5000 movimientos antes de
+  notar lag. Si se supera, mover agregación a Cloud Function con cache (post-v2.2).
+- **% rest cuando stock_inicial=0:** división por cero. El helper `estadoStock` del F38
+  ya devuelve `SIN_STOCK` directamente sin calcular el ratio.
+- **Pill negativo con animación pulse:** respetar `prefers-reduced-motion` (clase ya
+  manejada en `base.css` desde F13).
+
+**Validación / criterio de cierre.**
+- Crear 3 movimientos en F45 → tabla refleja en realtime.
+- Filtrar zona=BOLIVAR → columna `cons_BOL` permanece, las otras se atenúan visualmente
+  (sin ocultar para no romper la lectura).
+- Item con stock_inicial=0 muestra `⚪ SIN STOCK`, no `⛔ AGOTADO`.
+
+**Tests.** 6 tests puros + manual E2E.
+
+**Commit msg.** `feat(suministros): F47 public stock dashboard · tabla 22×N + KPIs + semáforo 6 estados + 6 tests`
+
+**Estimación.** 3 h.
+
+---
+
+#### F48 · Public Suministros Dashboard + Vista Cruzada
+
+**Objetivo.** Dashboard ejecutivo con KPIs operativos y económicos + ranking por descripción +
+distribución geográfica + vista cruzada (filtro zona/depto sobre ranking de descripciones).
+Equivalente a los views `dashboard` y `cruzado` del JSX.
+
+**Entregables.**
+- `pages/suministros-dashboard.html` (single page, dos secciones):
+  - **Sección 1 — Dashboard ejecutivo:**
+    - 5 KPIs operativos: registros · unidades · descripciones únicas · TX atendidos · valor consumido.
+    - 4 KPIs económicos: valor_contrato · valor_consumido · valor_disponible · %ejecución.
+    - 4 gráficas Chart.js:
+      - Bar horizontal: ranking suministros por unidades consumidas.
+      - Bar horizontal: ranking suministros por valor consumido.
+      - Doughnut: distribución por zona (BOLIVAR / OCCIDENTE / ORIENTE).
+      - Bar: distribución por departamento (5 deptos).
+  - **Sección 2 — Vista cruzada:**
+    - Selector zona (3 opciones + "Todas").
+    - Selector departamento (5 opciones + "Todos").
+    - Bar horizontal: ranking suministros filtrado por la combinación seleccionada.
+    - Banner contador "Mostrando X de Y movimientos según filtros activos".
+- `assets/js/suministros-dashboard-public.js` — controller; reusa `kpis-render.js`
+  como helper para destruir charts en recargas.
+- Sin extensión de CSS (los estilos del dashboard ya viven en `kpis.css` desde F8).
+
+**Patrón de referencia.** `pages/kpis.html` (5 gráficas + 3 tarjetas RAM + grids);
+`assets/js/kpis-render.js` (renderer compartido). JSX `view==='dashboard'` y
+`view==='cruzado'`.
+
+**Decisiones a confirmar (mini-gating).**
+- ¿Las 4 gráficas viven en una sola página o se splitean en pestañas (Dashboard / Cruzado)?
+  **Auto-asunción:** una sola página con 2 secciones — más rápido para el director
+  scrolear que cambiar de tab. Si reporta fatiga visual, se splittea.
+- ¿La gráfica de zona es Doughnut (3 sectores) o Pie? **Auto-asunción:** Doughnut
+  consistente con F8 KPIs (que ya usa doughnut para distribución por estado).
+
+**Anticipación de errores.**
+- **Decisión #1·C** dejó las hojas Detalle Zona y Detalle Depto fuera del .xlsm exportado.
+  En la web NO se construye matriz heatmap descripción×zona ni descripción×departamento.
+  Solo el ranking cruzado del JSX. Confirmar con el director si alguna vez quiere el heatmap.
+- **Chart.js destroy:** olvidar `chart.destroy()` antes de re-render produce charts huérfanos
+  que consumen RAM. El renderer compartido `kpis-render.js` ya lo maneja.
+- **Filtros sin resultados:** si zona=BOLIVAR + depto=CESAR (combinación imposible — CESAR
+  está en ORIENTE), mostrar mensaje "Sin movimientos para los filtros seleccionados" en
+  lugar de gráficas vacías.
+
+**Validación / criterio de cierre.**
+- Cargar la página con datos sembrados (F42) y 0 movimientos → KPIs muestran 0, gráficas
+  muestran "Sin datos" (placeholder, no se rompe).
+- Crear 5 movimientos diversos en F45 → KPIs y gráficas refrescan en realtime.
+- Cambiar selector de zona → ranking cruzado se refiltra.
+
+**Tests.** Sin tests automatizados (UI; lógica de agregación testeada en F39).
+
+**Commit msg.** `feat(suministros): F48 public dashboard suministros + vista cruzada · 9 KPIs + 5 gráficas Chart.js`
+
+**Estimación.** 3.5 h.
+
+---
+
+**Resumen Bloque D:**
+- 2 microfases · 2 commits aislados.
+- 6 tests nuevos.
+- 0 deploys.
+- Tiempo estimado: 6.5 h efectivas.
+- Estado del repo al cierre: tecnico ya tiene visibilidad completa del stock y consumo;
+  admin sigue siendo el único que puede mover. Falta solo el export 1:1 (F49) y el
+  cierre (F50).
+
+---
+
+> **Continúa en P5b:** Bloque E · F49 (export XLSM 1:1 con template binario via JSZip,
+> el más complejo del plan) + §5 riesgos consolidados.
