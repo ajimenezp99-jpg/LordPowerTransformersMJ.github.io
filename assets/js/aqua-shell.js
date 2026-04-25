@@ -113,9 +113,8 @@
       <div class="sb-group">
         <div class="sb-group-title">Operación</div>
         <a href="${u('home.html')}" class="sb-item" data-key="home"><span class="i"><i data-lucide="layout-dashboard"></i></span>Inicio</a>
-        <a href="${u('pages/inventario.html')}" class="sb-item" data-key="inventario"><span class="i"><i data-lucide="database"></i></span>Inventario</a>
+        <a href="${u('pages/activos.html')}" class="sb-item" data-key="activos"><span class="i"><i data-lucide="database"></i></span>Activos</a>
         <a href="${u('pages/ordenes.html')}" class="sb-item" data-key="ordenes"><span class="i"><i data-lucide="clipboard-list"></i></span>Órdenes</a>
-        <a href="${u('pages/mapa.html')}" class="sb-item" data-key="mapa"><span class="i"><i data-lucide="map"></i></span>Mapa</a>
         <a href="${u('pages/suministros.html')}" class="sb-item" data-key="suministros"><span class="i"><i data-lucide="package"></i></span>Suministros</a>
       </div>
       <div class="sb-group">
@@ -132,8 +131,6 @@
         <div class="sb-group-title">Administración</div>
         <a href="${u('admin/index.html')}" class="sb-item sb-admin" data-key="admin-index"><span class="i"><i data-lucide="settings"></i></span>Panel admin</a>
         <a href="${u('admin/usuarios.html')}" class="sb-item sb-admin" data-key="usuarios"><span class="i"><i data-lucide="users"></i></span>Usuarios</a>
-        <a href="${u('admin/subestaciones.html')}" class="sb-item sb-admin" data-key="subestaciones"><span class="i"><i data-lucide="factory"></i></span>Subestaciones</a>
-        <a href="${u('admin/contratos.html')}" class="sb-item sb-admin" data-key="contratos"><span class="i"><i data-lucide="file-text"></i></span>Contratos</a>
         <a href="${u('admin/catalogos.html')}" class="sb-item sb-admin" data-key="catalogos"><span class="i"><i data-lucide="book-open"></i></span>Catálogos</a>
         <a href="${u('admin/importar.html')}" class="sb-item sb-admin" data-key="importar"><span class="i"><i data-lucide="upload-cloud"></i></span>Importar Excel</a>
         <a href="${u('admin/auditoria.html')}" class="sb-item sb-admin" data-key="auditoria"><span class="i"><i data-lucide="scroll-text"></i></span>Auditoría</a>
