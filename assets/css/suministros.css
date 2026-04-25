@@ -97,6 +97,244 @@
   white-space: nowrap;
 }
 
+/* ── F45 · Formulario de Movimiento (Entrega) ────────────────── */
+
+/* Color coding del skill asset-tracking-system:
+   azul = manual, amber = lookup key crítico, verde = auto, naranja = calc */
+.cell-manual {
+  background: rgba(59, 130, 246, .06) !important;
+  border-color: rgba(59, 130, 246, .25) !important;
+}
+.cell-manual:focus { background: rgba(59, 130, 246, .10) !important; }
+
+.cell-keyfield {
+  background: rgba(252, 211, 77, .14) !important;
+  border-color: rgba(245, 158, 11, .50) !important;
+  font-weight: 600;
+}
+.cell-keyfield:focus { background: rgba(252, 211, 77, .22) !important; }
+
+.cell-auto {
+  background: rgba(22, 163, 74, .06) !important;
+  border-color: rgba(22, 163, 74, .22) !important;
+  color: var(--ink-2) !important;
+  cursor: not-allowed;
+}
+
+.cell-calc {
+  background: rgba(234, 88, 12, .07) !important;
+  border-color: rgba(234, 88, 12, .25) !important;
+  color: var(--ink-1) !important;
+  font-weight: 700;
+  cursor: not-allowed;
+}
+
+/* Filas de 4 columnas para el form */
+.form-row-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+@media (max-width: 800px) {
+  .form-row-4 { grid-template-columns: repeat(2, 1fr); }
+}
+
+/* Tipo INGRESO / EGRESO radios estilo botón */
+.tipo-radios {
+  display: flex;
+  gap: 8px;
+}
+.tipo-radio { cursor: pointer; flex: 1; }
+.tipo-radio input { position: absolute; opacity: 0; }
+.tipo-label {
+  display: block;
+  padding: 8px 12px;
+  text-align: center;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 40, 90, .15);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: .04em;
+  background: rgba(0, 40, 90, .03);
+  color: var(--ink-2);
+  transition: all .15s;
+}
+.tipo-radio input:checked + .tipo-label.tipo-ingreso {
+  background: rgba(22, 163, 74, .15);
+  border-color: rgba(22, 163, 74, .55);
+  color: #166534;
+}
+.tipo-radio input:checked + .tipo-label.tipo-egreso {
+  background: rgba(234, 88, 12, .15);
+  border-color: rgba(234, 88, 12, .55);
+  color: #9A3412;
+}
+.tipo-radio input:focus-visible + .tipo-label {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
+/* Form layout principal */
+.mov-form { max-width: 1100px; }
+.mov-form .form-fieldset { margin-bottom: 18px; }
+.mov-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+.mov-leyenda {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  font-size: 11px;
+  color: var(--ink-3);
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(0, 40, 90, .08);
+}
+.legend-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: .04em;
+}
+.legend-pill.cell-keyfield { color: #92400E !important; }
+.legend-pill.cell-manual   { color: #1E40AF !important; }
+.legend-pill.cell-auto     { color: #166534 !important; }
+.legend-pill.cell-calc     { color: #9A3412 !important; }
+
+/* ── F46 · Histórico de Movimientos ────────────────────────── */
+.tipo-ingreso-pill {
+  background: rgba(22, 163, 74, .14);
+  color: #166534;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 8px;
+  font-size: 10.5px;
+  letter-spacing: .04em;
+}
+.tipo-egreso-pill {
+  background: rgba(234, 88, 12, .14);
+  color: #9A3412;
+  font-weight: 600;
+  padding: 1px 8px;
+  border-radius: 8px;
+  font-size: 10.5px;
+  letter-spacing: .04em;
+}
+.mov-detalle-body {
+  padding: 4px 0 14px;
+}
+.mov-detalle-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 18px;
+  font-size: 13px;
+  color: var(--ink-2);
+}
+.mov-detalle-grid strong {
+  color: var(--ink-1);
+  display: inline-block;
+  min-width: 110px;
+}
+.mov-detalle-grid code {
+  background: rgba(0, 40, 90, .06);
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+}
+@media (max-width: 700px) {
+  .mov-detalle-grid { grid-template-columns: 1fr; }
+}
+
+/* ── F47/F48 · KPI cards ─────────────────────────────────── */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 18px;
+}
+@media (max-width: 900px) {
+  .kpi-row { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 500px) {
+  .kpi-row { grid-template-columns: 1fr; }
+}
+.kpi-card {
+  background: rgba(255, 255, 255, .42);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, .55);
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 2px rgba(0, 40, 90, .06);
+  position: relative;
+  overflow: hidden;
+}
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 3px;
+  background: var(--accent-color, #94A3B8);
+}
+.kpi-blue   { --accent-color: #2563EB; }
+.kpi-green  { --accent-color: #16A34A; }
+.kpi-orange { --accent-color: #EA580C; }
+.kpi-red    { --accent-color: #DC2626; }
+.kpi-teal   { --accent-color: #0D9488; }
+.kpi-slate  { --accent-color: #475569; }
+.kpi-purple { --accent-color: #7C3AED; }
+.kpi-amber  { --accent-color: #F59E0B; }
+
+.kpi-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 8px;
+}
+.kpi-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink-1);
+  font-family: var(--font-mono);
+  letter-spacing: -.01em;
+}
+
+/* Chart grid */
+.chart-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+@media (max-width: 900px) {
+  .chart-grid { grid-template-columns: 1fr; }
+}
+.chart-card {
+  background: rgba(255, 255, 255, .50);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, .55);
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 2px rgba(0, 40, 90, .06);
+}
+.chart-card h3 {
+  font-size: 13px;
+  color: var(--ink-1);
+  margin: 0 0 10px;
+  font-weight: 600;
+}
+.chart-card canvas {
+  height: 280px !important;
+  max-height: 320px;
+}
+
 /* Hint pequeño bajo inputs */
 .form-hint {
   display: block;

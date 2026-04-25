@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es" data-aqua>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <meta name="theme-color" content="#f4f6fb"/>
+  <meta name="color-scheme" content="light"/>
+  <title>SGM · TRANSPOWER — Dashboard Suministros</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/aqua/logo-aqua.svg"/>
+  <script type="module" src="../assets/js/auth/page-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="../assets/css/aqua-tokens.css"/>
+  <link rel="stylesheet" href="../assets/css/aqua-components.css"/>
+  <link rel="stylesheet" href="../assets/css/inventario.css"/>
+  <link rel="stylesheet" href="../assets/css/suministros.css"/>
+</head>
+<body class="aqua">
+<main class="app-main page-container">
+
+  <div class="page-header">
+    <div class="breadcrumb">Suministros / Dashboard</div>
+    <h1 class="page-title">Dashboard <em>Ejecutivo</em></h1>
+    <p class="page-subtitle">
+      Indicadores operativos y económicos del módulo de suministros.
+      Ranking por descripción, distribución por zona/departamento y
+      vista cruzada filtrable.
+    </p>
+  </div>
+
+  <!-- KPIs operativos -->
+  <h2 class="section-head">Operativos</h2>
+  <div class="kpi-row">
+    <div class="kpi-card kpi-slate">
+      <div class="kpi-label">Registros</div>
+      <div class="kpi-value" id="kRegistros">—</div>
+    </div>
+    <div class="kpi-card kpi-teal">
+      <div class="kpi-label">Unidades movidas</div>
+      <div class="kpi-value" id="kUnidades">—</div>
+    </div>
+    <div class="kpi-card kpi-orange">
+      <div class="kpi-label">Descripciones únicas</div>
+      <div class="kpi-value" id="kDescripciones">—</div>
+    </div>
+    <div class="kpi-card kpi-purple">
+      <div class="kpi-label">Trafos atendidos</div>
+      <div class="kpi-value" id="kTxAtendidos">—</div>
+    </div>
+  </div>
+
+  <!-- KPIs económicos -->
+  <h2 class="section-head">Económicos</h2>
+  <div class="kpi-row">
+    <div class="kpi-card kpi-slate">
+      <div class="kpi-label">Valor contrato</div>
+      <div class="kpi-value" id="kValContrato">—</div>
+    </div>
+    <div class="kpi-card kpi-orange">
+      <div class="kpi-label">Valor consumido</div>
+      <div class="kpi-value" id="kValConsumido">—</div>
+    </div>
+    <div class="kpi-card kpi-teal">
+      <div class="kpi-label">Valor disponible</div>
+      <div class="kpi-value" id="kValDisponible">—</div>
+    </div>
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-label">% ejecución $</div>
+      <div class="kpi-value" id="kEjecucionPct">—</div>
+    </div>
+  </div>
+
+  <!-- Charts -->
+  <h2 class="section-head">Distribución</h2>
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h3>Top 10 suministros por unidades consumidas</h3>
+      <canvas id="chRankUnidades"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Top 10 suministros por valor consumido (COP)</h3>
+      <canvas id="chRankValor"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Distribución por zona</h3>
+      <canvas id="chZona"></canvas>
+    </div>
+    <div class="chart-card">
+      <h3>Distribución por departamento</h3>
+      <canvas id="chDepto"></canvas>
+    </div>
+  </div>
+
+  <!-- Vista cruzada -->
+  <h2 class="section-head">Vista cruzada</h2>
+  <div class="inv-toolbar">
+    <div class="inv-filters">
+      <select class="form-select" id="fxZona">
+        <option value="">Todas las zonas</option>
+        <option value="BOLIVAR">Bolívar</option>
+        <option value="ORIENTE">Oriente</option>
+        <option value="OCCIDENTE">Occidente</option>
+      </select>
+      <select class="form-select" id="fxDepto">
+        <option value="">Todos los departamentos</option>
+        <option value="bolivar">Bolívar</option>
+        <option value="cordoba">Córdoba</option>
+        <option value="sucre">Sucre</option>
+        <option value="cesar">Cesar</option>
+        <option value="magdalena">Magdalena</option>
+      </select>
+    </div>
+    <div id="cruzadoCount" style="font-family: var(--font-mono); font-size: 12px; color: var(--ink-3);"></div>
+  </div>
+  <div class="chart-card" style="margin-top: 14px;">
+    <h3>Ranking suministros (filtro aplicado)</h3>
+    <canvas id="chCruzado"></canvas>
+  </div>
+
+  <div id="infoBox" class="info-msg" style="display:none; margin-top: 18px;"></div>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script type="module" src="../assets/js/suministros-dashboard-public.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+<script src="../assets/js/aqua.js" defer></script>
+<script src="../assets/js/aqua-shell.js" defer></script>
+</body>
+</html>

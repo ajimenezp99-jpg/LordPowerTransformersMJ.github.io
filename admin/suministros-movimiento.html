@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es" data-aqua>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <meta name="theme-color" content="#f4f6fb"/>
+  <meta name="color-scheme" content="light"/>
+  <title>SGM · TRANSPOWER — Movimiento de Suministros</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/aqua/logo-aqua.svg"/>
+  <script type="module" src="../assets/js/auth/admin-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="../assets/css/aqua-tokens.css"/>
+  <link rel="stylesheet" href="../assets/css/aqua-components.css"/>
+  <link rel="stylesheet" href="../assets/css/inventario.css"/>
+  <link rel="stylesheet" href="../assets/css/suministros.css"/>
+</head>
+<body class="aqua">
+<main class="app-main page-container">
+
+  <div class="page-header">
+    <div class="breadcrumb">Suministros / Movimiento (Entrega)</div>
+    <h1 class="page-title">Registrar <em>Movimiento</em></h1>
+    <p class="page-subtitle">
+      Ingreso o egreso de suministros. La descripción y la matrícula
+      auto-completan el resto. Stock se valida en transacción atómica.
+    </p>
+  </div>
+
+  <div id="infoBox" class="info-msg" style="display:none"></div>
+
+  <form id="form" class="mov-form" novalidate>
+    <!-- Cabecera -->
+    <fieldset class="form-fieldset mov-cabecera">
+      <legend class="form-fieldset-title">Cabecera</legend>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label class="form-label" for="fAnio">Año *</label>
+          <select class="form-select cell-manual" id="fAnio" required></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo *</label>
+          <div class="tipo-radios">
+            <label class="tipo-radio">
+              <input type="radio" name="tipo" value="INGRESO" required>
+              <span class="tipo-label tipo-ingreso">⬆ INGRESO</span>
+            </label>
+            <label class="tipo-radio">
+              <input type="radio" name="tipo" value="EGRESO" required checked>
+              <span class="tipo-label tipo-egreso">⬇ EGRESO</span>
+            </label>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="fUsuario">Usuario / Responsable</label>
+          <input class="form-input cell-manual" type="text" id="fUsuario" maxlength="80" placeholder="Nombre del solicitante">
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- Suministro -->
+    <fieldset class="form-fieldset mov-suministro">
+      <legend class="form-fieldset-title">Suministro</legend>
+      <div class="form-group">
+        <label class="form-label" for="fSumId">Descripción / código *</label>
+        <input class="form-input cell-keyfield" type="text" id="fSumId" list="dlSums" required autocomplete="off" placeholder="Escriba el código (S01) o el nombre del suministro">
+        <datalist id="dlSums"></datalist>
+        <small class="form-hint">Al elegir un suministro se completan unidad, valor unitario y stock disponible.</small>
+      </div>
+      <div class="form-row-4">
+        <div class="form-group">
+          <label class="form-label">Marca</label>
+          <input class="form-input cell-auto" type="text" id="fMarca" readonly tabindex="-1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Unidad</label>
+          <input class="form-input cell-auto" type="text" id="fUnidad" readonly tabindex="-1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Valor unit. (COP)</label>
+          <input class="form-input cell-auto" type="text" id="fValorUnit" readonly tabindex="-1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Stock actual</label>
+          <input class="form-input cell-auto" type="text" id="fStockActual" readonly tabindex="-1">
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- Equipo -->
+    <fieldset class="form-fieldset mov-equipo">
+      <legend class="form-fieldset-title">Equipo destinatario</legend>
+      <div class="form-group">
+        <label class="form-label" for="fMatricula">Matrícula *</label>
+        <input class="form-input cell-keyfield" type="text" id="fMatricula" list="dlTrafos" required autocomplete="off" placeholder="T1A-A/M-BYC, T-KDR04, …">
+        <datalist id="dlTrafos"></datalist>
+        <small class="form-hint">Llave amarilla — campo crítico. El resto de datos del trafo se autocompletan.</small>
+      </div>
+      <div class="form-row-4">
+        <div class="form-group">
+          <label class="form-label">Subestación</label>
+          <input class="form-input cell-auto" type="text" id="fSub" readonly tabindex="-1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Zona</label>
+          <input class="form-input cell-auto" type="text" id="fZona" readonly tabindex="-1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Departamento</label>
+          <input class="form-input cell-auto" type="text" id="fDepto" readonly tabindex="-1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Potencia (kVA)</label>
+          <input class="form-input cell-auto" type="text" id="fPotencia" readonly tabindex="-1">
+        </div>
+      </div>
+    </fieldset>
+
+    <!-- Detalle del movimiento -->
+    <fieldset class="form-fieldset mov-detalle">
+      <legend class="form-fieldset-title">Detalle del movimiento</legend>
+      <div class="form-row-3">
+        <div class="form-group">
+          <label class="form-label" for="fCantidad">Cantidad *</label>
+          <input class="form-input cell-manual" type="number" id="fCantidad" required min="1" step="1" placeholder="1">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Valor total (COP)</label>
+          <input class="form-input cell-calc" type="text" id="fValorTotal" readonly tabindex="-1">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="fOdt">ODT (orden de trabajo)</label>
+          <input class="form-input cell-manual" type="text" id="fOdt" maxlength="60" placeholder="ODT-2026-115">
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:14px">
+        <label class="form-label" for="fObs">Observaciones</label>
+        <textarea class="form-textarea cell-manual" id="fObs" rows="3" placeholder="Detalles adicionales del movimiento"></textarea>
+      </div>
+    </fieldset>
+
+    <div id="formMsg" class="msg" role="status" aria-live="polite"></div>
+
+    <div class="mov-actions">
+      <button type="button" class="btn-secondary" id="btnLimpiar">
+        <i data-lucide="rotate-ccw"></i> Limpiar formulario
+      </button>
+      <button type="submit" class="btn-primary" id="btnGuardar">
+        <i data-lucide="check"></i> Guardar movimiento
+      </button>
+    </div>
+
+    <p class="mov-leyenda">
+      <span class="legend-pill cell-keyfield">Llave</span>
+      <span class="legend-pill cell-manual">Manual</span>
+      <span class="legend-pill cell-auto">Auto</span>
+      <span class="legend-pill cell-calc">Calculado</span>
+    </p>
+  </form>
+
+</main>
+
+<script type="module" src="../assets/js/admin/admin-suministros-movimiento.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+<script src="../assets/js/aqua.js" defer></script>
+<script src="../assets/js/aqua-shell.js" defer></script>
+</body>
+</html>
