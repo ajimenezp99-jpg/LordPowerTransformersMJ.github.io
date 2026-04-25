@@ -141,6 +141,120 @@
   --z-nav:   200;
   --z-modal: 500;
   --z-toast: 1000;
+
+  /* ── ALIASES LEGACY (compat con páginas v2) ──────────────
+     Las páginas que aún no se han re-stylizado usan tokens
+     antiguos. Los mapeamos al sistema Aqua perla para que
+     no se vean rotas mientras avanzamos por fases. */
+
+  /* Spacing 8-pt grid */
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-5:  1.25rem;
+  --space-6:  1.5rem;
+  --space-8:  2rem;
+  --space-10: 2.5rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Surfaces (perla) */
+  --surface-0: var(--bg-0);
+  --surface-1: var(--bg-1);
+  --surface-2: var(--bg-2);
+  --surface-3: var(--bg-3);
+  --surface-glass: var(--glass-regular);
+  --surface-sunken: rgba(0,40,90,.04);
+
+  /* Borders */
+  --edge-subtle: rgba(0,40,90,.05);
+  --edge-muted:  rgba(0,40,90,.10);
+  --edge-strong: rgba(0,40,90,.18);
+  --edge-accent: rgba(0,122,255,.30);
+
+  /* Brand & accents (5xx series) */
+  --brand-500: var(--brand);
+  --brand-400: var(--brand-hi);
+  --brand-600: var(--brand-deep);
+  --brand-700: #003ea0;
+  --brand-glow-color: var(--brand-glow);
+
+  --teal-500: var(--cyan);
+  --teal-400: var(--cyan-deep);
+  --teal-glow: rgba(0,184,212,.32);
+
+  --warm-500: var(--warn);
+  --warm-glow: rgba(255,149,0,.30);
+
+  --danger-500: var(--danger);
+  --danger-glow: rgba(255,59,48,.32);
+
+  --success-500: var(--success);
+  --success-glow: rgba(28,200,112,.30);
+
+  /* Typography */
+  --ink-primary:   var(--ink-1);
+  --ink-secondary: var(--ink-2);
+  --ink-muted:     var(--ink-3);
+  --ink-inverse:   var(--ink-on-brand);
+
+  --font-display:  var(--font-sans);
+  --font-body:     var(--font-sans);
+  --font-mono-v3:  var(--font-mono);
+  --font-ui:       var(--font-sans);
+  --font-head:     var(--font-sans);
+
+  --text-xs:   var(--size-xs);
+  --text-sm:   var(--size-sm);
+  --text-base: var(--size-base);
+  --text-lg:   var(--size-xl);
+  --text-xl:   var(--size-2xl);
+  --text-2xl:  var(--size-3xl);
+  --text-3xl:  var(--size-4xl);
+  --text-4xl:  var(--size-5xl);
+  --text-5xl:  var(--size-hero);
+
+  /* Radii */
+  --radius-sm:   var(--r-xs);
+  --radius-md:   var(--r-sm);
+  --radius-lg:   var(--r-lg);
+  --radius-xl:   var(--r-xl);
+  --radius-full: var(--r-pill);
+
+  /* Shadows */
+  --shadow-sm:    var(--sh-sm);
+  --shadow-md:    var(--sh-md);
+  --shadow-lg:    var(--sh-lg);
+  --shadow-xl:    var(--sh-xl);
+  --shadow-brand: var(--sh-glow-brand);
+
+  /* Gradientes */
+  --gradient-brand:   var(--grad-brand);
+  --gradient-warm:    var(--grad-warn);
+  --gradient-success: var(--grad-success);
+  --gradient-hero:
+    radial-gradient(ellipse 80% 50% at 20% 0%,  rgba(0,122,255,.12), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 85% 10%, rgba(0,184,212,.10), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 50% 100%, rgba(255,184,76,.06), transparent 60%);
+
+  /* Motion */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 180ms;
+  --dur-med:  320ms;
+  --dur-slow: 600ms;
+
+  /* Aliases base.css legacy */
+  --bg:      var(--bg-0);
+  --panel:   var(--bg-1);
+  --border:  var(--edge-muted);
+  --accent:  var(--brand);
+  --accent2: var(--warn);
+  --accent3: var(--cyan);
+  --text:    var(--ink-1);
+  --muted:   var(--ink-3);
+  --glow:    0 0 24px var(--brand-glow);
+  --glow2:   0 0 24px rgba(255,149,0,.32);
 }
 
 /* ═══════════════════════════════════════════════════════════════
