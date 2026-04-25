@@ -127,11 +127,7 @@
       </div>
       <div class="sb-group sb-admin-group" hidden>
         <div class="sb-group-title">Administración</div>
-        <a href="${u('admin/index.html')}" class="sb-item sb-admin" data-key="admin-index"><span class="i"><i data-lucide="settings"></i></span>Panel admin</a>
-        <a href="${u('admin/usuarios.html')}" class="sb-item sb-admin" data-key="usuarios"><span class="i"><i data-lucide="users"></i></span>Usuarios</a>
-        <a href="${u('admin/catalogos.html')}" class="sb-item sb-admin" data-key="catalogos"><span class="i"><i data-lucide="book-open"></i></span>Catálogos</a>
-        <a href="${u('admin/importar.html')}" class="sb-item sb-admin" data-key="importar"><span class="i"><i data-lucide="upload-cloud"></i></span>Importar Excel</a>
-        <a href="${u('admin/auditoria.html')}" class="sb-item sb-admin" data-key="auditoria"><span class="i"><i data-lucide="scroll-text"></i></span>Auditoría</a>
+        <a href="${u('admin/administracion.html')}" class="sb-item sb-admin" data-key="administracion"><span class="i"><i data-lucide="settings"></i></span>Administración</a>
       </div>
       <div class="sb-group">
         <div class="sb-group-title">Recursos</div>

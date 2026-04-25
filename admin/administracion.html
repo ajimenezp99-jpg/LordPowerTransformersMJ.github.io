@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es" data-aqua>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <meta name="theme-color" content="#f4f6fb"/>
+  <meta name="color-scheme" content="light"/>
+  <title>SGM · TRANSPOWER — Administración</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/aqua/logo-aqua.svg"/>
+  <script type="module" src="../assets/js/auth/admin-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="../assets/css/aqua-tokens.css"/>
+  <link rel="stylesheet" href="../assets/css/aqua-components.css"/>
+  <link rel="stylesheet" href="../assets/css/inventario.css"/>
+  <link rel="stylesheet" href="../assets/css/tabs.css"/>
+</head>
+<body class="aqua">
+<main class="app-main page-container">
+
+  <div class="page-header">
+    <div class="breadcrumb">Administración / Panel general</div>
+    <h1 class="page-title">Panel de <em>Administración</em></h1>
+    <p class="page-subtitle">
+      Gestión de sistema · usuarios, catálogos operativos, importación
+      desde Excel y trazabilidad completa de cambios. Solo accesible
+      para rol <code>admin</code>.
+    </p>
+  </div>
+
+  <div class="sgm-tabs" id="adminTabs">
+    <div role="tablist" class="tab-bar" aria-label="Secciones del módulo Administración">
+      <button type="button" role="tab" data-tab="panel">
+        <span class="i"><i data-lucide="settings"></i></span>Panel
+      </button>
+      <button type="button" role="tab" data-tab="usuarios">
+        <span class="i"><i data-lucide="users"></i></span>Usuarios
+      </button>
+      <button type="button" role="tab" data-tab="catalogos">
+        <span class="i"><i data-lucide="book-open"></i></span>Catálogos
+      </button>
+      <button type="button" role="tab" data-tab="importar">
+        <span class="i"><i data-lucide="upload-cloud"></i></span>Importar Excel
+      </button>
+      <button type="button" role="tab" data-tab="auditoria">
+        <span class="i"><i data-lucide="scroll-text"></i></span>Auditoría
+      </button>
+    </div>
+
+    <div class="tab-panels">
+      <div role="tabpanel" data-tab-panel="panel">
+        <iframe class="tab-iframe" data-src="index.html" title="Panel admin" loading="lazy"></iframe>
+      </div>
+      <div role="tabpanel" data-tab-panel="usuarios" hidden>
+        <iframe class="tab-iframe" data-src="usuarios.html" title="Usuarios" loading="lazy"></iframe>
+      </div>
+      <div role="tabpanel" data-tab-panel="catalogos" hidden>
+        <iframe class="tab-iframe" data-src="catalogos.html" title="Catálogos" loading="lazy"></iframe>
+      </div>
+      <div role="tabpanel" data-tab-panel="importar" hidden>
+        <iframe class="tab-iframe" data-src="importar.html" title="Importar Excel" loading="lazy"></iframe>
+      </div>
+      <div role="tabpanel" data-tab-panel="auditoria" hidden>
+        <iframe class="tab-iframe" data-src="auditoria.html" title="Auditoría" loading="lazy"></iframe>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script type="module" src="../assets/js/admin/admin-shell.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+<script src="../assets/js/aqua.js" defer></script>
+<script src="../assets/js/aqua-shell.js" defer></script>
+</body>
+</html>
