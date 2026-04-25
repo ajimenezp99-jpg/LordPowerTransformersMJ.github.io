@@ -1118,6 +1118,145 @@ body.aqua .loading-state {
   border: 1px dashed rgba(0,40,90,.12);
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   OVERRIDES Aqua para LEAFLET (mapa)
+═══════════════════════════════════════════════════════════════ */
+
+body.aqua .map-wrap {
+  background: var(--glass-thin);
+  backdrop-filter: var(--glass-blur-thin);
+  -webkit-backdrop-filter: var(--glass-blur-thin);
+  border: 0;
+  border-left: 3px solid var(--brand);
+  border-radius: var(--r-lg);
+  padding: 12px;
+  box-shadow: var(--glass-ring), var(--sh-md);
+  margin-bottom: var(--space-6, 1.5rem);
+}
+
+body.aqua #sgmMap,
+body.aqua .leaflet-container {
+  background: #e6edf7 !important;
+  border-radius: var(--r-md);
+  border: 1px solid rgba(0,40,90,.10);
+  font-family: var(--font-sans) !important;
+  height: 560px;
+}
+@media (max-width: 780px) {
+  body.aqua #sgmMap { height: 460px; }
+}
+
+/* Controles Leaflet */
+body.aqua .leaflet-control-zoom a,
+body.aqua .leaflet-bar a {
+  background: rgba(255,255,255,.85) !important;
+  color: var(--ink-1) !important;
+  border: 1px solid rgba(0,40,90,.10) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-weight: 700;
+  text-shadow: none;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
+}
+body.aqua .leaflet-control-zoom a:hover,
+body.aqua .leaflet-bar a:hover {
+  background: rgba(255,255,255,.96) !important;
+  color: var(--brand) !important;
+  border-color: rgba(0,122,255,.30) !important;
+}
+body.aqua .leaflet-bar { border-radius: var(--r-sm) !important; overflow: hidden; box-shadow: var(--sh-md) !important; border: 0 !important; }
+
+/* Atribución */
+body.aqua .leaflet-control-attribution {
+  background: rgba(255,255,255,.75) !important;
+  color: var(--ink-3) !important;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 2px 8px !important;
+  border-radius: var(--r-pill) 0 0 0 !important;
+  backdrop-filter: blur(8px);
+}
+body.aqua .leaflet-control-attribution a {
+  color: var(--brand) !important;
+}
+
+/* Popups Aqua */
+body.aqua .leaflet-popup-content-wrapper {
+  background: var(--glass-ultra) !important;
+  backdrop-filter: var(--glass-blur-thick) !important;
+  -webkit-backdrop-filter: var(--glass-blur-thick) !important;
+  color: var(--ink-1) !important;
+  border-radius: var(--r-lg) !important;
+  box-shadow: var(--glass-ring), var(--sh-lg) !important;
+  border: 0 !important;
+  padding: 0 !important;
+}
+body.aqua .leaflet-popup-content {
+  margin: 14px 16px !important;
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--ink-2);
+  line-height: 1.5;
+}
+body.aqua .leaflet-popup-content h4,
+body.aqua .leaflet-popup-content strong { color: var(--ink-1); font-weight: 700; }
+body.aqua .leaflet-popup-tip { background: rgba(255,255,255,.85) !important; box-shadow: var(--sh-sm) !important; }
+body.aqua .leaflet-popup-close-button { color: var(--ink-3) !important; font-size: 22px !important; padding: 8px !important; }
+body.aqua .leaflet-popup-close-button:hover { color: var(--danger) !important; }
+
+/* Markers cluster */
+body.aqua .marker-cluster-small,
+body.aqua .marker-cluster-medium,
+body.aqua .marker-cluster-large {
+  background-color: rgba(0,122,255,.20) !important;
+  backdrop-filter: blur(4px);
+}
+body.aqua .marker-cluster-small div,
+body.aqua .marker-cluster-medium div,
+body.aqua .marker-cluster-large div {
+  background-color: var(--brand) !important;
+  color: #fff !important;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  border: 2px solid rgba(255,255,255,.75);
+  box-shadow: var(--sh-md);
+}
+
+/* Markers personalizados con divIcon */
+body.aqua .leaflet-marker-icon[style*="--dot-color"],
+body.aqua .sgm-marker {
+  filter: drop-shadow(0 2px 4px rgba(0,40,90,.30)) drop-shadow(0 0 8px rgba(0,122,255,.20));
+}
+
+/* Pop "Editar" link de admin */
+body.aqua .sgm-pop-edit {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 4px 10px; margin-top: 8px;
+  border-radius: var(--r-pill);
+  background: var(--brand);
+  color: #fff !important;
+  font-weight: 600; font-size: 11px;
+  text-decoration: none !important;
+  letter-spacing: .02em;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.4);
+}
+body.aqua .sgm-pop-edit:hover { background: var(--brand-deep); }
+
+/* Leyenda del mapa */
+body.aqua .map-legend,
+body.aqua .leaflet-legend {
+  background: var(--glass-ultra);
+  backdrop-filter: var(--glass-blur-thick);
+  -webkit-backdrop-filter: var(--glass-blur-thick);
+  border: 0 !important;
+  border-radius: var(--r-md);
+  padding: 12px 14px;
+  box-shadow: var(--glass-ring), var(--sh-md);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  color: var(--ink-2);
+}
+
 /* ─── FOCUS visible (a11y sobre fondo claro) ─────────────── */
 body.aqua :focus-visible {
   outline: 2px solid var(--brand);
