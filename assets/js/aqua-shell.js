@@ -131,10 +131,7 @@
       </div>
       <div class="sb-group">
         <div class="sb-group-title">Recursos</div>
-        <a href="${u('pages/documentos.html')}" class="sb-item" data-key="documentos"><span class="i"><i data-lucide="folder-open"></i></span>Documentos</a>
-        <a href="${u('pages/normativa.html')}" class="sb-item" data-key="normativa"><span class="i"><i data-lucide="scroll-text"></i></span>Normativa</a>
-        <a href="${u('pages/cobertura.html')}" class="sb-item" data-key="cobertura"><span class="i"><i data-lucide="globe-2"></i></span>Cobertura</a>
-        <a href="${u('pages/about.html')}" class="sb-item" data-key="about"><span class="i"><i data-lucide="info"></i></span>Acerca</a>
+        <a href="${u('pages/recursos.html')}" class="sb-item" data-key="recursos"><span class="i"><i data-lucide="folder-open"></i></span>Recursos</a>
       </div>`;
 
     const main = document.querySelector('main.app-main') || document.querySelector('main');
