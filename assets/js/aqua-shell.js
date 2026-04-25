@@ -107,6 +107,7 @@
       <div class="sb-group">
         <div class="sb-group-title">Análisis</div>
         <a href="${u('pages/dashboard.html')}" class="sb-item" data-key="dashboard"><span class="i"><i data-lucide="layout-grid"></i></span>Dashboard</a>
+        <a href="${u('pages/suministros-dashboard.html')}" class="sb-item" data-key="suministros-dashboard"><span class="i"><i data-lucide="bar-chart-3"></i></span>Dashboard Suministros</a>
         <a href="${u('pages/kpis.html')}" class="sb-item" data-key="kpis"><span class="i"><i data-lucide="bar-chart-3"></i></span>KPIs &amp; RAM</a>
         <a href="${u('pages/matriz-riesgo.html')}" class="sb-item" data-key="matriz"><span class="i"><i data-lucide="grid-3x3"></i></span>Matriz Riesgo</a>
         <a href="${u('pages/alertas.html')}" class="sb-item" data-key="alertas"><span class="i"><i data-lucide="bell-ring"></i></span>Alertas</a>

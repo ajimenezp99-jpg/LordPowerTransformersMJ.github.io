@@ -306,6 +306,35 @@
   letter-spacing: -.01em;
 }
 
+/* Chart grid */
+.chart-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+@media (max-width: 900px) {
+  .chart-grid { grid-template-columns: 1fr; }
+}
+.chart-card {
+  background: rgba(255, 255, 255, .50);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, .55);
+  border-radius: 14px;
+  padding: 14px 16px;
+  box-shadow: 0 1px 2px rgba(0, 40, 90, .06);
+}
+.chart-card h3 {
+  font-size: 13px;
+  color: var(--ink-1);
+  margin: 0 0 10px;
+  font-weight: 600;
+}
+.chart-card canvas {
+  height: 280px !important;
+  max-height: 320px;
+}
+
 /* Hint pequeño bajo inputs */
 .form-hint {
   display: block;
