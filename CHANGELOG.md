@@ -7,6 +7,89 @@ Formato inspirado en [Keep a Changelog](https://keepachangelog.com/).
 Semver por tag. Pulido post-v2.0 incrementa el patch (v2.0.1,
 v2.0.2, …) sin promesas de incompatibilidad.
 
+## v2.2.0 — Suministros + Repuestos · F38–F50 (2026-04-25)
+
+Integración del sistema de control de suministros del .xlsm fuente
++ JSX al sitio web. 13 microfases atómicas. Plan completo en
+`docs/PLAN-SUMINISTROS.md`.
+
+### Bloque A · Cimientos (sin UI visible)
+
+- **F38** — Dominio puro. 4 schemas + sanitizers + validadores
+  (`suministro_schema.js`, `marca_schema.js`, `movimiento_schema.js`,
+  `correccion_schema.js`) + extensión a `schema.js` con
+  `TIPOS_MOVIMIENTO`, `ESTADOS_REPUESTO`, `TIPOS_CORRECCION`,
+  `UNIDADES`, `ESTADOS_STOCK` (semáforo 6 estados del skill),
+  `estadoStock(disp, ini, opts)` y `generarCodigoMov(anio, sec)`.
+  41 tests.
+- **F39** — Data layer. `data/suministros.js` (codigo como docId),
+  `data/marcas.js` con sync arrayUnion/arrayRemove de
+  `marcas_disponibles[]`, `data/movimientos.js` con `crear()` en
+  `runTransaction()` que valida stock atómicamente y genera
+  `MOV-YYYY-NNNN` sin race condition, `data/correcciones.js`
+  (sin delete), `data/suministros_config.js` singleton, motor puro
+  `domain/stock_calculo.js`. 20 tests.
+- **F40** — Rules + 7 índices compuestos. Validación enums
+  server-side. Movimientos con campos críticos inmutables en
+  update. Correcciones DELETE bloqueado.
+- **F41** — Sub-section `repuesto.estado` con dual-write retrocompat.
+  +8 tests.
+
+### Bloque B · Importador
+
+- **F42** — Importador idempotente XLSM/JSX → Firestore. Parser puro
+  con regex+JSON.parse (cero `eval`). Mapping corregido tras feedback:
+  `cod` → `identificacion.codigo`, `m` → `identificacion.matricula`,
+  `sub` → `identificacion.nombre` + `subestacion_nombre`.
+  Enriquecimiento del catálogo con `valor_unitario` desde JSX. UI
+  admin con dropzone + drag-from-repo + dryRun. Audit
+  `bulk_import_suministros` con SHA-256. 20 tests.
+
+### Bloque C · Admin UI
+
+- **F43** — Catálogo CRUD realtime + chips marcas inline editables
+  en el modal (gestión consolidada).
+- **F44** — Marcas CRUD con sync arrayUnion.
+- **F45** — Formulario INGRESO/EGRESO con autocomplete cascada,
+  validación atómica de stock, color coding del skill,
+  `StockInsuficienteError` con faltante explícito.
+- **F46** — Histórico con filtros + delete con justificación
+  obligatoria + export CSV. Correcciones CRUD sin delete.
+
+### Bloque D · Public UI
+
+- **F47** — Stock Dashboard con 8 KPIs + tabla 22 filas con
+  semáforo 6 estados.
+- **F48** — Dashboard ejecutivo con 8 KPIs + 4 charts Chart.js +
+  vista cruzada zona/depto.
+
+### Bloque E · Export y cierre
+
+- **F49** — Export XLSM 1:1 con template binario via JSZip + parche
+  XML quirúrgico. Preserva byte a byte: `vbaProject.bin` (3 macros),
+  Office Add-in, charts, theme, styles, las otras 7 hojas. Sólo
+  reescribe `sheet6.xml` y `table4.xml`. JSZip lazy-loaded vía CDN.
+  8 tests.
+- **F50** — Cache PWA bump `sgm-v3-1-0` → `sgm-v3-2-0` + CHANGELOG +
+  tag.
+
+### Decisiones del director registradas
+
+1·C 10 hojas en export · 2·A JSX gana / sin DELETE huérfanos ·
+3·A `stock_inicial=0` mostrado como SIN_STOCK · 4·A preservar VBA
+via template binario · 5·A preservar Office Add-in · 6·A escritura
+de movimientos solo admin · 7·A audit `bulk_import_suministros`
+con metadata granular.
+
+### Métricas
+
+- 13 microfases · 23+ commits · 6.500+ LOC nuevas
+- 282 → 382 tests verdes (+100 tests)
+- 1 deploy manual del director (rules + índices)
+- Plan completo: `docs/PLAN-SUMINISTROS.md` (1.269 líneas)
+
+---
+
 ## v2.1.0-aqua · post-tag · PR #55 (2026-04-25)
 
 Ajustes finos del rediseño Aqua tras feedback del director sobre el
