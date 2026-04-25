@@ -173,11 +173,11 @@ $('jsxInput').addEventListener('change', async (e) => {
 // ── Cargar desde repo ──
 $('btnLoadRepo').addEventListener('click', async () => {
   try {
-    setStatus('xlsm-status', '⋯ fetch /Gestion_Suministros_Transformadores-2.xlsm', 'loading');
-    setStatus('jsx-status', '⋯ fetch /control_suministros-2.jsx', 'loading');
+    setStatus('xlsm-status', '⋯ fetch ../Gestion_Suministros_Transformadores-2.xlsm', 'loading');
+    setStatus('jsx-status', '⋯ fetch ../control_suministros-2.jsx', 'loading');
     const [xlsmRes, jsxRes] = await Promise.all([
-      fetch('/Gestion_Suministros_Transformadores-2.xlsm'),
-      fetch('/control_suministros-2.jsx')
+      fetch('../Gestion_Suministros_Transformadores-2.xlsm'),
+      fetch('../control_suministros-2.jsx')
     ]);
     if (!xlsmRes.ok) throw new Error(`.xlsm fetch ${xlsmRes.status}`);
     if (!jsxRes.ok)  throw new Error(`.jsx fetch ${jsxRes.status}`);
