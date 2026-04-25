@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="../assets/css/aqua-tokens.css"/>
   <link rel="stylesheet" href="../assets/css/aqua-components.css"/>
   <style>
-    .wrap { max-width: 1080px; margin: 1rem auto; padding: 0 1rem; }
+    .imp-content { max-width: 1080px; }
     .src-card {
       background: rgba(255,255,255,.30);
       backdrop-filter: blur(20px);
@@ -57,16 +57,21 @@
   </style>
 </head>
 <body class="aqua">
-<main id="main" class="wrap">
-  <h1 class="page-title">Importar Suministros</h1>
-  <p class="page-subtitle" style="font-size: 13px; color: var(--ink-3); line-height: 1.5; margin: 6px 0 18px;">
-    Sembrado inicial de <code>/suministros</code>, <code>/marcas</code>,
-    <code>/transformadores</code> y <code>/correcciones</code> desde los archivos fuente
-    <code>Gestion_Suministros_Transformadores-2.xlsm</code> y
-    <code>control_suministros-2.jsx</code>.
-    <br>Idempotente: re-ejecutar no duplica datos. Audit en
-    <code>/auditoria</code> con SHA-256 de cada fuente.
-  </p>
+<main id="main" class="app-main">
+  <div class="imp-content">
+
+  <div class="page-header">
+    <div class="breadcrumb">Administración / Importar Suministros</div>
+    <h1 class="page-title">Importar <em>Suministros</em></h1>
+    <p class="page-subtitle">
+      Sembrado inicial de <code>/suministros</code>, <code>/marcas</code>,
+      <code>/transformadores</code> y <code>/correcciones</code> desde los archivos fuente
+      <code>Gestion_Suministros_Transformadores-2.xlsm</code> y
+      <code>control_suministros-2.jsx</code>.
+      Idempotente: re-ejecutar no duplica datos. Audit en
+      <code>/auditoria</code> con SHA-256 de cada fuente.
+    </p>
+  </div>
 
   <section class="src-card">
     <h3>1 · Fuentes de datos</h3>
@@ -114,6 +119,8 @@
       <div id="huerfanosBody" style="font-family: var(--font-mono); font-size: 12px; color: var(--ink-2);"></div>
     </section>
   </div>
+
+  </div><!-- /.imp-content -->
 </main>
 
 <script type="module">
