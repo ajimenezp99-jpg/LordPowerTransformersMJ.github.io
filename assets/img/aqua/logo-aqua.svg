@@ -1,0 +1,68 @@
+<svg viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <defs>
+    <radialGradient id="sphereBody" cx=".35" cy=".28" r=".9">
+      <stop offset="0%" stop-color="#eaf5ff"></stop>
+      <stop offset="28%" stop-color="#4a90ff"></stop>
+      <stop offset="75%" stop-color="#0040c0"></stop>
+      <stop offset="100%" stop-color="#001a55"></stop>
+    </radialGradient>
+    <radialGradient id="sphereRim" cx=".5" cy=".5" r=".5">
+      <stop offset="88%" stop-color="#001a55" stop-opacity="0"></stop>
+      <stop offset="96%" stop-color="#00b8e6" stop-opacity=".9"></stop>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity=".6"></stop>
+    </radialGradient>
+    <radialGradient id="specularTop" cx=".5" cy=".15" r=".5">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity=".95"></stop>
+      <stop offset="60%" stop-color="#ffffff" stop-opacity=".15"></stop>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"></stop>
+    </radialGradient>
+    <radialGradient id="bottomGlow" cx=".5" cy=".85" r=".5">
+      <stop offset="0%" stop-color="#00d8ff" stop-opacity=".85"></stop>
+      <stop offset="60%" stop-color="#0066ff" stop-opacity=".35"></stop>
+      <stop offset="100%" stop-color="#0066ff" stop-opacity="0"></stop>
+    </radialGradient>
+    <linearGradient id="coreMetal" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"></stop>
+      <stop offset="50%" stop-color="#a8c8f0"></stop>
+      <stop offset="100%" stop-color="#3a5680"></stop>
+    </linearGradient>
+    <filter id="coreGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="1.2"></feGaussianBlur>
+    </filter>
+  </defs>
+
+  
+  <ellipse cx="70" cy="128" rx="44" ry="5" fill="#001a55" opacity=".35"></ellipse>
+
+  
+  <circle cx="70" cy="68" r="62" fill="url(#sphereRim)"></circle>
+
+  
+  <circle cx="70" cy="68" r="56" fill="url(#sphereBody)"></circle>
+
+  
+  <circle cx="70" cy="68" r="56" fill="url(#bottomGlow)"></circle>
+
+  
+  <ellipse cx="70" cy="38" rx="42" ry="24" fill="url(#specularTop)"></ellipse>
+
+  
+  <ellipse cx="70" cy="68" rx="56" ry="8" fill="none" stroke="#ffffff" stroke-width=".5" opacity=".25"></ellipse>
+
+  
+  <g filter="url(#coreGlow)">
+    <rect x="48" y="46" width="16" height="44" rx="3" fill="url(#coreMetal)" stroke="#001a55" stroke-width=".6"></rect>
+    <rect x="76" y="46" width="16" height="44" rx="3" fill="url(#coreMetal)" stroke="#001a55" stroke-width=".6"></rect>
+    
+    <g stroke="#001a55" stroke-width=".4" opacity=".55">
+      <path d="M48 54 L64 54 M48 60 L64 60 M48 66 L64 66 M48 72 L64 72 M48 78 L64 78 M48 84 L64 84"></path>
+      <path d="M76 54 L92 54 M76 60 L92 60 M76 66 L92 66 M76 72 L92 72 M76 78 L92 78 M76 84 L92 84"></path>
+    </g>
+  </g>
+
+  
+  <circle cx="70" cy="68" r="2.5" fill="#ffffff" filter="url(#coreGlow)"></circle>
+
+  
+  <ellipse cx="58" cy="42" rx="14" ry="7" fill="#ffffff" opacity=".7"></ellipse>
+</svg>

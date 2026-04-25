@@ -1,0 +1,314 @@
+<svg viewBox="0 0 900 1000" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <defs>
+    
+    <linearGradient id="tankSide" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0%" stop-color="#1a2942"></stop>
+      <stop offset="8%" stop-color="#4a6590"></stop>
+      <stop offset="22%" stop-color="#8ea5c8"></stop>
+      <stop offset="48%" stop-color="#6b84a8"></stop>
+      <stop offset="72%" stop-color="#3a5378"></stop>
+      <stop offset="92%" stop-color="#1a2942"></stop>
+      <stop offset="100%" stop-color="#0a1220"></stop>
+    </linearGradient>
+    <linearGradient id="tankTop" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#c0d0e8"></stop>
+      <stop offset="40%" stop-color="#6b84a8"></stop>
+      <stop offset="100%" stop-color="#2a3d5f"></stop>
+    </linearGradient>
+    
+    <linearGradient id="radFin" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0%" stop-color="#0a1628"></stop>
+      <stop offset="30%" stop-color="#3a5378"></stop>
+      <stop offset="70%" stop-color="#3a5378"></stop>
+      <stop offset="100%" stop-color="#0a1628"></stop>
+    </linearGradient>
+    
+    <linearGradient id="porcelain" x1="0" x2="1" y1="0" y2="0">
+      <stop offset="0%" stop-color="#3d2812"></stop>
+      <stop offset="20%" stop-color="#8b5a2b"></stop>
+      <stop offset="45%" stop-color="#d9a05a"></stop>
+      <stop offset="60%" stop-color="#b07838"></stop>
+      <stop offset="85%" stop-color="#5a3818"></stop>
+      <stop offset="100%" stop-color="#2a1a08"></stop>
+    </linearGradient>
+    <linearGradient id="porcelainTop" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#f0d8a0"></stop>
+      <stop offset="100%" stop-color="#8b5a2b"></stop>
+    </linearGradient>
+    
+    <linearGradient id="conservatorSide" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#8ea5c8"></stop>
+      <stop offset="50%" stop-color="#4a6590"></stop>
+      <stop offset="100%" stop-color="#1a2942"></stop>
+    </linearGradient>
+
+    
+    <radialGradient id="sparkGlow" cx=".5" cy=".5" r=".5">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity=".95"></stop>
+      <stop offset="25%" stop-color="#7fe0ff" stop-opacity=".8"></stop>
+      <stop offset="65%" stop-color="#2a7fff" stop-opacity=".25"></stop>
+      <stop offset="100%" stop-color="#2a7fff" stop-opacity="0"></stop>
+    </radialGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="5"></feGaussianBlur>
+    </filter>
+    <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6"></feGaussianBlur>
+    </filter>
+  </defs>
+
+  
+  <ellipse cx="450" cy="960" rx="380" ry="18" fill="#000" opacity=".55" filter="url(#softShadow)"></ellipse>
+
+  
+  <g>
+    <rect x="90" y="930" width="720" height="24" fill="#0a1628"></rect>
+    <rect x="90" y="930" width="720" height="4" fill="#2a3d5f"></rect>
+    
+    <rect x="160" y="920" width="220" height="14" rx="2" fill="#3a5378"></rect>
+    <rect x="520" y="920" width="220" height="14" rx="2" fill="#3a5378"></rect>
+    <rect x="160" y="918" width="220" height="3" fill="#8ea5c8" opacity=".6"></rect>
+    <rect x="520" y="918" width="220" height="3" fill="#8ea5c8" opacity=".6"></rect>
+  </g>
+
+  
+  <g>
+    
+    <rect x="70" y="440" width="80" height="16" rx="3" fill="url(#conservatorSide)" stroke="#0a1628" stroke-width="1"></rect>
+    
+    <rect x="70" y="830" width="80" height="16" rx="3" fill="url(#conservatorSide)" stroke="#0a1628" stroke-width="1"></rect>
+    
+    <g>
+      <rect x="74" y="456" width="10" height="374" fill="url(#radFin)"></rect>
+      <rect x="86" y="456" width="10" height="374" fill="url(#radFin)"></rect>
+      <rect x="98" y="456" width="10" height="374" fill="url(#radFin)"></rect>
+      <rect x="110" y="456" width="10" height="374" fill="url(#radFin)"></rect>
+      <rect x="122" y="456" width="10" height="374" fill="url(#radFin)"></rect>
+      <rect x="134" y="456" width="10" height="374" fill="url(#radFin)"></rect>
+    </g>
+    
+    <g stroke="#000" stroke-width=".6" opacity=".8">
+      <path d="M84 458 L84 828 M96 458 L96 828 M108 458 L108 828 M120 458 L120 828 M132 458 L132 828"></path>
+    </g>
+    
+    <circle cx="110" cy="880" r="26" fill="#0a1628" stroke="#3a5378" stroke-width="2"></circle>
+    <g stroke="#6b84a8" stroke-width="2" fill="none">
+      <path d="M110 858 Q118 870 110 880 Q102 890 110 902"></path>
+      <path d="M132 880 Q120 872 110 880 Q100 888 88 880"></path>
+      <path d="M126 864 Q115 870 110 880 Q105 890 94 896"></path>
+      <path d="M94 864 Q105 870 110 880 Q115 890 126 896"></path>
+    </g>
+    <circle cx="110" cy="880" r="4" fill="#8ea5c8"></circle>
+  </g>
+
+  
+  <g>
+    <rect x="750" y="440" width="80" height="16" rx="3" fill="url(#conservatorSide)" stroke="#0a1628" stroke-width="1"></rect>
+    <rect x="750" y="830" width="80" height="16" rx="3" fill="url(#conservatorSide)" stroke="#0a1628" stroke-width="1"></rect>
+    <g>
+      <rect x="754" y="456" width="10" height="374" fill="url(#radFin)"></rect>
+      <rect x="766" y="456" width="10" height="374" fill="url(#radFin)"></rect>
+      <rect x="778" y="456" width="10" height="374" fill="url(#radFin)"></rect>
+      <rect x="790" y="456" width="10" height="374" fill="url(#radFin)"></rect>
+      <rect x="802" y="456" width="10" height="374" fill="url(#radFin)"></rect>
+      <rect x="814" y="456" width="10" height="374" fill="url(#radFin)"></rect>
+    </g>
+    <g stroke="#000" stroke-width=".6" opacity=".8">
+      <path d="M764 458 L764 828 M776 458 L776 828 M788 458 L788 828 M800 458 L800 828 M812 458 L812 828"></path>
+    </g>
+    <circle cx="790" cy="880" r="26" fill="#0a1628" stroke="#3a5378" stroke-width="2"></circle>
+    <g stroke="#6b84a8" stroke-width="2" fill="none">
+      <path d="M790 858 Q798 870 790 880 Q782 890 790 902"></path>
+      <path d="M812 880 Q800 872 790 880 Q780 888 768 880"></path>
+      <path d="M806 864 Q795 870 790 880 Q785 890 774 896"></path>
+      <path d="M774 864 Q785 870 790 880 Q795 890 806 896"></path>
+    </g>
+    <circle cx="790" cy="880" r="4" fill="#8ea5c8"></circle>
+  </g>
+
+  
+  <g>
+    
+    <rect x="150" y="430" width="600" height="500" fill="url(#tankSide)"></rect>
+    
+    <rect x="150" y="420" width="600" height="16" rx="2" fill="url(#tankTop)"></rect>
+    
+    <g fill="#0a1628" opacity=".85">
+      <rect x="150" y="548" width="600" height="3"></rect>
+      <rect x="150" y="680" width="600" height="3"></rect>
+      <rect x="150" y="812" width="600" height="3"></rect>
+    </g>
+    
+    <g fill="#c0d0e8" opacity=".5">
+      <circle cx="168" cy="558" r="2"></circle><circle cx="232" cy="558" r="2"></circle><circle cx="296" cy="558" r="2"></circle>
+      <circle cx="360" cy="558" r="2"></circle><circle cx="424" cy="558" r="2"></circle><circle cx="488" cy="558" r="2"></circle>
+      <circle cx="552" cy="558" r="2"></circle><circle cx="616" cy="558" r="2"></circle><circle cx="680" cy="558" r="2"></circle>
+      <circle cx="732" cy="558" r="2"></circle>
+      <circle cx="168" cy="690" r="2"></circle><circle cx="232" cy="690" r="2"></circle><circle cx="296" cy="690" r="2"></circle>
+      <circle cx="360" cy="690" r="2"></circle><circle cx="424" cy="690" r="2"></circle><circle cx="488" cy="690" r="2"></circle>
+      <circle cx="552" cy="690" r="2"></circle><circle cx="616" cy="690" r="2"></circle><circle cx="680" cy="690" r="2"></circle>
+      <circle cx="732" cy="690" r="2"></circle>
+    </g>
+    
+    <rect x="150" y="430" width="10" height="500" fill="url(#tankSide)" opacity="0"></rect>
+
+    
+    <rect x="580" y="720" width="140" height="90" rx="4" fill="#0a1628" stroke="#6b84a8" stroke-width="1"></rect>
+    <rect x="585" y="725" width="130" height="16" fill="#2a7fff"></rect>
+    <text x="650" y="737" fill="#fff" font-family="Inter, sans-serif" font-size="10" font-weight="700" text-anchor="middle" letter-spacing="2">TRANSPOWER</text>
+    <g fill="#7a8aa6" font-family="JetBrains Mono, monospace" font-size="7">
+      <text x="592" y="755">TX-SUB-ATL-09</text>
+      <text x="592" y="767">220/34.5 kV</text>
+      <text x="592" y="779">60 MVA · ONAF</text>
+      <text x="592" y="791">S/N 0M-2019-448</text>
+      <text x="592" y="803">IEEE C57.12.00</text>
+    </g>
+
+    
+    <g>
+      
+      <circle cx="220" cy="760" r="26" fill="#0a1628" stroke="#6b84a8" stroke-width="2"></circle>
+      <circle cx="220" cy="760" r="22" fill="#e8f0fa"></circle>
+      <path d="M220 760 L232 750" stroke="#ff3b4a" stroke-width="2" stroke-linecap="round"></path>
+      <circle cx="220" cy="760" r="2" fill="#0a1628"></circle>
+      <g stroke="#0a1628" stroke-width=".6" fill="none">
+        <path d="M220 742 L220 745 M206 760 L209 760 M234 760 L231 760 M220 778 L220 775"></path>
+      </g>
+      
+      <rect x="340" y="760" width="40" height="14" rx="2" fill="#2a7fff"></rect>
+      <circle cx="360" cy="767" r="10" fill="#4a9bff" stroke="#0a4bc8" stroke-width="1"></circle>
+      <circle cx="360" cy="767" r="5" fill="#0a1628"></circle>
+    </g>
+  </g>
+
+  
+  <g>
+    
+    <ellipse cx="300" cy="380" rx="30" ry="26" fill="url(#conservatorSide)" stroke="#0a1628" stroke-width="1.5"></ellipse>
+    <rect x="300" y="354" width="280" height="52" fill="url(#conservatorSide)"></rect>
+    <ellipse cx="580" cy="380" rx="30" ry="26" fill="url(#conservatorSide)" stroke="#0a1628" stroke-width="1.5"></ellipse>
+    
+    <rect x="300" y="354" width="280" height="8" fill="#c0d0e8" opacity=".35"></rect>
+    
+    <g stroke="#0a1628" stroke-width="1" fill="none" opacity=".6">
+      <path d="M360 354 L360 406 M440 354 L440 406 M520 354 L520 406"></path>
+    </g>
+    
+    <rect x="436" y="406" width="8" height="16" fill="#4a6590"></rect>
+  </g>
+
+  
+  <g>
+    
+    
+    <g transform="translate(230 420)">
+      
+      <rect x="-22" y="0" width="44" height="14" rx="2" fill="#2a3d5f" stroke="#0a1628" stroke-width=".5"></rect>
+      
+      <rect x="-14" y="-180" width="28" height="180" fill="url(#porcelain)"></rect>
+      
+      <g fill="url(#porcelain)" stroke="#2a1a08" stroke-width=".6">
+        <ellipse cx="0" cy="-20" rx="22" ry="4"></ellipse>
+        <ellipse cx="0" cy="-44" rx="22" ry="4"></ellipse>
+        <ellipse cx="0" cy="-68" rx="22" ry="4"></ellipse>
+        <ellipse cx="0" cy="-92" rx="22" ry="4"></ellipse>
+        <ellipse cx="0" cy="-116" rx="22" ry="4"></ellipse>
+        <ellipse cx="0" cy="-140" rx="22" ry="4"></ellipse>
+        <ellipse cx="0" cy="-164" rx="22" ry="4"></ellipse>
+      </g>
+      
+      <ellipse cx="0" cy="-180" rx="14" ry="3" fill="url(#porcelainTop)"></ellipse>
+      
+      <rect x="-4" y="-196" width="8" height="16" fill="#6b84a8"></rect>
+      <circle cx="0" cy="-200" r="6" fill="#8ea5c8" stroke="#0a1628" stroke-width=".5"></circle>
+    </g>
+    
+    <g transform="translate(330 420)">
+      <rect x="-22" y="0" width="44" height="14" rx="2" fill="#2a3d5f" stroke="#0a1628" stroke-width=".5"></rect>
+      <rect x="-14" y="-200" width="28" height="200" fill="url(#porcelain)"></rect>
+      <g fill="url(#porcelain)" stroke="#2a1a08" stroke-width=".6">
+        <ellipse cx="0" cy="-20" rx="22" ry="4"></ellipse>
+        <ellipse cx="0" cy="-44" rx="22" ry="4"></ellipse>
+        <ellipse cx="0" cy="-68" rx="22" ry="4"></ellipse>
+        <ellipse cx="0" cy="-92" rx="22" ry="4"></ellipse>
+        <ellipse cx="0" cy="-116" rx="22" ry="4"></ellipse>
+        <ellipse cx="0" cy="-140" rx="22" ry="4"></ellipse>
+        <ellipse cx="0" cy="-164" rx="22" ry="4"></ellipse>
+        <ellipse cx="0" cy="-188" rx="22" ry="4"></ellipse>
+      </g>
+      <ellipse cx="0" cy="-200" rx="14" ry="3" fill="url(#porcelainTop)"></ellipse>
+      <rect x="-4" y="-216" width="8" height="16" fill="#6b84a8"></rect>
+      <circle cx="0" cy="-220" r="6" fill="#8ea5c8" stroke="#0a1628" stroke-width=".5"></circle>
+    </g>
+    
+    <g transform="translate(430 420)">
+      <rect x="-22" y="0" width="44" height="14" rx="2" fill="#2a3d5f" stroke="#0a1628" stroke-width=".5"></rect>
+      <rect x="-14" y="-180" width="28" height="180" fill="url(#porcelain)"></rect>
+      <g fill="url(#porcelain)" stroke="#2a1a08" stroke-width=".6">
+        <ellipse cx="0" cy="-20" rx="22" ry="4"></ellipse>
+        <ellipse cx="0" cy="-44" rx="22" ry="4"></ellipse>
+        <ellipse cx="0" cy="-68" rx="22" ry="4"></ellipse>
+        <ellipse cx="0" cy="-92" rx="22" ry="4"></ellipse>
+        <ellipse cx="0" cy="-116" rx="22" ry="4"></ellipse>
+        <ellipse cx="0" cy="-140" rx="22" ry="4"></ellipse>
+        <ellipse cx="0" cy="-164" rx="22" ry="4"></ellipse>
+      </g>
+      <ellipse cx="0" cy="-180" rx="14" ry="3" fill="url(#porcelainTop)"></ellipse>
+      <rect x="-4" y="-196" width="8" height="16" fill="#6b84a8"></rect>
+      <circle cx="0" cy="-200" r="6" fill="#8ea5c8" stroke="#0a1628" stroke-width=".5"></circle>
+    </g>
+
+    
+    <g transform="translate(555 420)">
+      <rect x="-16" y="0" width="32" height="12" rx="2" fill="#2a3d5f"></rect>
+      <rect x="-10" y="-100" width="20" height="100" fill="url(#porcelain)"></rect>
+      <g fill="url(#porcelain)" stroke="#2a1a08" stroke-width=".5">
+        <ellipse cx="0" cy="-18" rx="16" ry="3"></ellipse>
+        <ellipse cx="0" cy="-38" rx="16" ry="3"></ellipse>
+        <ellipse cx="0" cy="-58" rx="16" ry="3"></ellipse>
+        <ellipse cx="0" cy="-78" rx="16" ry="3"></ellipse>
+      </g>
+      <ellipse cx="0" cy="-100" rx="10" ry="2.5" fill="url(#porcelainTop)"></ellipse>
+      <rect x="-3" y="-112" width="6" height="12" fill="#6b84a8"></rect>
+    </g>
+    <g transform="translate(625 420)">
+      <rect x="-16" y="0" width="32" height="12" rx="2" fill="#2a3d5f"></rect>
+      <rect x="-10" y="-120" width="20" height="120" fill="url(#porcelain)"></rect>
+      <g fill="url(#porcelain)" stroke="#2a1a08" stroke-width=".5">
+        <ellipse cx="0" cy="-18" rx="16" ry="3"></ellipse>
+        <ellipse cx="0" cy="-38" rx="16" ry="3"></ellipse>
+        <ellipse cx="0" cy="-58" rx="16" ry="3"></ellipse>
+        <ellipse cx="0" cy="-78" rx="16" ry="3"></ellipse>
+        <ellipse cx="0" cy="-98" rx="16" ry="3"></ellipse>
+      </g>
+      <ellipse cx="0" cy="-120" rx="10" ry="2.5" fill="url(#porcelainTop)"></ellipse>
+      <rect x="-3" y="-132" width="6" height="12" fill="#6b84a8"></rect>
+    </g>
+    <g transform="translate(695 420)">
+      <rect x="-16" y="0" width="32" height="12" rx="2" fill="#2a3d5f"></rect>
+      <rect x="-10" y="-100" width="20" height="100" fill="url(#porcelain)"></rect>
+      <g fill="url(#porcelain)" stroke="#2a1a08" stroke-width=".5">
+        <ellipse cx="0" cy="-18" rx="16" ry="3"></ellipse>
+        <ellipse cx="0" cy="-38" rx="16" ry="3"></ellipse>
+        <ellipse cx="0" cy="-58" rx="16" ry="3"></ellipse>
+        <ellipse cx="0" cy="-78" rx="16" ry="3"></ellipse>
+      </g>
+      <ellipse cx="0" cy="-100" rx="10" ry="2.5" fill="url(#porcelainTop)"></ellipse>
+      <rect x="-3" y="-112" width="6" height="12" fill="#6b84a8"></rect>
+    </g>
+  </g>
+
+  
+  <g filter="url(#glow)">
+    <circle cx="230" cy="220" r="14" fill="url(#sparkGlow)"></circle>
+    <circle cx="330" cy="200" r="16" fill="url(#sparkGlow)"></circle>
+    <circle cx="430" cy="220" r="14" fill="url(#sparkGlow)"></circle>
+  </g>
+
+  
+  <g fill="none" stroke="#0a1628" stroke-width="2.5" opacity=".75">
+    <path d="M230 220 Q 150 180 40 200"></path>
+    <path d="M330 200 Q 230 140 120 140"></path>
+    <path d="M430 220 Q 520 170 650 180"></path>
+  </g>
+</svg>

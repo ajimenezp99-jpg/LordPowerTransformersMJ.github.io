@@ -7,6 +7,153 @@ Formato inspirado en [Keep a Changelog](https://keepachangelog.com/).
 Semver por tag. Pulido post-v2.0 incrementa el patch (v2.0.1,
 v2.0.2, …) sin promesas de incompatibilidad.
 
+## v2.1.0-aqua · 2026-04-25 · Liquid Glass redesign (iOS 26 / macOS Tahoe)
+
+Rediseño visual integral a **Apple Aqua light perla** (iOS 26 /
+macOS Tahoe Liquid Glass). Cero impacto en lógica de Firestore,
+motor de salud, importador, RBAC, alertas, reportes o Cloud
+Functions. Capa puramente visual sobre la arquitectura v2.0.x.
+
+### Sistema de diseño Aqua (10 microfases)
+
+#### A1 · Fundación
+- `assets/css/aqua-tokens.css` (light perla, sin azul de fondo,
+  sin rosa). iOS palette (blue/cyan/teal/amber). SF Pro + Instrument
+  Serif italic en hero + JetBrains Mono. Radii iOS, motion ease-ios,
+  shadows light. **Solo activo con `body.aqua`.** Bloque de aliases
+  legacy (`--space-*`, `--surface-*`, `--edge-*`, `--radius-*`,
+  `--brand-500`, `--text-*`, `--gradient-*`, etc.) para que el CSS
+  legacy de páginas v2 siga funcionando sobre la paleta perla.
+- `assets/css/aqua-components.css` (1090 líneas) — librería completa:
+  4 materiales de glass con specular + ring 3D, topbar, sidebar,
+  botones 3D, chips, inputs, stat cards, panels, alerts, hero,
+  feed, qc cards, modals, tabs, breadcrumb, page-head, form-grid,
+  hring, reveal + overrides para componentes legacy.
+- `assets/js/aqua.js` — partículas eléctricas, glint cursor, topbar
+  scroll state, IntersectionObserver reveal, Lucide auto-init.
+- `assets/js/aqua-shell.js` — auto-inyecta topbar + sidebar + escena
+  en cualquier página con `body.aqua`. Detecta base relativa, marca
+  sidebar item activo según URL, lee `window.__sgmSession` para
+  mostrar role-chip + iniciales + ocultar links admin a no-admins.
+  Bind `⌘K` para enfocar búsqueda global.
+- `assets/img/aqua/{transformer,tower,logo-aqua}.svg` — 3 SVG
+  técnicos del bundle de Claude Design.
+
+#### A2 · Login Aqua (`index.html`)
+Portal de acceso reescrito con auth-card glass-ultra + escena
+completa (mesh + grid + 4 orbes blue/cyan/teal/amber + transformer
+SVG + partículas). Hero con `<em>` Instrument Serif italic
+gradient. Inputs con icon, check Aqua, btn-primary 3D. Mensajes
+de estado info/ok/err con paleta light. **100% lógica Firebase
+Auth preservada** (mismos IDs de form, mismo módulo ESM con
+`signInWithEmailAndPassword`, `sendPasswordResetEmail`,
+`setPersistence`, `onAuthStateChanged`, verificación
+`/usuarios/{uid}` con fallback `/admins/{uid}`).
+
+#### A3 · Home dashboard (`home.html`)
+Topbar `.tb` pegajoso, sidebar `.sb` permanente 240px, app-main
+responsive. Hero glass-thick con título serif italic + parque card
+(totales por tipo POTENCIA/TPT/RESPALDO). KPIs grid-4 con stat-cards
++ sparklines. Banda de alertas críticas con alert-card glass.
+Panel grid-2: distribución HI bucket (1-5 con paleta iOS) + Top
+Plan de Inversión. Feed reciente. Quick cards. **Toda la lógica
+realtime de Firestore intacta** (mismas suscripciones a
+transformadores + ordenes + suscribirComputo de alertas).
+
+#### A4 · Páginas públicas (13)
+Migración mecánica con script Python: about, cobertura, contacto,
+normativa, alertas, dashboard, documentos, inventario, kpis, mapa,
+matriz-riesgo, ordenes, _firebase-test. Cada una: `theme-color
+#f4f6fb`, `color-scheme light`, favicon → `logo-aqua.svg`, imports
+CSS legacy (theme/base/app/nav/compat) → un solo
+`aqua-components.css`, `body class="aqua"`, `<main class="app-main
+page-container">`. `nav.js` (legacy) removido — `aqua-shell.js`
+auto-inyecta navegación.
+
+#### A5 · Paneles admin (22)
+Mismo patrón A4 sobre `admin/*.html`: alertas, auditoria, catalogos,
+contramuestras, contratos, demo-seed, desempeno-aliados, documentos,
+fallados, importar, index, inventario, kpis, mapa, motor-salud,
+muestras, ordenes, plan-inversion, propuestas-fur, subestaciones,
+umbrales-salud, usuarios. `admin-guard.js` intacto.
+
+#### A6 · Modales y formularios legacy
+Bloque de overrides `body.aqua` para `.modal-overlay`, `.modal-bg`,
+`.modal-card`, `.modal-head`, `.modal-x`, `.modal-actions` con
+glass-ultra + specular + animación spring. Inputs/textarea/select
+dentro de modales legacy con focus iOS. Form grids `.cols-2`/`.cols-3`
+responsive. `.btn-primary`/`.btn-primary-v3` → `grad-brand`.
+
+#### A7 · Pills, tablas, alertas legacy
+Overrides para `.estado-pill` (operativo/mantenimiento/fuera_servicio
+/retirado/fallado · planificada/en_curso/cerrada/cancelada),
+`.tipo-pill` (preventivo/correctivo/predictivo/emergencia con
+border-left semántico), `.prioridad-pill` (baja/media/alta/critica),
+`.sev-pill` (critica/warning/info), `.bucket-pill[data-b="1..5"]`
+para HI 1..5 (paleta verde-teal-azul-naranja-rojo). Tablas legacy
+con thead translúcido sticky-style. `.alert-row` con glass-thin +
+border-left semántico. `.toolbar`, `.filtros`, `.card`, `.panel-v3`,
+`.stat-v3`, page-header con tipografía Aqua.
+
+#### A8 · Charts Chart.js
+`assets/js/kpis-render.js` detecta `body.aqua` y aplica paleta iOS
+(brand `#007aff`, cyan `#00b8d4`, teal `#30d1b0`, success `#1cc870`,
+warn `#ff9500`, danger `#ff3b30`, purple `#7e57ff`). Texto SF Pro
+en lugar de Share Tech Mono. Tooltips translúcidos perla con border
+iOS blue. Líneas con borderWidth 2.5 y point radius 3. Fallback a
+paleta dark legacy si la página no es Aqua.
+
+#### A9 · Mapa Leaflet
+`mapa-render.js` detecta `body.aqua` y cambia tile a CARTO Voyager
+(gris claro, neutro, sin azul dominante). `aqua-components.css` con
+override completo: `.map-wrap` glass-thin + border-left brand,
+`#sgmMap` perla `#e6edf7`, controles zoom translúcidos, popups con
+glass-ultra, marker clusters con `rgba(0,122,255,.20)` y borde
+blanco, divIcon con drop-shadow azul, leyenda translúcida.
+
+#### A10 · Polish + QA
+- 282/282 tests verdes (`node --test`).
+- Lint HTML 100% limpio en index, home, 13 públicas y 22 admin.
+- `CHANGELOG.md` actualizado con el bloque Aqua.
+- Tag `v2.1.0-aqua`.
+
+### Garantías
+
+- **Cero impacto en lógica.** Solo CSS, HTML estructural mínimo y
+  configuración Chart.js/Leaflet. Firebase Auth, Firestore rules,
+  Storage rules, motor de salud F18, importador F17, alertas, RBAC,
+  audit log, PWA: **intactos**.
+- **Reversibilidad por fase.** 10 commits atómicos
+  (`6ee0ae3 → e886612`).
+- **Performance.** `backdrop-filter` activo solo en superficies
+  visibles; `will-change` en hover/scroll. Fallback `@supports not
+  (backdrop-filter)` con bg `rgba(255,255,255,.92)` plano.
+- **Accesibilidad.** Contraste WCAG AA, skip-link, `:focus-visible`
+  con outline brand, sr-only conservados, `prefers-reduced-motion`
+  respeta animaciones.
+- **Sin emojis** en UI ni copy (regla del AQUA_GUIDE).
+
+### Adiciones nuevas
+- Sidebar lateral fijo 240px en todas las páginas internas.
+- Búsqueda global ⌘K en topbar (placeholder, lógica futura).
+- Partículas eléctricas animadas (sutiles, 8–18 puntos).
+- SVG técnico de transformador como fondo a la derecha.
+- Avatar con iniciales del usuario en topbar + role-chip dinámico.
+
+### Lo que NO cambió
+- Functions, rules, indexes, schema, motor de salud, importador,
+  RBAC, audit log: idénticos a v2.0.8.
+- 282 tests Node siguen pasando sin modificar.
+- Estructura de archivos /assets/js/data, /assets/js/domain, /tests
+  no se tocó.
+
+### Comandos de despliegue
+- **GitHub Pages:** auto-deploy via `pages.yml` al hacer merge a `main`.
+- **Sin deploy de Firebase requerido** (no tocan rules/indexes/
+  storage/functions).
+
+---
+
 ## v3.0.0 · 2026-04 · UX v3 + Cloud Functions activas
 
 Evolución mayor con reestructuración de UX y activación de la primera

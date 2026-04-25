@@ -1031,9 +1031,11 @@ panel de KPIs.
 | Post-plan polish            | **9 ciclos cerrados**: `v2.0.1` · `v2.0.2` · `v2.0.3` · `v2.0.4` · `v2.0.5` · `v2.0.6` · `v2.0.7` · `v2.0.8` (+ refactor `6accdb6`) |
 | Tests                       | **282 / 282 verdes** (81 suites, node --test) |
 | Lint HTML                   | limpio |
-| Último tag                  | **`v2.0.8`** |
+| Último tag                  | **`v2.1.0-aqua`** (Liquid Glass redesign · light perla iOS 26) |
+| Tag previo                  | `v2.0.8` (refactor DRY persistirAuditoria) |
 | Referencia normativa activa | MO.00418.DE-GAC-AX.01 Ed. 02 (14/10/2025) |
-| Próxima movida              | **Plan v2.2 cerrado. Próxima sesión: responder a peticiones específicas del director o feedback de campo.** |
+| Sistema de diseño activo    | **Aqua light perla** · `assets/css/aqua-tokens.css` + `aqua-components.css` + `assets/js/aqua.js` + `aqua-shell.js`. SVGs en `assets/img/aqua/`. body class="aqua" en todas las páginas. |
+| Próxima movida              | **Plan v2.2 + Aqua redesign cerrados. Próxima sesión: responder a peticiones específicas del director o feedback de campo.** |
 | Servicios dinámicos activos | Firebase (Auth + Firestore + Storage) · Cloud Functions deployable (F32 stubs + cron/Resend) |
 
 ### 7.1 Inventario del repo post-v2.0.8

@@ -1,140 +1,273 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-aqua>
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="robots" content="noindex, nofollow"/>
-  <meta name="theme-color" content="#0a0f1e"/>
-  <meta name="color-scheme" content="dark"/>
+  <meta name="theme-color" content="#f4f6fb"/>
+  <meta name="color-scheme" content="light"/>
   <meta name="description" content="Panel operativo — SGM · TRANSPOWER."/>
   <title>SGM · TRANSPOWER — Panel Operativo</title>
-  <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg"/>
+  <link rel="icon" type="image/svg+xml" href="assets/img/aqua/logo-aqua.svg"/>
   <link rel="canonical" href="https://lordpowertransformersmj.github.io/home.html"/>
   <script type="module" src="assets/js/auth/page-guard.js"></script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="assets/css/theme.css"/>
-  <link rel="stylesheet" href="assets/css/base.css"/>
-  <link rel="stylesheet" href="assets/css/app.css"/>
-  <link rel="stylesheet" href="assets/css/nav.css"/>
-  <link rel="stylesheet" href="assets/css/compat.css"/>
-  <link rel="stylesheet" href="assets/css/home-v3.css"/>
+  <link rel="stylesheet" href="assets/css/aqua-components.css"/>
+
+  <style>
+    .skip-link {
+      position: absolute; top: -48px; left: 1rem; z-index: 1000;
+      background: var(--brand); color: #fff; font-family: var(--font-mono);
+      font-weight: 700; letter-spacing: .08em; padding: .6rem 1rem;
+      border-radius: var(--r-sm); text-decoration: none; transition: top .2s ease;
+    }
+    .skip-link:focus { top: 1rem; outline: 2px solid var(--cyan); outline-offset: 2px; }
+    .sr-only { position: absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+
+    /* Hero compacto perla */
+    .home-hero { padding: 24px 0 40px; }
+    .home-hero-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 32px; align-items: stretch; }
+    @media (max-width: 960px) { .home-hero-grid { grid-template-columns: 1fr; } }
+
+    .home-hero-card {
+      padding: 30px 28px;
+    }
+    .home-hero-eyebrow {
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: var(--tracking-caps); color: var(--brand);
+      display: inline-flex; align-items: center; gap: 8px; margin-bottom: 14px;
+    }
+    .home-hero-eyebrow::before { content:''; width: 22px; height: 1.5px; background: var(--brand); }
+    .home-hero-title {
+      font-size: clamp(2rem, 4.5vw, 3.2rem);
+      font-weight: 700; letter-spacing: -.025em;
+      color: var(--ink-1); line-height: 1.05; margin: 0 0 14px; max-width: 22ch;
+    }
+    .home-hero-title em {
+      font-family: var(--font-serif); font-style: italic; font-weight: 400;
+      background: linear-gradient(180deg,#2a90ff 0%, #00b8d4 100%);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .home-hero-sub {
+      font-size: 15px; line-height: 1.55; color: var(--ink-2);
+      margin: 0 0 22px; max-width: 56ch;
+    }
+
+    /* Hero card derecha (ring del parque) */
+    .park-card {
+      padding: 26px;
+      background: var(--glass-thick);
+      backdrop-filter: var(--glass-blur-thick);
+      -webkit-backdrop-filter: var(--glass-blur-thick);
+      border-radius: var(--r-xl);
+      box-shadow: var(--glass-ring), var(--sh-lg);
+      position: relative; overflow: hidden;
+    }
+    .park-card::before { content:""; position:absolute; inset:0; pointer-events:none; z-index:1; background: var(--glass-specular); }
+    .park-card > * { position: relative; z-index: 2; }
+    .park-card-eyebrow {
+      font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: var(--tracking-caps); color: var(--ink-4);
+      margin-bottom: 12px;
+    }
+    .park-total { display:flex; align-items:baseline; gap: 10px; margin-bottom: 18px; }
+    .park-total b { font-size: 56px; font-weight: 700; color: var(--ink-1); letter-spacing: -.04em; line-height: 1; }
+    .park-total span { font-size: 13px; color: var(--ink-3); font-family: var(--font-mono); letter-spacing: .04em; }
+    .park-distrib { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; padding-top: 16px; border-top: 1px solid rgba(0,40,90,.08); }
+    .park-distrib-item { display: flex; flex-direction: column; gap: 4px; }
+    .park-distrib-item span { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: var(--tracking-caps); color: var(--ink-4); }
+    .park-distrib-item b   { font-family: var(--font-mono); color: var(--ink-1); font-size: 22px; font-weight: 600; letter-spacing: -.01em; }
+
+    /* Buckets / PI / Feed pieces */
+    .pi-list { display: flex; flex-direction: column; gap: 4px; }
+    .pi-row {
+      display: grid; grid-template-columns: 32px 1fr auto;
+      gap: 14px; align-items: center;
+      padding: 12px 6px; border-bottom: 1px solid rgba(0,40,90,.06);
+      transition: background var(--dur-fast); border-radius: var(--r-sm);
+    }
+    .pi-row:last-child { border-bottom: 0; }
+    .pi-row:hover { background: rgba(0,122,255,.06); }
+    .pi-rank {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: rgba(0,122,255,.14); color: var(--brand);
+      display: grid; place-items: center;
+      font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+    }
+    .pi-name { color: var(--ink-1); font-size: 13.5px; font-weight: 600; line-height: 1.2; }
+    .pi-meta { color: var(--ink-3); font-size: 11.5px; margin-top: 2px; font-family: var(--font-mono); }
+    .pi-score {
+      font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+      padding: 4px 10px; border-radius: var(--r-pill);
+      background: rgba(0,122,255,.12); color: var(--brand-deep);
+    }
+
+    .feed-empty, .alert-empty {
+      padding: 28px; text-align: center; color: var(--ink-3);
+      font-size: 13px; display: flex; flex-direction: column; align-items: center; gap: 10px;
+    }
+    .alert-empty i, .feed-empty i { width: 28px; height: 28px; color: var(--success); }
+    .alerts-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    @media (max-width: 1024px) { .alerts-strip { grid-template-columns: 1fr; } }
+    .alert-card {
+      display: flex; gap: 14px; padding: 16px;
+      background: var(--glass-regular);
+      backdrop-filter: var(--glass-blur-regular);
+      -webkit-backdrop-filter: var(--glass-blur-regular);
+      border-radius: var(--r-md);
+      border-left: 3px solid var(--danger);
+      box-shadow: var(--glass-ring), var(--sh-sm);
+      transition: transform var(--dur-fast); position: relative; overflow: hidden;
+    }
+    .alert-card::before { content:""; position:absolute; inset:0; pointer-events:none; z-index:1; background: var(--glass-specular); }
+    .alert-card > * { position: relative; z-index: 2; }
+    .alert-card:hover { transform: translateY(-2px); }
+    .alert-card-icon {
+      width: 38px; height: 38px; border-radius: var(--r-sm);
+      background: rgba(255,59,48,.14); color: var(--danger);
+      display: grid; place-items: center; flex-shrink: 0;
+    }
+    .alert-card-body h4 { font-size: 13.5px; color: var(--ink-1); margin: 0 0 2px; font-weight: 700; }
+    .alert-card-body p { font-size: 12px; color: var(--ink-3); margin: 0; }
+
+    /* Buckets (HI distribución) */
+    .bucket-row { display: flex; flex-direction: column; }
+    .bucket-item {
+      display: grid; grid-template-columns: 200px 1fr 80px;
+      gap: 14px; align-items: center;
+      padding: 9px 0; font-size: 13px; color: var(--ink-2);
+    }
+    .bucket-label { display: inline-flex; align-items: center; }
+    .bucket-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 10px; box-shadow: 0 0 6px currentColor; }
+    .bucket-track { height: 6px; border-radius: 3px; background: rgba(0,40,90,.08); overflow: hidden; }
+    .bucket-fill  { height: 100%; border-radius: 3px; transition: width var(--dur-slow); }
+    .bucket-value { font-family: var(--font-mono); font-size: 12px; color: var(--ink-1); text-align: right; font-weight: 600; }
+
+    /* Spark sobre stats */
+    .spark { width: 100%; height: 36px; margin-top: 12px; display: block; }
+
+    /* Footer */
+    .home-foot {
+      margin-left: 264px; padding: 24px 40px;
+      border-top: 1px solid rgba(0,40,90,.08);
+      font-size: 11px; color: var(--ink-4);
+      font-family: var(--font-mono); letter-spacing: .08em;
+      text-align: center;
+      position: relative; z-index: 1;
+    }
+    @media (max-width: 1024px) { .home-foot { margin-left: 0; padding: 24px; } }
+  </style>
 </head>
-<body>
+<body class="aqua">
 
+<!-- Escena Aqua + topbar/sidebar las inyecta aqua-shell.js automáticamente -->
 <a class="skip-link" href="#main">Saltar al contenido principal</a>
 
-<script type="module" src="assets/js/ui/nav.js"></script>
+<main id="main" class="app-main">
 
-<main id="main" class="home-shell">
+  <!-- Page header -->
+  <div class="page-head reveal">
+    <div>
+      <h1 class="page-title">Panel <em>operativo</em></h1>
+      <div class="page-sub" id="pageDate">Cargando…</div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <span class="chip chip--live">En vivo</span>
+      <a class="btn btn--ghost btn--sm" href="pages/kpis.html"><i data-lucide="bar-chart-3"></i> Analítica</a>
+      <a class="btn btn--primary btn--sm" href="admin/ordenes.html"><i data-lucide="plus"></i> Nueva OT</a>
+    </div>
+  </div>
 
   <!-- ── HERO ─────────────────────────────────────────────── -->
   <section class="home-hero reveal">
-    <div class="home-hero-inner">
-      <div>
-        <div class="hero-eyebrow">Plataforma operativa · Caribe Colombiano</div>
-        <h1 class="hero-title">Gestión del mantenimiento de <em>Transformadores de Potencia</em></h1>
-        <p class="hero-sub">
-          Trazabilidad, salud de activos, planificación de intervenciones
-          y analítica RAM en tiempo real sobre el parque del operador.
+    <div class="home-hero-grid">
+      <div class="home-hero-card glass glass--thick">
+        <span class="home-hero-eyebrow">Plataforma operativa · Caribe Colombiano</span>
+        <h1 class="home-hero-title">Gestión del mantenimiento de <em>Transformadores de Potencia</em></h1>
+        <p class="home-hero-sub">
+          Trazabilidad, salud de activos, planificación de intervenciones y analítica RAM
+          en tiempo real sobre el parque del operador. RETIE · IEEE C57 · ISO 9001.
         </p>
-        <div class="hero-actions">
-          <a class="btn btn-primary-v3" href="pages/dashboard.html">
-            <i data-lucide="layout-grid"></i> Abrir dashboard
+        <div style="display:flex;gap:12px;margin-bottom:18px;flex-wrap:wrap">
+          <a class="btn btn--primary" href="pages/dashboard.html">
+            <i data-lucide="layout-grid"></i> Dashboard ejecutivo
           </a>
-          <a class="btn btn-ghost" href="pages/mapa.html">
+          <a class="btn btn--glass" href="pages/mapa.html">
             <i data-lucide="map"></i> Ver mapa
           </a>
         </div>
-      </div>
-      <div class="hero-card">
-        <div class="hero-card-eyebrow">Parque total</div>
-        <div>
-          <span class="hero-card-value" id="heroTotal">—</span>
-          <span class="hero-card-unit">transformadores</span>
+        <div class="norms">
+          <span class="norm">RETIE 2024</span>
+          <span class="norm">IEEE C57.152</span>
+          <span class="norm">IEC 60076</span>
+          <span class="norm">ISO 50001</span>
+          <span class="norm">CIGRÉ A2</span>
         </div>
-        <div class="hero-ring">
-          <div class="hero-ring-item">
-            <span class="hero-ring-label">Potencia</span>
-            <span class="hero-ring-value" id="heroPotencia">—</span>
-          </div>
-          <div class="hero-ring-item">
-            <span class="hero-ring-label">TPT</span>
-            <span class="hero-ring-value" id="heroTpt">—</span>
-          </div>
-          <div class="hero-ring-item">
-            <span class="hero-ring-label">Respaldo</span>
-            <span class="hero-ring-value" id="heroResp">—</span>
-          </div>
+      </div>
+      <div class="park-card">
+        <div class="park-card-eyebrow">Parque total</div>
+        <div class="park-total">
+          <b id="heroTotal">—</b>
+          <span>transformadores</span>
+        </div>
+        <div class="park-distrib">
+          <div class="park-distrib-item"><span>Potencia</span><b id="heroPotencia">—</b></div>
+          <div class="park-distrib-item"><span>TPT</span><b id="heroTpt">—</b></div>
+          <div class="park-distrib-item"><span>Respaldo</span><b id="heroResp">—</b></div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ── KPIs OPERATIVOS ─────────────────────────────────── -->
-  <section class="home-section reveal">
-    <div class="home-section-head">
+  <!-- ── KPIs OPERATIVOS ──────────────────────────────────── -->
+  <section class="reveal" style="margin-bottom:32px">
+    <div class="section-head">
       <div>
-        <h2 class="home-section-title">Indicadores en tiempo real</h2>
-        <div class="home-section-sub">Métricas clave del parque y la operación del día</div>
+        <h2 class="section-title">Indicadores en <em>tiempo real</em></h2>
+        <div class="section-sub">Métricas clave del parque y la operación del día</div>
       </div>
-      <a class="home-section-link" href="pages/kpis.html">Ver analítica completa <i data-lucide="arrow-right"></i></a>
+      <a class="section-link" href="pages/kpis.html">Ver analítica completa <i data-lucide="arrow-right"></i></a>
     </div>
 
-    <div class="stat-row">
-      <div class="stat-v3">
-        <div class="stat-v3-head">
-          <span class="stat-v3-label">Disponibilidad</span>
-          <span class="stat-v3-icon variant-teal"><i data-lucide="activity"></i></span>
-        </div>
-        <div class="stat-v3-value"><span id="kpiDisp">—</span><span class="stat-v3-unit">%</span></div>
-        <div class="stat-v3-foot"><span class="text-muted">MTBF / MTBF+MTTR · parque completo</span></div>
+    <div class="grid-4">
+      <div class="stat stat--teal">
+        <div class="stat-top"><div class="stat-label">Disponibilidad</div><div class="stat-icon"><i data-lucide="activity"></i></div></div>
+        <div class="stat-value"><span id="kpiDisp">—</span><span class="unit">%</span></div>
+        <div class="stat-foot"><i data-lucide="trending-up" style="width:12px;height:12px;color:var(--success)"></i> MTBF / (MTBF+MTTR)</div>
         <svg class="spark" id="sparkDisp" viewBox="0 0 160 36" preserveAspectRatio="none" aria-hidden="true"></svg>
       </div>
-
-      <div class="stat-v3">
-        <div class="stat-v3-head">
-          <span class="stat-v3-label">Órdenes activas</span>
-          <span class="stat-v3-icon"><i data-lucide="clipboard-list"></i></span>
-        </div>
-        <div class="stat-v3-value" id="kpiOrdenes">—</div>
-        <div class="stat-v3-foot"><span class="text-muted">Planificadas + en curso</span></div>
+      <div class="stat stat--brand">
+        <div class="stat-top"><div class="stat-label">Órdenes activas</div><div class="stat-icon"><i data-lucide="clipboard-list"></i></div></div>
+        <div class="stat-value" id="kpiOrdenes">—</div>
+        <div class="stat-foot">Planificadas + en curso</div>
         <svg class="spark" id="sparkOrd" viewBox="0 0 160 36" preserveAspectRatio="none" aria-hidden="true"></svg>
       </div>
-
-      <div class="stat-v3">
-        <div class="stat-v3-head">
-          <span class="stat-v3-label">HI promedio</span>
-          <span class="stat-v3-icon variant-warm"><i data-lucide="heart-pulse"></i></span>
-        </div>
-        <div class="stat-v3-value"><span id="kpiHi">—</span></div>
-        <div class="stat-v3-foot"><span class="text-muted">Health Index · Tabla 10</span></div>
+      <div class="stat stat--warn">
+        <div class="stat-top"><div class="stat-label">HI promedio</div><div class="stat-icon"><i data-lucide="heart-pulse"></i></div></div>
+        <div class="stat-value" id="kpiHi">—</div>
+        <div class="stat-foot">Health Index · Tabla 10 §A9.8</div>
         <svg class="spark" id="sparkHi" viewBox="0 0 160 36" preserveAspectRatio="none" aria-hidden="true"></svg>
       </div>
-
-      <div class="stat-v3">
-        <div class="stat-v3-head">
-          <span class="stat-v3-label">Alertas críticas</span>
-          <span class="stat-v3-icon variant-danger"><i data-lucide="alert-triangle"></i></span>
-        </div>
-        <div class="stat-v3-value" id="kpiAlertas">—</div>
-        <div class="stat-v3-foot"><span class="text-muted">Sin reconocer · ahora</span></div>
+      <div class="stat stat--danger">
+        <div class="stat-top"><div class="stat-label">Alertas críticas</div><div class="stat-icon"><i data-lucide="alert-triangle"></i></div></div>
+        <div class="stat-value" id="kpiAlertas">—</div>
+        <div class="stat-foot">Sin reconocer · ahora</div>
         <svg class="spark" id="sparkAl" viewBox="0 0 160 36" preserveAspectRatio="none" aria-hidden="true"></svg>
       </div>
     </div>
   </section>
 
   <!-- ── ALERTAS CRÍTICAS ─────────────────────────────────── -->
-  <section class="home-section reveal">
-    <div class="home-section-head">
+  <section class="reveal" style="margin-bottom:32px">
+    <div class="section-head">
       <div>
-        <h2 class="home-section-title">Requiere atención</h2>
-        <div class="home-section-sub">Alertas críticas sin reconocer del parque</div>
+        <h2 class="section-title">Requiere <em>atención</em></h2>
+        <div class="section-sub">Alertas críticas sin reconocer del parque</div>
       </div>
-      <a class="home-section-link" href="pages/alertas.html">Todas las alertas <i data-lucide="arrow-right"></i></a>
+      <a class="section-link" href="pages/alertas.html">Todas las alertas <i data-lucide="arrow-right"></i></a>
     </div>
     <div class="alerts-strip" id="alertsStrip">
       <div class="alert-empty">
@@ -145,87 +278,86 @@
   </section>
 
   <!-- ── SALUD · TOP PI ───────────────────────────────────── -->
-  <section class="home-section reveal">
-    <div class="two-panel-grid">
-      <div class="panel-v3">
-        <div class="panel-v3-head">
-          <div>
-            <h3 class="home-section-title" style="font-size: var(--text-xl)">Distribución por condición</h3>
-            <div class="home-section-sub">Buckets HI · MO.00418 §A9.7</div>
-          </div>
-          <a class="home-section-link" href="pages/matriz-riesgo.html">Matriz <i data-lucide="arrow-right"></i></a>
+  <section class="reveal grid-2" style="margin-bottom:32px">
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">Distribución por condición</div>
+          <div class="panel-sub">Buckets HI · MO.00418 §A9.7</div>
         </div>
-        <div class="bucket-row" id="bucketRows">
-          <div class="bucket-item"><span class="bucket-label"><span class="bucket-dot" style="background:#4ade80"></span>Muy bueno</span><div class="bucket-track"><div class="bucket-fill" data-bucket="1" style="background:#4ade80"></div></div><span class="bucket-value" data-bvalue="1">—</span></div>
-          <div class="bucket-item"><span class="bucket-label"><span class="bucket-dot" style="background:#00d9c0"></span>Bueno</span><div class="bucket-track"><div class="bucket-fill" data-bucket="2" style="background:#00d9c0"></div></div><span class="bucket-value" data-bvalue="2">—</span></div>
-          <div class="bucket-item"><span class="bucket-label"><span class="bucket-dot" style="background:#4f8cff"></span>Medio</span><div class="bucket-track"><div class="bucket-fill" data-bucket="3" style="background:#4f8cff"></div></div><span class="bucket-value" data-bvalue="3">—</span></div>
-          <div class="bucket-item"><span class="bucket-label"><span class="bucket-dot" style="background:#ffa94d"></span>Pobre</span><div class="bucket-track"><div class="bucket-fill" data-bucket="4" style="background:#ffa94d"></div></div><span class="bucket-value" data-bvalue="4">—</span></div>
-          <div class="bucket-item"><span class="bucket-label"><span class="bucket-dot" style="background:#ff5a6e"></span>Muy pobre</span><div class="bucket-track"><div class="bucket-fill" data-bucket="5" style="background:#ff5a6e"></div></div><span class="bucket-value" data-bvalue="5">—</span></div>
-        </div>
+        <a class="section-link" href="pages/matriz-riesgo.html">Matriz <i data-lucide="arrow-right"></i></a>
       </div>
+      <div class="bucket-row" id="bucketRows">
+        <div class="bucket-item"><span class="bucket-label"><span class="bucket-dot" style="background:#1cc870;color:#1cc870"></span>Muy bueno</span><div class="bucket-track"><div class="bucket-fill" data-bucket="1" style="background:#1cc870"></div></div><span class="bucket-value" data-bvalue="1">—</span></div>
+        <div class="bucket-item"><span class="bucket-label"><span class="bucket-dot" style="background:#30d1b0;color:#30d1b0"></span>Bueno</span><div class="bucket-track"><div class="bucket-fill" data-bucket="2" style="background:#30d1b0"></div></div><span class="bucket-value" data-bvalue="2">—</span></div>
+        <div class="bucket-item"><span class="bucket-label"><span class="bucket-dot" style="background:#007aff;color:#007aff"></span>Medio</span><div class="bucket-track"><div class="bucket-fill" data-bucket="3" style="background:#007aff"></div></div><span class="bucket-value" data-bvalue="3">—</span></div>
+        <div class="bucket-item"><span class="bucket-label"><span class="bucket-dot" style="background:#ff9500;color:#ff9500"></span>Pobre</span><div class="bucket-track"><div class="bucket-fill" data-bucket="4" style="background:#ff9500"></div></div><span class="bucket-value" data-bvalue="4">—</span></div>
+        <div class="bucket-item"><span class="bucket-label"><span class="bucket-dot" style="background:#ff3b30;color:#ff3b30"></span>Muy pobre</span><div class="bucket-track"><div class="bucket-fill" data-bucket="5" style="background:#ff3b30"></div></div><span class="bucket-value" data-bvalue="5">—</span></div>
+      </div>
+    </div>
 
-      <div class="panel-v3">
-        <div class="panel-v3-head">
-          <div>
-            <h3 class="home-section-title" style="font-size: var(--text-xl)">Top Plan de Inversión</h3>
-            <div class="home-section-sub">Ranking multicriterio por HI + criticidad</div>
-          </div>
-          <a class="home-section-link" href="admin/plan-inversion.html">Completo <i data-lucide="arrow-right"></i></a>
+    <div class="panel">
+      <div class="panel-head">
+        <div>
+          <div class="panel-title">Top Plan de Inversión</div>
+          <div class="panel-sub">Ranking multicriterio por HI + criticidad</div>
         </div>
-        <div class="pi-list" id="piList">
-          <div class="feed-empty">Cargando ranking…</div>
-        </div>
+        <a class="section-link" href="admin/plan-inversion.html">Completo <i data-lucide="arrow-right"></i></a>
+      </div>
+      <div class="pi-list" id="piList">
+        <div class="feed-empty">Cargando ranking…</div>
       </div>
     </div>
   </section>
 
   <!-- ── ACTIVIDAD RECIENTE ───────────────────────────────── -->
-  <section class="home-section reveal">
-    <div class="home-section-head">
+  <section class="reveal" style="margin-bottom:32px">
+    <div class="section-head">
       <div>
-        <h2 class="home-section-title">Actividad reciente</h2>
-        <div class="home-section-sub">Últimos eventos en el parque</div>
+        <h2 class="section-title">Actividad reciente</h2>
+        <div class="section-sub">Últimos eventos en el parque</div>
       </div>
+      <span class="chip chip--live">En vivo</span>
     </div>
-    <div class="panel-v3">
-      <div class="feed-list" id="feedList">
+    <div class="panel">
+      <div class="feed" id="feedList">
         <div class="feed-empty">Sin actividad reciente.</div>
       </div>
     </div>
   </section>
 
   <!-- ── ACCESOS RÁPIDOS ──────────────────────────────────── -->
-  <section class="home-section reveal">
-    <div class="home-section-head">
+  <section class="reveal" style="margin-bottom:32px">
+    <div class="section-head">
       <div>
-        <h2 class="home-section-title">Accesos rápidos</h2>
-        <div class="home-section-sub">Saltos directos a operaciones frecuentes</div>
+        <h2 class="section-title">Accesos rápidos</h2>
+        <div class="section-sub">Saltos directos a operaciones frecuentes</div>
       </div>
     </div>
-    <div class="quick-grid">
-      <a class="quick-card" href="admin/muestras.html">
-        <span class="quick-icon"><i data-lucide="flask-conical"></i></span>
-        <div class="quick-title">Nueva muestra</div>
-        <div class="quick-desc">Captura DGA / ADFQ / FUR con validación §A9.6.</div>
-        <span class="quick-arrow">Capturar <i data-lucide="arrow-right"></i></span>
+    <div class="grid-4">
+      <a class="qc" href="pages/muestras.html">
+        <div class="qc-icon"><i data-lucide="flask-conical"></i></div>
+        <div class="qc-title">Nueva muestra</div>
+        <div class="qc-desc">Captura DGA / ADFQ / FUR con validación §A9.6.</div>
+        <div class="qc-arr">Capturar <i data-lucide="arrow-right"></i></div>
       </a>
-      <a class="quick-card" href="admin/ordenes.html">
-        <span class="quick-icon"><i data-lucide="clipboard-plus"></i></span>
-        <div class="quick-title">Nueva orden</div>
-        <div class="quick-desc">Planifica un mantenimiento con FKs de catálogo.</div>
-        <span class="quick-arrow">Crear <i data-lucide="arrow-right"></i></span>
+      <a class="qc" href="admin/ordenes.html">
+        <div class="qc-icon" style="background:rgba(0,184,212,.14);color:var(--cyan-deep)"><i data-lucide="clipboard-plus"></i></div>
+        <div class="qc-title">Nueva orden</div>
+        <div class="qc-desc">Planifica un mantenimiento con FKs de catálogo.</div>
+        <div class="qc-arr">Crear <i data-lucide="arrow-right"></i></div>
       </a>
-      <a class="quick-card" href="admin/motor-salud.html">
-        <span class="quick-icon"><i data-lucide="activity"></i></span>
-        <div class="quick-title">Calcular HI</div>
-        <div class="quick-desc">Sandbox del motor con Tabla 10 y overrides §A5/§A9.</div>
-        <span class="quick-arrow">Abrir <i data-lucide="arrow-right"></i></span>
+      <a class="qc" href="admin/motor-salud.html">
+        <div class="qc-icon" style="background:rgba(48,209,176,.14);color:var(--teal-deep)"><i data-lucide="activity"></i></div>
+        <div class="qc-title">Calcular HI</div>
+        <div class="qc-desc">Sandbox del motor con Tabla 10 y overrides §A5/§A9.</div>
+        <div class="qc-arr">Abrir <i data-lucide="arrow-right"></i></div>
       </a>
-      <a class="quick-card" href="admin/importar.html">
-        <span class="quick-icon"><i data-lucide="upload-cloud"></i></span>
-        <div class="quick-title">Importar Excel</div>
-        <div class="quick-desc">Carga masiva con simulación previa y reporte de discrepancias.</div>
-        <span class="quick-arrow">Importar <i data-lucide="arrow-right"></i></span>
+      <a class="qc" href="admin/importar.html">
+        <div class="qc-icon" style="background:rgba(255,149,0,.14);color:#b85f00"><i data-lucide="upload-cloud"></i></div>
+        <div class="qc-title">Importar Excel</div>
+        <div class="qc-desc">Carga masiva con simulación previa y reporte de discrepancias.</div>
+        <div class="qc-arr">Importar <i data-lucide="arrow-right"></i></div>
       </a>
     </div>
   </section>
@@ -233,19 +365,25 @@
 </main>
 
 <footer class="home-foot">
-  <span>SGM · TRANSPOWER · Caribe Colombiano · <span id="yr">2026</span></span>
+  SGM · TRANSPOWER · LORD POWER TRANSFORMERS MJ S.A.S. · Caribe Colombiano · <span id="yr">2026</span>
 </footer>
 
-<script type="module">
-  document.getElementById('yr').textContent = new Date().getFullYear();
+<!-- Lucide + Aqua shell auto-inject (topbar + sidebar + escena power-scene) -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+<script src="assets/js/aqua.js" defer></script>
+<script src="assets/js/aqua-shell.js" defer></script>
 
-  // Reveal on scroll
-  const obs = new IntersectionObserver((entries) => {
-    for (const e of entries) if (e.isIntersecting) e.target.classList.add('is-in');
-  }, { threshold: 0.08 });
-  document.querySelectorAll('.reveal').forEach((el) => obs.observe(el));
+<!-- Page date + año -->
+<script>
+  const dt = new Date();
+  document.getElementById('pageDate').textContent =
+    dt.toLocaleDateString('es-CO', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }) +
+    ' · ' + dt.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
+  document.getElementById('yr').textContent = dt.getFullYear();
+</script>
 
-  // Sparkline simple (datos ficticios iniciales, se reemplazan con reales si existen)
+<!-- Sparklines (initial seed; se repintan con datos reales) -->
+<script>
   function spark(id, series, color) {
     const svg = document.getElementById(id);
     if (!svg || !series || series.length < 2) return;
@@ -257,48 +395,43 @@
       `<polyline fill="none" stroke="${color}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" points="${pts}"/>` +
       `<polyline fill="${color}" opacity="0.12" points="0,${h} ${pts} ${w},${h}"/>`;
   }
-  // Seed visual neutral; se re-pinta con datos reales cuando lleguen
-  spark('sparkDisp', [70, 72, 74, 73, 75, 78, 80, 82, 84, 83, 85, 88], '#00d9c0');
-  spark('sparkOrd',  [8, 12, 10, 14, 11, 16, 13, 18, 12, 9, 14, 17], '#4f8cff');
-  spark('sparkHi',   [3.1, 3.0, 3.2, 2.9, 2.8, 2.7, 2.8, 2.6, 2.5, 2.4, 2.5, 2.3], '#ffa94d');
-  spark('sparkAl',   [2, 4, 3, 6, 5, 7, 4, 3, 2, 4, 3, 1], '#ff5a6e');
+  spark('sparkDisp', [70, 72, 74, 73, 75, 78, 80, 82, 84, 83, 85, 88], '#30d1b0');
+  spark('sparkOrd',  [8, 12, 10, 14, 11, 16, 13, 18, 12, 9, 14, 17], '#007aff');
+  spark('sparkHi',   [3.1, 3.0, 3.2, 2.9, 2.8, 2.7, 2.8, 2.6, 2.5, 2.4, 2.5, 2.3], '#ff9500');
+  spark('sparkAl',   [2, 4, 3, 6, 5, 7, 4, 3, 2, 4, 3, 1], '#ff3b30');
 </script>
 
-<!-- Datos en vivo (Firestore) · una suscripción por colección -->
+<!-- Datos en vivo (Firestore) — preserva la lógica original -->
 <script type="module">
   import { computeFromDatasets, isReady } from './assets/js/data/kpis.js';
   import { suscribir as suscribirTransformadores } from './assets/js/data/transformadores.js';
   import { suscribir as suscribirOrdenes }         from './assets/js/data/ordenes.js';
 
   if (!isReady()) {
-    console.info('[HOME] Firestore no configurado — se muestra la UI vacía.');
+    console.info('[HOME] Firestore no configurado — UI vacía.');
   } else {
     const $ = (id) => document.getElementById(id);
-    const icons = () => window.sgmRefreshIcons?.();
+    const icons = () => window.renderIcons?.();
 
     let trafos = null, ordenes = null, timer = null;
 
-    // ── Render principal (debounced, evita re-renderizar N veces por snapshot) ──
     const render = () => {
       if (!trafos || !ordenes) return;
       try {
         const snap = computeFromDatasets(trafos, ordenes);
 
-        // Hero
         $('heroTotal').textContent = snap.totales.transformadores ?? '—';
         const porTipo = snap.totales.por_tipo_activo || {};
         $('heroPotencia').textContent = porTipo.POTENCIA ?? 0;
         $('heroTpt').textContent      = porTipo.TPT ?? 0;
         $('heroResp').textContent     = porTipo.RESPALDO ?? 0;
 
-        // KPIs
         const disp = snap.ram?.disponibilidad_pct;
         $('kpiDisp').textContent = disp == null ? '—' : disp.toFixed(1);
         $('kpiOrdenes').textContent = (snap.totales.ordenes_planificadas || 0) + (snap.totales.ordenes_en_curso || 0);
         const hiProm = snap.saludV2?.hi_promedio;
         $('kpiHi').textContent = hiProm == null ? '—' : hiProm.toFixed(2);
 
-        // Buckets de salud
         const dist = snap.saludV2?.distribucion_bucket || {};
         const total = Object.values(dist).reduce((a, b) => a + (b || 0), 0) || 1;
         for (let b = 1; b <= 5; b++) {
@@ -309,7 +442,6 @@
           if (val)  val.textContent  = n;
         }
 
-        // Top 5 PI (reutiliza trafos)
         const piList = $('piList');
         if (piList) {
           const scored = trafos
@@ -326,14 +458,13 @@
           piList.innerHTML = scored.length === 0
             ? '<div class="feed-empty">Sin datos de salud todavía.</div>'
             : scored.map((r, i) => `
-              <a class="pi-row" href="pages/inventario.html?codigo=${encodeURIComponent(r.codigo)}" style="text-decoration:none">
+              <a class="pi-row" href="pages/inventario.html?codigo=${encodeURIComponent(r.codigo)}">
                 <span class="pi-rank">${i + 1}</span>
                 <div><div class="pi-name">${r.codigo} · ${r.nombre}</div><div class="pi-meta">Zona ${r.zona} · bucket ${r.bucket}</div></div>
                 <span class="pi-score">HI ${r.hi.toFixed(2)}</span>
               </a>`).join('');
         }
 
-        // Feed de últimas 8 órdenes (reutiliza ordenes)
         const feed = $('feedList');
         if (feed) {
           const list = [...ordenes].sort((a,b) => {
@@ -348,26 +479,24 @@
                 const kind = /cancel|fallad/i.test(estado) ? 'bad' : (/cerr|ejecut/i.test(estado) ? 'ok' : (/curso|ejecuc/i.test(estado) ? 'warn' : ''));
                 const ts = o.updatedAt?.toDate?.() ? o.updatedAt.toDate() : null;
                 const tstr = ts ? ts.toLocaleString('es-CO', { day:'2-digit', month:'short', hour:'2-digit', minute:'2-digit' }) : '—';
-                const icono = kind === 'ok' ? 'check' : kind === 'bad' ? 'x-octagon' : kind === 'warn' ? 'loader' : 'circle-dot';
+                const icono = kind === 'ok' ? 'check-circle-2' : kind === 'bad' ? 'x-octagon' : kind === 'warn' ? 'loader' : 'circle-dot';
                 return `<div class="feed-row ${kind}">
                   <span class="feed-icon"><i data-lucide="${icono}"></i></span>
-                  <div class="feed-body"><strong>${(o.codigo || '—')}</strong> · ${o.titulo || 'orden'} · <span class="text-muted">${estado}</span></div>
+                  <div class="feed-body"><strong>${(o.codigo || '—')}</strong> · ${o.titulo || 'orden'} · <span class="muted">${estado}</span></div>
                   <span class="feed-time">${tstr}</span>
                 </div>`;
               }).join('');
         }
 
-        icons();  // re-renderiza iconos Lucide (debounced)
-      } catch (err) { console.warn('[HOME] render error:', err); }
+        icons();
+      } catch (err) { console.warn('[HOME] render:', err); }
     };
 
     const schedule = () => { clearTimeout(timer); timer = setTimeout(render, 180); };
 
-    // Solo DOS suscripciones: transformadores y órdenes.
     suscribirTransformadores({}, (items) => { trafos  = items; schedule(); });
     suscribirOrdenes({},         (items) => { ordenes = items; schedule(); });
 
-    // Alertas críticas (import asíncrono, suscripción independiente)
     import('./assets/js/data/alertas.js').then(({ suscribirComputo }) => {
       if (!suscribirComputo) return;
       suscribirComputo((estado) => {
@@ -381,7 +510,7 @@
           strip.innerHTML = '<div class="alert-empty"><i data-lucide="check-circle-2"></i><p>Sin alertas críticas. El parque opera dentro de parámetros.</p></div>';
         } else {
           strip.innerHTML = criticas.map((a) => `
-            <a class="alert-card" href="pages/alertas.html" style="text-decoration:none">
+            <a class="alert-card" href="pages/alertas.html">
               <span class="alert-card-icon"><i data-lucide="alert-triangle"></i></span>
               <div class="alert-card-body"><h4>${a.titulo || a.tipo}</h4><p>${a.mensaje || a.descripcion || ''}</p></div>
             </a>`).join('');

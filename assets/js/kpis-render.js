@@ -13,17 +13,46 @@ import { DEPARTAMENTOS, departamentoLabel } from './data/transformadores.js';
 
 const $ = (id) => document.getElementById(id);
 
-// Paletas alineadas con las variables CSS.
-const COL = {
-  accent:   '#00c8ff',
-  accent2:  '#f0a500',
-  accent3:  '#00ff99',
-  warn:     '#ff5577',
-  muted:    '#4a6478',
-  text:     '#c8d4e0',
-  border:   'rgba(74,100,120,.35)'
+// Paleta Aqua (light perla iOS) si la página está en modo Aqua;
+// fallback a la paleta legacy oscura para compatibilidad.
+const isAqua = typeof document !== 'undefined' && document.body && document.body.classList.contains('aqua');
+
+const COL = isAqua ? {
+  accent:        '#007aff',     // brand iOS blue
+  accent2:       '#ff9500',     // warn
+  accent3:       '#1cc870',     // success
+  warn:          '#ff3b30',     // danger
+  cyan:          '#00b8d4',
+  teal:          '#30d1b0',
+  purple:        '#7e57ff',
+  muted:         '#5a6c87',
+  text:          '#0a1628',
+  border:        'rgba(0,40,90,.10)',
+  tooltipBg:     'rgba(255,255,255,.95)',
+  tooltipBorder: 'rgba(0,122,255,.30)',
+  tooltipTitle:  '#007aff',
+  tooltipText:   '#0a1628'
+} : {
+  accent:        '#00c8ff',
+  accent2:       '#f0a500',
+  accent3:       '#00ff99',
+  warn:          '#ff5577',
+  muted:         '#4a6478',
+  text:          '#c8d4e0',
+  border:        'rgba(74,100,120,.35)',
+  tooltipBg:     'rgba(0,0,0,.88)',
+  tooltipBorder: '#00c8ff',
+  tooltipTitle:  '#00c8ff',
+  tooltipText:   '#c8d4e0'
 };
-const PAL = [COL.accent, COL.accent2, COL.accent3, COL.warn, '#7aa7ff', '#c388ff'];
+
+const PAL = isAqua
+  ? [COL.accent, COL.cyan, COL.teal, COL.accent3, COL.accent2, COL.warn, COL.purple]
+  : [COL.accent, COL.accent2, COL.accent3, COL.warn, '#7aa7ff', '#c388ff'];
+
+const FONT_FAMILY = isAqua
+  ? '-apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", sans-serif'
+  : 'Share Tech Mono';
 
 const chartRegistry = new Map();
 
@@ -51,20 +80,21 @@ function defaultChartOpts(extra = {}) {
     maintainAspectRatio: false,
     plugins: {
       legend: {
-        labels: { color: COL.text, font: { family: 'Share Tech Mono' }, boxWidth: 12 }
+        labels: { color: COL.text, font: { family: FONT_FAMILY }, boxWidth: 12 }
       },
       tooltip: {
-        backgroundColor: 'rgba(0,0,0,.88)',
-        borderColor: COL.accent, borderWidth: 1,
-        titleColor: COL.accent,
-        bodyColor:  COL.text
+        backgroundColor: COL.tooltipBg,
+        borderColor: COL.tooltipBorder, borderWidth: 1,
+        titleColor: COL.tooltipTitle,
+        bodyColor:  COL.tooltipText,
+        padding: 10, cornerRadius: 8
       }
     },
     scales: {
-      x: { ticks: { color: COL.muted, font: { family: 'Share Tech Mono' } },
+      x: { ticks: { color: COL.muted, font: { family: FONT_FAMILY } },
            grid: { color: COL.border, drawBorder: false } },
       y: { beginAtZero: true,
-           ticks: { color: COL.muted, precision: 0, font: { family: 'Share Tech Mono' } },
+           ticks: { color: COL.muted, precision: 0, font: { family: FONT_FAMILY } },
            grid: { color: COL.border, drawBorder: false } }
     },
     ...extra
@@ -145,9 +175,9 @@ function doughnut(id, labels, values, colors) {
       cutout: '62%',
       plugins: {
         legend: { position: 'right',
-                  labels: { color: COL.text, font: { family: 'Share Tech Mono' }, boxWidth: 12 } },
-        tooltip: { backgroundColor: 'rgba(0,0,0,.88)',
-                   borderColor: COL.accent, borderWidth: 1,
+                  labels: { color: COL.text, font: { family: FONT_FAMILY }, boxWidth: 12 } },
+        tooltip: { backgroundColor: COL.tooltipBg,
+                   borderColor: COL.tooltipBorder, borderWidth: 1,
                    titleColor: COL.accent, bodyColor: COL.text }
       }
     }
@@ -169,9 +199,10 @@ function barChart(id, labels, values, color, horizontal = false) {
     options: defaultChartOpts({
       indexAxis: horizontal ? 'y' : 'x',
       plugins: { legend: { display: false },
-                 tooltip: { backgroundColor: 'rgba(0,0,0,.88)',
-                            borderColor: COL.accent, borderWidth: 1,
-                            titleColor: COL.accent, bodyColor: COL.text } }
+                 tooltip: { backgroundColor: COL.tooltipBg,
+                            borderColor: COL.tooltipBorder, borderWidth: 1,
+                            titleColor: COL.tooltipTitle, bodyColor: COL.tooltipText,
+                            padding: 10, cornerRadius: 8 } }
     })
   });
   chartRegistry.set(id, chart);
@@ -189,13 +220,15 @@ function lineChart(id, labels, values, color) {
       tension: .25,
       fill: true,
       pointBackgroundColor: color,
-      pointRadius: 3
+      pointRadius: 3,
+      borderWidth: 2.5
     }]},
     options: defaultChartOpts({
       plugins: { legend: { display: false },
-                 tooltip: { backgroundColor: 'rgba(0,0,0,.88)',
-                            borderColor: COL.accent, borderWidth: 1,
-                            titleColor: COL.accent, bodyColor: COL.text } }
+                 tooltip: { backgroundColor: COL.tooltipBg,
+                            borderColor: COL.tooltipBorder, borderWidth: 1,
+                            titleColor: COL.tooltipTitle, bodyColor: COL.tooltipText,
+                            padding: 10, cornerRadius: 8 } }
     })
   });
   chartRegistry.set(id, chart);
