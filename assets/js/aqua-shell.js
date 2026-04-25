@@ -43,18 +43,17 @@
 
   const u = (p) => base + p.replace(/^\/+/, '');
 
-  /* ─── Escena de fondo ───────────────────────────────────── */
+  /* ─── Escena de fondo (DOMINANTE: torre + cables + transformador) ── */
   function injectScene() {
     if (document.querySelector('.aqua-scene')) return;
     const frag = document.createDocumentFragment();
     const wrap = document.createElement('div');
     wrap.innerHTML = `
       <div class="aqua-scene" aria-hidden="true"></div>
-      <div class="aqua-grid" aria-hidden="true"></div>
       <div class="aqua-orb aqua-orb--blue" aria-hidden="true"></div>
       <div class="aqua-orb aqua-orb--cyan" aria-hidden="true"></div>
       <div class="aqua-orb aqua-orb--teal" aria-hidden="true"></div>
-      <img class="aqua-transformer-bg" src="${u('assets/img/aqua/transformer.svg')}" alt="" aria-hidden="true"/>
+      <div class="aqua-power-scene" aria-hidden="true" style="background-image:url(${u('assets/img/aqua/power-scene.svg')})"></div>
       <div class="aqua-particles" id="aquaParticles" aria-hidden="true"></div>`;
     while (wrap.firstChild) frag.appendChild(wrap.firstChild);
     document.body.insertBefore(frag, document.body.firstChild);
@@ -90,6 +89,13 @@
     const sb = document.createElement('aside');
     sb.className = 'sb';
     sb.innerHTML = `
+      <a href="${u('home.html')}" class="sb-brand-head" aria-label="Inicio · SGM TRANSPOWER" style="text-decoration:none">
+        <span class="logo"><i data-lucide="zap"></i></span>
+        <div>
+          <div class="title">SGM · <em>TRANSPOWER</em></div>
+          <div class="sub">Liquid Glass</div>
+        </div>
+      </a>
       <div class="sb-group">
         <div class="sb-group-title">Operación</div>
         <a href="${u('home.html')}" class="sb-item" data-key="home"><span class="i"><i data-lucide="layout-dashboard"></i></span>Inicio</a>

@@ -34,15 +34,33 @@ body.aqua *, body.aqua *::before, body.aqua *::after {
   mask-image: radial-gradient(ellipse 90% 70% at 50% 40%, #000 30%, transparent 85%);
 }
 
-/* Transformador SVG flotante en el fondo */
-.aqua-transformer-bg {
-  position: fixed; right: -4%; bottom: -4%;
-  width: 780px; max-width: 60vw; height: auto;
-  z-index: -1; opacity: .35; pointer-events: none;
-  filter: drop-shadow(0 20px 60px rgba(0,40,90,.18)) drop-shadow(0 0 30px rgba(0,122,255,.06));
+/* Escena de potencia DOMINANTE en el fondo:
+   torre de alta tensión + cables en catenaria + transformador. */
+.aqua-power-scene {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  width: 100%;
+  height: min(78vh, 900px);
+  z-index: -1;
+  pointer-events: none;
+  opacity: .68;
+  background-image: url("../img/aqua/power-scene.svg");
+  background-repeat: no-repeat;
+  background-position: center bottom;
+  background-size: cover;
+  filter: saturate(115%) drop-shadow(0 28px 70px rgba(0,40,90,.18));
 }
-.aqua-transformer-bg.left {
-  right: auto; left: -6%; bottom: 4%; transform: scaleX(-1);
+@media (max-width: 1024px) {
+  .aqua-power-scene { opacity: .55; height: 60vh; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .aqua-power-scene { opacity: .60; }
+}
+
+/* Versión legacy retro-compat (si algunas páginas aún usan
+   .aqua-transformer-bg, lo redirigimos a la escena nueva) */
+.aqua-transformer-bg {
+  display: none;
 }
 
 /* Partículas eléctricas sobre fondo claro */
@@ -83,21 +101,26 @@ body.aqua *, body.aqua *::before, body.aqua *::after {
   100% { transform: translate3d(40px,-30px,0) scale(1.08); }
 }
 
-/* ─── GLASS base ───────────────────────────────────────────── */
+/* ─── GLASS base (Tahoe Liquid Glass — 3 capas: bg + specular + refraction) ── */
 .glass {
   position: relative;
   background: var(--glass-regular);
   backdrop-filter: var(--glass-blur-regular);
   -webkit-backdrop-filter: var(--glass-blur-regular);
-  border-radius: var(--r-lg);
+  border-radius: var(--r-xl);
   box-shadow: var(--glass-ring), var(--sh-md);
   overflow: hidden; isolation: isolate;
   transition: transform var(--dur-med) var(--ease-ios), box-shadow var(--dur-med) var(--ease-ios);
 }
+/* Capa de refracción prismática (debajo del specular) */
 .glass::before {
   content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1;
-  background: var(--glass-specular);
+  background:
+    var(--glass-specular),
+    var(--glass-refraction);
+  background-blend-mode: normal, soft-light;
   border-radius: inherit;
+  mix-blend-mode: normal;
 }
 .glass > * { position: relative; z-index: 2; }
 .glass--thin   { background: var(--glass-thin);   backdrop-filter: var(--glass-blur-thin);   -webkit-backdrop-filter: var(--glass-blur-thin); }
@@ -127,22 +150,27 @@ body.aqua *, body.aqua *::before, body.aqua *::after {
   }
 }
 
-/* ─── TOPBAR ──────────────────────────────────────────────── */
+/* ─── TOPBAR (Tahoe Finder · fixed full-width sobre sidebar) ── */
 .tb {
-  position: sticky; top: 0; z-index: var(--z-nav);
+  position: fixed; top: 0; left: 264px; right: 0; z-index: var(--z-nav);
   display: grid; grid-template-columns: auto 1fr auto;
   gap: 24px; align-items: center;
-  padding: 14px 28px;
-  background: rgba(255,255,255,.66);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border-bottom: 1px solid rgba(0,40,90,.08);
+  padding: 12px 32px;
+  background: linear-gradient(180deg, rgba(255,255,255,.55) 0%, rgba(255,255,255,.40) 100%);
+  backdrop-filter: blur(40px) saturate(200%) brightness(108%);
+  -webkit-backdrop-filter: blur(40px) saturate(200%) brightness(108%);
+  border-bottom: 1px solid rgba(255,255,255,.55);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.85), 0 1px 0 rgba(0,40,90,.08);
   transition: background var(--dur-med) var(--ease-out), backdrop-filter var(--dur-med) var(--ease-out);
+  height: 64px;
 }
 .tb.is-scrolled {
-  background: rgba(255,255,255,.82);
-  backdrop-filter: blur(36px) saturate(200%);
-  -webkit-backdrop-filter: blur(36px) saturate(200%);
+  background: linear-gradient(180deg, rgba(255,255,255,.78) 0%, rgba(255,255,255,.62) 100%);
+  backdrop-filter: blur(56px) saturate(220%) brightness(110%);
+  -webkit-backdrop-filter: blur(56px) saturate(220%) brightness(110%);
+}
+@media (max-width: 1024px) {
+  .tb { left: 0; padding: 12px 18px; }
 }
 .tb-brand { display: flex; align-items: center; gap: 12px; font-weight: 700; color: var(--ink-1); font-size: 15px; letter-spacing: -.01em; }
 .tb-brand .b, .tb-brand em { color: var(--brand); font-weight: 400; font-style: normal; }
@@ -197,45 +225,139 @@ body.aqua *, body.aqua *::before, body.aqua *::after {
   background: rgba(0,40,90,.06); border-radius: var(--r-pill);
 }
 
-/* ─── SIDEBAR ─────────────────────────────────────────────── */
+/* ─── SIDEBAR (Finder Tahoe vertical · Liquid Glass) ─────── */
 .sb {
-  position: fixed; top: 64px; left: 0; bottom: 0; width: 240px;
-  padding: 20px 14px; overflow-y: auto;
-  background: rgba(255,255,255,.62);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  border-right: 1px solid rgba(0,40,90,.08);
+  position: fixed; top: 0; left: 0; bottom: 0; width: 264px;
+  padding: 78px 12px 28px;
+  overflow-y: auto;
+  background: linear-gradient(180deg, rgba(255,255,255,.62) 0%, rgba(255,255,255,.48) 100%);
+  backdrop-filter: blur(48px) saturate(200%) brightness(108%);
+  -webkit-backdrop-filter: blur(48px) saturate(200%) brightness(108%);
+  border-right: 1px solid rgba(255,255,255,.55);
+  box-shadow:
+    inset -1px 0 0 rgba(0,40,90,.08),
+    1px 0 0 rgba(255,255,255,.4),
+    24px 0 60px -12px rgba(0,40,90,.08);
   z-index: 100;
+  isolation: isolate;
 }
-.sb-group { margin-bottom: 22px; }
+/* Capa de specular interno del sidebar (highlight superior) */
+.sb::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background:
+    radial-gradient(ellipse 100% 30% at 30% -5%, rgba(255,255,255,.55), transparent 60%),
+    linear-gradient(180deg, rgba(255,255,255,.18) 0%, transparent 28%);
+}
+.sb > * { position: relative; z-index: 1; }
+
+.sb-group { margin-bottom: 18px; }
+.sb-group + .sb-group::before {
+  content: ""; display: block; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(0,40,90,.10), transparent);
+  margin: 0 8px 14px;
+}
 .sb-group-title {
   font-size: 10.5px; font-weight: 700; text-transform: uppercase;
   letter-spacing: var(--tracking-caps); color: var(--ink-4);
-  padding: 0 10px 8px;
+  padding: 0 12px 8px;
+  display: flex; align-items: center; gap: 8px;
+}
+.sb-group-title::after {
+  content: ""; flex: 1; height: 1px;
+  background: linear-gradient(90deg, rgba(0,40,90,.10), transparent);
 }
 .sb-item {
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 12px; border-radius: var(--r-sm);
+  display: flex; align-items: center; gap: 11px;
+  padding: 10px 14px; border-radius: var(--r-sm);
   color: var(--ink-2); font-size: 13.5px; font-weight: 500;
+  letter-spacing: -.005em;
   transition: all var(--dur-fast) var(--ease-out);
   cursor: pointer;
   text-decoration: none;
+  position: relative;
 }
-.sb-item:hover { background: rgba(0,40,90,.05); color: var(--ink-1); opacity: 1; }
-.sb-item.is-active { background: rgba(0,122,255,.10); color: var(--brand); }
-.sb-item .i { width: 18px; height: 18px; display: grid; place-items: center; }
-.sb-item .i svg, .sb-item .i i { width: 16px; height: 16px; }
+.sb-item:hover {
+  background: rgba(0,122,255,.08);
+  color: var(--ink-1); opacity: 1;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6);
+}
+.sb-item.is-active {
+  background: linear-gradient(180deg, rgba(0,122,255,.18) 0%, rgba(0,122,255,.10) 100%);
+  color: var(--brand-deep);
+  font-weight: 600;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.65),
+    inset 0 -1px 0 rgba(0,80,180,.08),
+    0 1px 2px rgba(0,122,255,.10);
+}
+.sb-item.is-active::before {
+  content: ""; position: absolute; left: -2px; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 60%;
+  background: var(--brand);
+  border-radius: 0 var(--r-pill) var(--r-pill) 0;
+  box-shadow: 0 0 8px rgba(0,122,255,.4);
+}
+.sb-item .i {
+  width: 22px; height: 22px;
+  display: grid; place-items: center;
+  border-radius: 6px;
+  background: rgba(0,40,90,.05);
+  transition: all var(--dur-fast);
+}
+.sb-item:hover .i, .sb-item.is-active .i {
+  background: rgba(0,122,255,.18);
+  color: var(--brand);
+}
+.sb-item .i svg, .sb-item .i i { width: 14px; height: 14px; }
 .sb-item .badge {
-  margin-left: auto; background: var(--danger); color: #fff;
-  font-size: 10px; font-weight: 700; padding: 1px 6px; border-radius: 999px;
+  margin-left: auto;
+  background: var(--grad-danger); color: #fff;
+  font-size: 10px; font-weight: 700;
+  padding: 2px 7px; border-radius: 999px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 1px 3px rgba(255,59,48,.30);
+}
+
+/* Sidebar brand header (logo + nombre arriba del sidebar) */
+.sb-brand-head {
+  position: absolute; top: 0; left: 0; right: 0;
+  padding: 16px 18px;
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(255,255,255,.42);
+  backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba(0,40,90,.08);
+  z-index: 2;
+}
+.sb-brand-head .logo {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: var(--grad-brand);
+  display: grid; place-items: center;
+  box-shadow: var(--sh-md), inset 0 1px 0 rgba(255,255,255,.45);
+  flex-shrink: 0;
+}
+.sb-brand-head .logo i, .sb-brand-head .logo svg { width: 17px; height: 17px; color: #fff; }
+.sb-brand-head .title {
+  font-size: 13.5px; font-weight: 700; color: var(--ink-1);
+  letter-spacing: -.01em; line-height: 1.1;
+}
+.sb-brand-head .title em {
+  font-style: normal; color: var(--brand); font-weight: 400;
+}
+.sb-brand-head .sub {
+  font-family: var(--font-mono); font-size: 9.5px;
+  color: var(--ink-3); letter-spacing: .12em; font-weight: 600;
+  text-transform: uppercase;
 }
 
 /* ─── LAYOUT con sidebar ──────────────────────────────────── */
 .app-layout { display: block; }
-.app-main { margin-left: 240px; padding: 32px 40px 80px; min-height: calc(100vh - 64px); }
+.app-main {
+  margin-left: 264px;
+  padding: 90px 40px 80px;
+  min-height: 100vh;
+}
 @media (max-width: 1024px) {
   .sb { display: none; }
-  .app-main { margin-left: 0; padding: 24px; }
+  .app-main { margin-left: 0; padding: 76px 24px 48px; }
 }
 
 /* ─── BOTONES 3D ──────────────────────────────────────────── */

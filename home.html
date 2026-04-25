@@ -151,95 +151,20 @@
 
     /* Footer */
     .home-foot {
-      margin-left: 240px; padding: 24px 40px;
+      margin-left: 264px; padding: 24px 40px;
       border-top: 1px solid rgba(0,40,90,.08);
       font-size: 11px; color: var(--ink-4);
       font-family: var(--font-mono); letter-spacing: .08em;
       text-align: center;
+      position: relative; z-index: 1;
     }
     @media (max-width: 1024px) { .home-foot { margin-left: 0; padding: 24px; } }
   </style>
 </head>
 <body class="aqua">
 
-<!-- Escena Aqua -->
-<div class="aqua-scene" aria-hidden="true"></div>
-<div class="aqua-grid" aria-hidden="true"></div>
-<div class="aqua-orb aqua-orb--blue" aria-hidden="true"></div>
-<div class="aqua-orb aqua-orb--cyan" aria-hidden="true"></div>
-<div class="aqua-orb aqua-orb--teal" aria-hidden="true"></div>
-<img class="aqua-transformer-bg" src="assets/img/aqua/transformer.svg" alt="" aria-hidden="true"/>
-<div class="aqua-particles" id="aquaParticles" aria-hidden="true"></div>
-
+<!-- Escena Aqua + topbar/sidebar las inyecta aqua-shell.js automáticamente -->
 <a class="skip-link" href="#main">Saltar al contenido principal</a>
-
-<!-- ── TOPBAR Aqua ────────────────────────────────────────── -->
-<header class="tb">
-  <a href="home.html" class="tb-brand">
-    <span class="logo"><i data-lucide="zap"></i></span>
-    SGM · <span class="b">TRANSPOWER</span>
-  </a>
-  <div class="tb-search">
-    <i data-lucide="search"></i>
-    <input type="search" id="tbSearch" placeholder="Buscar transformador, OT, subestación…" aria-label="Buscar"/>
-    <kbd>⌘K</kbd>
-  </div>
-  <div class="tb-right">
-    <span class="tb-role" id="tbRole" hidden></span>
-    <button class="btn btn--ghost btn--icon" title="Notificaciones" aria-label="Notificaciones">
-      <i data-lucide="bell"></i>
-    </button>
-    <div class="tb-avatar" id="tbAvatar" title="Perfil">··</div>
-    <button class="btn btn--ghost btn--icon" id="tbLogout" title="Cerrar sesión" aria-label="Cerrar sesión">
-      <i data-lucide="log-out"></i>
-    </button>
-  </div>
-</header>
-
-<!-- ── SIDEBAR Aqua ───────────────────────────────────────── -->
-<aside class="sb">
-  <div class="sb-group">
-    <div class="sb-group-title">Operación</div>
-    <a href="home.html" class="sb-item is-active"><span class="i"><i data-lucide="layout-dashboard"></i></span>Inicio</a>
-    <a href="pages/inventario.html" class="sb-item"><span class="i"><i data-lucide="database"></i></span>Inventario</a>
-    <a href="pages/ordenes.html" class="sb-item"><span class="i"><i data-lucide="clipboard-list"></i></span>Órdenes</a>
-    <a href="pages/mapa.html" class="sb-item"><span class="i"><i data-lucide="map"></i></span>Mapa</a>
-  </div>
-  <div class="sb-group">
-    <div class="sb-group-title">Análisis</div>
-    <a href="pages/dashboard.html" class="sb-item"><span class="i"><i data-lucide="layout-grid"></i></span>Dashboard</a>
-    <a href="pages/kpis.html" class="sb-item"><span class="i"><i data-lucide="bar-chart-3"></i></span>KPIs &amp; RAM</a>
-    <a href="pages/matriz-riesgo.html" class="sb-item"><span class="i"><i data-lucide="grid-3x3"></i></span>Matriz Riesgo</a>
-    <a href="pages/alertas.html" class="sb-item"><span class="i"><i data-lucide="bell-ring"></i></span>Alertas</a>
-  </div>
-  <div class="sb-group">
-    <div class="sb-group-title">Salud del activo</div>
-    <a href="pages/muestras.html" class="sb-item"><span class="i"><i data-lucide="flask-conical"></i></span>Muestras</a>
-    <a href="admin/motor-salud.html" class="sb-item sb-admin"><span class="i"><i data-lucide="activity"></i></span>Motor de Salud</a>
-    <a href="admin/propuestas-fur.html" class="sb-item sb-admin"><span class="i"><i data-lucide="gavel"></i></span>Propuestas FUR</a>
-    <a href="admin/contramuestras.html" class="sb-item sb-admin"><span class="i"><i data-lucide="repeat-2"></i></span>Contramuestras</a>
-    <a href="admin/fallados.html" class="sb-item sb-admin"><span class="i"><i data-lucide="alert-octagon"></i></span>Fallados + RCA</a>
-  </div>
-  <div class="sb-group sb-admin-group" hidden>
-    <div class="sb-group-title">Administración</div>
-    <a href="admin/index.html" class="sb-item sb-admin"><span class="i"><i data-lucide="settings"></i></span>Panel admin</a>
-    <a href="admin/usuarios.html" class="sb-item sb-admin"><span class="i"><i data-lucide="users"></i></span>Usuarios</a>
-    <a href="admin/subestaciones.html" class="sb-item sb-admin"><span class="i"><i data-lucide="factory"></i></span>Subestaciones</a>
-    <a href="admin/contratos.html" class="sb-item sb-admin"><span class="i"><i data-lucide="file-text"></i></span>Contratos</a>
-    <a href="admin/catalogos.html" class="sb-item sb-admin"><span class="i"><i data-lucide="book-open"></i></span>Catálogos</a>
-    <a href="admin/importar.html" class="sb-item sb-admin"><span class="i"><i data-lucide="upload-cloud"></i></span>Importar Excel</a>
-    <a href="admin/auditoria.html" class="sb-item sb-admin"><span class="i"><i data-lucide="scroll-text"></i></span>Auditoría</a>
-    <a href="admin/plan-inversion.html" class="sb-item sb-admin"><span class="i"><i data-lucide="trending-up"></i></span>Plan Inversión</a>
-    <a href="admin/desempeno-aliados.html" class="sb-item sb-admin"><span class="i"><i data-lucide="award"></i></span>Desempeño aliados</a>
-  </div>
-  <div class="sb-group">
-    <div class="sb-group-title">Recursos</div>
-    <a href="pages/documentos.html" class="sb-item"><span class="i"><i data-lucide="folder-open"></i></span>Documentos</a>
-    <a href="pages/normativa.html" class="sb-item"><span class="i"><i data-lucide="scroll-text"></i></span>Normativa</a>
-    <a href="pages/cobertura.html" class="sb-item"><span class="i"><i data-lucide="globe-2"></i></span>Cobertura</a>
-    <a href="pages/about.html" class="sb-item"><span class="i"><i data-lucide="info"></i></span>Acerca</a>
-  </div>
-</aside>
 
 <main id="main" class="app-main">
 
@@ -443,66 +368,18 @@
   SGM · TRANSPOWER · LORD POWER TRANSFORMERS MJ S.A.S. · Caribe Colombiano · <span id="yr">2026</span>
 </footer>
 
-<!-- Lucide + Aqua interactions -->
+<!-- Lucide + Aqua shell auto-inject (topbar + sidebar + escena power-scene) -->
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
 <script src="assets/js/aqua.js" defer></script>
+<script src="assets/js/aqua-shell.js" defer></script>
 
-<!-- ── Topbar/sidebar session-aware ───────────────────────── -->
-<script type="module">
-  // Set page date
+<!-- Page date + año -->
+<script>
   const dt = new Date();
   document.getElementById('pageDate').textContent =
     dt.toLocaleDateString('es-CO', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }) +
     ' · ' + dt.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' });
   document.getElementById('yr').textContent = dt.getFullYear();
-
-  // Avatar initials + role chip + admin sidebar
-  function applySession(sess) {
-    if (!sess) return;
-    const profile = sess.profile || {};
-    const role = sess.role || profile.rol || 'tecnico';
-    const name = profile.nombre || sess.user?.email || '··';
-    const initials = (name || '').split(/\s+/).map(s => s[0]).filter(Boolean).slice(0,2).join('').toUpperCase() || '··';
-    const av = document.getElementById('tbAvatar');
-    if (av) { av.textContent = initials; av.title = name; }
-    const rch = document.getElementById('tbRole');
-    if (rch) {
-      rch.hidden = false;
-      rch.textContent = role === 'admin' ? 'ADMIN' : role.toUpperCase().slice(0,8);
-    }
-    if (role === 'admin') {
-      document.querySelectorAll('.sb-admin-group').forEach((el) => el.hidden = false);
-    } else {
-      document.querySelectorAll('.sb-admin').forEach((el) => el.style.display = 'none');
-    }
-  }
-  if (window.__sgmSession) applySession(window.__sgmSession);
-  window.addEventListener('sgm:session-ready', (ev) => applySession(ev.detail));
-
-  // Logout
-  document.getElementById('tbLogout').addEventListener('click', async () => {
-    try {
-      const { logoutAdmin } = await import('./assets/js/admin/admin-auth.js');
-      await logoutAdmin();
-    } catch (_) {
-      try {
-        const { getAuthSafe } = await import('./assets/js/firebase-init.js');
-        const { signOut } = await import('https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js');
-        const auth = getAuthSafe();
-        if (auth) await signOut(auth);
-      } catch (_) {}
-    }
-    location.replace('index.html');
-  });
-
-  // ⌘K focuses search; Esc clears
-  const search = document.getElementById('tbSearch');
-  document.addEventListener('keydown', (e) => {
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
-      e.preventDefault(); search?.focus();
-    }
-    if (e.key === 'Escape' && document.activeElement === search) { search.blur(); search.value = ''; }
-  });
 </script>
 
 <!-- Sparklines (initial seed; se repintan con datos reales) -->

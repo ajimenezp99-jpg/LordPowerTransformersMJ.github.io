@@ -23,33 +23,45 @@
     radial-gradient(ellipse 55% 38% at 92% 88%,  rgba(255,184,76,.10) 0%, transparent 65%),
     linear-gradient(180deg, #f7f9fd 0%, #eef3fa 50%, #e6edf7 100%);
 
-  /* ── VIDRIO LIQUID (4 materiales) ─────────────────────── */
-  --glass-thin:    linear-gradient(135deg, rgba(255,255,255,.55) 0%, rgba(244,249,255,.32) 100%);
-  --glass-regular: linear-gradient(135deg, rgba(255,255,255,.66) 0%, rgba(244,249,255,.44) 100%);
-  --glass-thick:   linear-gradient(135deg, rgba(255,255,255,.78) 0%, rgba(240,247,255,.58) 100%);
-  --glass-ultra:   linear-gradient(135deg, rgba(255,255,255,.90) 0%, rgba(240,247,255,.74) 100%);
+  /* ── VIDRIO LIQUID GLASS (4 materiales — macOS Tahoe 26.3) ───
+     Tahoe usa MUCHO más blur y saturación que el glassmorphism
+     genérico, con specular intenso y refracción visible en bordes. */
+  --glass-thin:    linear-gradient(140deg, rgba(255,255,255,.42) 0%, rgba(238,247,255,.22) 100%);
+  --glass-regular: linear-gradient(140deg, rgba(255,255,255,.52) 0%, rgba(232,243,255,.32) 100%);
+  --glass-thick:   linear-gradient(140deg, rgba(255,255,255,.66) 0%, rgba(228,240,255,.44) 100%);
+  --glass-ultra:   linear-gradient(140deg, rgba(255,255,255,.82) 0%, rgba(228,240,255,.62) 100%);
 
-  --glass-blur-thin:    blur(20px) saturate(180%);
-  --glass-blur-regular: blur(28px) saturate(180%);
-  --glass-blur-thick:   blur(40px) saturate(200%);
+  --glass-blur-thin:    blur(28px) saturate(190%) brightness(108%);
+  --glass-blur-regular: blur(44px) saturate(200%) brightness(108%);
+  --glass-blur-thick:   blur(60px) saturate(220%) brightness(110%);
 
-  /* Ring 3D — luz arriba/lados claros, sombra abajo (clave del 3D) */
-  --glass-border-top:    rgba(255,255,255,.95);
-  --glass-border-bottom: rgba(0,40,90,.08);
+  /* Ring 3D — luz arriba MUY brillante, sombra abajo, lados con
+     refracción cromática (efecto borde prismático Tahoe) */
+  --glass-border-top:    rgba(255,255,255,.98);
+  --glass-border-bottom: rgba(0,40,90,.10);
   --glass-ring:
-    inset 0 1px 0 rgba(255,255,255,.92),
-    inset 0 -1px 0 rgba(0,40,90,.08),
-    inset 1px 0 0 rgba(255,255,255,.6),
-    inset -1px 0 0 rgba(0,40,90,.04);
+    inset 0 1.5px 0 rgba(255,255,255,.98),
+    inset 0 -1px 0 rgba(0,40,90,.10),
+    inset 1.5px 0 0 rgba(255,255,255,.72),
+    inset -1.5px 0 0 rgba(0,40,90,.05),
+    inset 0 0 0 .5px rgba(255,255,255,.30);
 
-  /* Specular — destello blanco superior (capa ::before) */
+  /* Specular — destello blanco intenso superior (capa ::before)
+     dos capas: highlight diagonal arriba-izquierda + linear suave */
   --glass-specular:
-    radial-gradient(ellipse 70% 40% at 30% -8%, rgba(255,255,255,.78) 0%, transparent 60%),
-    linear-gradient(180deg, rgba(255,255,255,.34) 0%, transparent 30%, transparent 75%, rgba(0,40,90,.05) 100%);
+    radial-gradient(ellipse 80% 50% at 22% -12%, rgba(255,255,255,.92) 0%, rgba(255,255,255,.42) 28%, transparent 62%),
+    radial-gradient(ellipse 40% 30% at 88% 8%, rgba(255,255,255,.55) 0%, transparent 60%),
+    linear-gradient(180deg, rgba(255,255,255,.42) 0%, rgba(255,255,255,.10) 22%, transparent 50%, transparent 80%, rgba(0,40,90,.08) 100%);
 
-  /* Refracción prismática sutil (capa ::after opcional) */
+  /* Refracción prismática (efecto Tahoe en los bordes) */
   --glass-refraction:
-    conic-gradient(from 200deg at 80% 0%, rgba(0,122,255,.08), rgba(0,184,212,.06), rgba(48,209,176,.05), rgba(0,122,255,.07));
+    conic-gradient(from 210deg at 78% -2%,
+      rgba(0,122,255,.16) 0deg,
+      rgba(0,184,212,.12) 60deg,
+      rgba(48,209,176,.10) 110deg,
+      rgba(255,184,76,.08) 165deg,
+      rgba(0,122,255,.14) 230deg,
+      rgba(0,122,255,.16) 360deg);
 
   /* ── ACENTOS (iOS palette, sin rosa) ──────────────────── */
   --brand:        #007aff;   /* iOS blue */
