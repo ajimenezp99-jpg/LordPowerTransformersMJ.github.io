@@ -1083,5 +1083,187 @@ La técnica JSZip+XML es el approach canónico documentado en la comunidad para 
 
 ---
 
-> **Continúa en P5c:** F50 cierre v2.2.0 + §5 riesgos consolidados + §6 estimación total +
-> §7 anti-patrones derivados del skill.
+#### F50 · Sidebar + nav + cache PWA + tag v2.2.0
+
+**Objetivo.** Cierre del plan. Integrar los entry points nuevos al sidebar y home,
+bumpear cache PWA, validación E2E final, tag `v2.2.0`.
+
+**Entregables.**
+- `assets/js/aqua-shell.js` — nuevo grupo **"Suministros"** entre "Salud del activo" y
+  "Administración" con los items:
+  - Stock (`pages/suministros-stock.html`) · icon `package`
+  - Dashboard (`pages/suministros-dashboard.html`) · icon `bar-chart-3`
+  - Catálogo admin (`admin/suministros-catalogo.html`) · icon `clipboard-list` · clase `sb-admin`
+  - Marcas admin (`admin/suministros-marcas.html`) · icon `tag` · `sb-admin`
+  - Movimientos admin (`admin/suministros-movimiento.html`) · icon `arrow-right-left` · `sb-admin`
+  - Histórico admin (`admin/suministros-historico.html`) · icon `history` · `sb-admin`
+  - Correcciones admin (`admin/suministros-correcciones.html`) · icon `file-edit` · `sb-admin`
+  - Importar admin (`admin/importar-suministros.html`) · icon `file-up` · `sb-admin`
+- `home.html` — KPI card adicional **"Stock crítico"** que cuenta items con estado
+  `CRITICO` o `AGOTADO`. Realtime via `suscribirStockGlobal`.
+- `sw.js` — bump `CACHE_VERSION` de `sgm-v3-1-0` a `sgm-v3-2-0`. Añadir las 8 rutas
+  nuevas + `/assets/templates/Gestion_Suministros_Transformadores-2.xlsm` al array `SHELL`.
+- `CHANGELOG.md` — entrada `v2.2.0` con summary de F38–F50.
+- `CLAUDE.md` §5 — añadir bloque "Evolución v2.2 · Suministros (F38–F50)" con la tabla
+  de microfases. §7 — actualizar tabla de progreso, último tag, sistema activo.
+- `docs/PLAN-SUMINISTROS.md` — marcar como **completado** con fecha de cierre.
+
+**Validación E2E manual.**
+1. Login admin → ver grupo "Suministros" en sidebar.
+2. Importar (F42) datos desde el repo → verificar 22 sumin + 22 marcas + 206 trafos +
+   3 correcciones + 1 entrada de audit `bulk_import_suministros`.
+3. Crear movimiento INGRESO (F45) → ver en histórico (F46) en realtime.
+4. Public dashboard (F47) muestra stock recalculado en otra pestaña.
+5. Export XLSM (F49) → abrir en Excel → 3 macros VBA ejecutan + add-in carga + 2 charts
+   + 10 hojas + Correcciones poblada + Portada con metadata correcta.
+6. Logout y login como `tecnico` → ve "Suministros · Stock" y "Dashboard"; NO ve los 6 items
+   admin.
+
+**Patrón de referencia.** F37 cierre del plan v2.0 (tag + CHANGELOG + actualización CLAUDE.md).
+
+**Anticipación de errores.**
+- **Cache PWA stale:** si no se bumpea `CACHE_VERSION`, los clientes con sw.js antiguo
+  no ven los HTML nuevos hasta hard reload. **Crítico no olvidar.**
+- **Orden del grupo en sidebar:** "Suministros" debe ir entre "Salud del activo" y
+  "Administración" (decisión visual). Verificar con captura antes del tag.
+- **Visibilidad por rol:** `aqua-shell.js` lee `window.__sgmSession.role` y oculta los
+  `sb-admin` a no-admins. Validar con dos sesiones.
+- **Migración doble:** F50 NO ejecuta `v1-to-v2-transformadores-add-repuesto`; ese
+  backfill ya lo hizo F42. Confirmar que `npm test` pasa sin necesitar nuevo run.
+
+**Tests.** Sin tests automatizados nuevos (manual E2E). Total acumulado del plan:
+~109 tests nuevos sobre los 282 actuales = ~391 tests verdes.
+
+**Commit msg.** `chore(suministros): F50 sidebar + nav + PWA cache bump + tag v2.2.0`
+
+**Tag.** `git tag -a v2.2.0 -m "Integración Suministros + Repuestos · 13 microfases F38-F50"`
+
+**Estimación.** 2 h.
+
+**Sin deploy** (merge a main → Pages auto-redeploy).
+
+---
+
+**Resumen Bloque E:**
+- 2 microfases · 2 commits aislados.
+- Tests E2E del export + manual de cierre.
+- 0–1 deploys (solo si F49 va a fallback Python).
+- Tiempo estimado: 10–14 h efectivas.
+
+---
+
+## §5 Riesgos consolidados
+
+| # | Riesgo | Probabilidad | Impacto | Fase | Mitigación |
+|---|---|---|---|---|---|
+| R1 | ExcelJS/SheetJS destruyen el VBA al guardar | **Alta** (confirmado por docs) | Crítico (decisión 4·A no se cumple) | F49 | Approach JSZip + parche XML; jamás se reescribe `vbaProject.bin`. Test E2E #3 verifica SHA-256 byte-a-byte. Fallback Python con presupuesto reservado. |
+| R2 | Race condition en correlativo de movimientos | Media | Alto (códigos colisionan) | F39 | `runTransaction` lee y escribe correlativo en el mismo batch. Test simula 10 inserts paralelos. |
+| R3 | Stock negativo no detectado | Baja | Alto (datos inconsistentes) | F39 | Tx valida `stock_actual >= 0` antes de escribir. Flag `permitirNegativo=false` por defecto. |
+| R4 | Importador F42 duplica docs en re-ejecución | Baja | Medio | F42 | Idempotencia por `codigo` (suministro) y `matricula` (trafo). Test re-ejecuta 2 veces y verifica `crear:0`. |
+| R5 | `marcas_disponibles[]` desincronizada por updates concurrentes | Media | Medio (chips faltantes en UI) | F44 | Usar `arrayUnion` en lugar de overwrite. Probar con dos pestañas. |
+| R6 | Datalist con 200+ trafos lento en mobile | Baja | Bajo (lag de input) | F45 | Datalist nativo es eficiente; si reporta lag, iterar a virtual scroll en F50. |
+| R7 | Cache PWA stale en F50 oculta cambios al usuario | Media | Alto (director no ve nada nuevo) | F50 | Bump explícito `CACHE_VERSION`. Documentar en commit que es obligatorio. |
+| R8 | Reglas Firestore desplegadas antes de índices fallan queries | Media | Alto (página rota en prod) | F40 | Orden estricto en aviso de deploy: índices → esperar build → rules. |
+| R9 | Backfill `repuesto.estado` reescribe trafos con datos divergentes | Baja | Medio | F42 | Sanitizer F41 normaliza `null` → `'N/A'` antes de escribir; preserva resto del doc intacto. |
+| R10 | `parsearJsxTransformadores` con `eval` introduce XSS | Eliminado | Crítico | F42 | Estrategia documentada: regex extraction + `JSON.parse`. Cero `eval`/`Function`. |
+| R11 | Concurrent imports duplican audit entries | Baja | Bajo (audit log con dos rows) | F42 | Aceptable; los docs operativos quedan consistentes. |
+| R12 | Director sube nueva versión del .xlsm/.jsx mid-plan | Media | Alto (plan obsoleto) | Todo | Sufijo de versión obligatorio (`-v3`); abrir sub-plan. Documentado en §0. |
+| R13 | Test E2E del export determinista falla por timestamps en zip | Alta sin mitigación | Bajo (CI rojo intermitente) | F49 | Forzar timestamps fijos al generar zip; ordenar entries alfabéticamente. |
+| R14 | Cloud Function fallback agrega dependencia Python | Si se activa | Medio (deploy nuevo) | F49 | Decisión documentada con golden master diff. Path A (JSZip) tiene 90% probabilidad de éxito. |
+| R15 | Decisión 1·C (10 hojas) confunde al auditor que esperaba 8 | Baja | Bajo | F49 | Hoja Portada explica el origen de las 2 hojas extra; hoja Correcciones es estándar del skill. |
+
+**Bloqueantes técnicos sin mitigación:** ninguno. Cada riesgo tiene mitigación documentada
+o fallback aceptable.
+
+---
+
+## §6 Estimación total
+
+| Bloque | Microfases | Tests nuevos | Tiempo efectivo | Deploys |
+|---|---|---|---|---|
+| **A — Cimientos** | F38 · F39 · F40 · F41 | ~73 | 7 h | 1 (rules + índices) |
+| **B — Importador** | F42 | 18 | 4 h | 0 |
+| **C — Admin UI** | F43 · F44 · F45 · F46 | 12 | 12 h | 0 |
+| **D — Public UI** | F47 · F48 | 6 | 6.5 h | 0 |
+| **E — Export & cierre** | F49 · F50 | E2E + manual | 10–14 h | 0–1 (fallback) |
+| **TOTAL** | **13** | **~109** | **39.5–43.5 h** | **1–2** |
+
+**Tests verdes esperados al cierre:** 282 + 109 = **~391**.
+
+**Tag final:** `v2.2.0`.
+
+**Cadencia recomendada:** una microfase por sesión chat para evitar timeouts y permitir
+revisión por el director antes de avanzar. Cada cierre de fase = commit aislado + push
+inline + screenshot opcional para evidencia visual.
+
+---
+
+## §7 Anti-patrones (cosas que NO se harán durante la ejecución)
+
+Lista derivada del skill `asset-tracking-system` y de las convenciones del repo. Cada
+anti-patrón está documentado para que el director pueda llamarme la atención si lo viola.
+
+1. **Cero datos inventados.** Si una matrícula del JSX trae `re:null`, va como `'N/A'`,
+   no como `'OPERATIVA'` por defecto. Si una fecha no está en el .xlsm, se muestra `—`,
+   no se interpola. Si una marca está vacía, se muestra `Por definir`, no se adivina vendor.
+
+2. **Cero `eval` en parser del JSX.** El array `TRANSFORMADORES` se extrae con regex y se
+   parsea con `JSON.parse` tras quoting fix. Nunca `Function('return ' + str)()`.
+
+3. **Cero re-importación silenciosa.** Cada ejecución de F42 con `dryRun=false` deja
+   evidencia en `/auditoria` con metadata granular. Si el director re-importa, ve dos
+   entries y puede comparar.
+
+4. **Cero modificación de `vbaProject.bin`.** El binario VBA del template solo se mueve
+   dentro del zip; nunca se reescribe ni se intenta regenerar.
+
+5. **Cero modificación del Office Add-in.** `webextensions/webextension1.xml` y su
+   `_rels/taskpanes.xml.rels` se mueven con el zip; el `claude.fileId` queda intacto.
+
+6. **Cero cambios de schema sin dual-write.** F41 introduce `repuesto` como sub-section
+   y como flat `re` simultáneamente. Las vistas legacy siguen funcionando.
+
+7. **Cero deploy automático de rules antes de índices.** El aviso de deploy en F40 lista
+   el orden estricto. Romper el orden = páginas vivas con `FAILED_PRECONDITION`.
+
+8. **Cero delete masivo en F42.** Trafos huérfanos en Firestore se reportan en summary,
+   no se eliminan. La limpieza requiere sub-paso explícito con confirmación.
+
+9. **Cero confirmación implícita.** Antes de transformar datos fuente (renombrar columnas,
+   ocultar items con stock=0, consolidar duplicados), preguntar al director con 2–4
+   opciones concretas. Las decisiones de §3 ya cubren las 7 transformaciones macro;
+   cualquier transformación nueva detectada durante la ejecución abre mini-gating.
+
+10. **Cero comentarios decorativos.** Convención del repo (CLAUDE.md): código sin
+    comentarios salvo cuando el WHY no sea obvio. No "// método que crea suministro" sobre
+    `crear()`. Sí "// stock_actual snapshot al momento del movimiento, no se actualiza
+    aunque cambie el catálogo después" sobre la línea relevante en F39.
+
+11. **Cero scope creep.** El plan tiene 13 microfases; una feature nueva (ej. notificaciones
+    email cuando stock crítico) abre un sub-plan post-v2.2.0, no se mete dentro de las
+    fases existentes.
+
+12. **Cero override de `localStorage` heredado del JSX.** El JSX persistía en
+    `ctrl_suministros_trafos_v6`. La integración a Firestore deja ese localStorage huérfano
+    (los datos viven en Firestore desde F42). No se lee ni se escribe el localStorage; el
+    director puede limpiarlo manualmente si quiere.
+
+---
+
+## Cierre del plan
+
+Plan v2.2 completo desde §0 hasta §7. Listo para tu aprobación final.
+
+**Aprobación esperada:**
+- Plan completo: ✅/❌
+- Auto-asunciones de §3: ✅/❌ (15 auto-asunciones distribuidas entre las fases)
+- Decisión sobre fallback Python en F49 si VBA SHA-256 diverge: ✅/❌
+- Cadencia "una microfase por sesión chat": ✅/❌
+
+Una vez aprobado, F38 arranca con un mensaje del director explícito: `"ejecuta F38"`.
+El plan no se ejecuta solo.
+
+---
+
+> **Versión del plan:** P5c · 2026-04-25 · `claude/fix-menu-colors-AJek5`
+> **Tags previstos durante ejecución:** ninguno hasta `v2.2.0` al cierre de F50.
