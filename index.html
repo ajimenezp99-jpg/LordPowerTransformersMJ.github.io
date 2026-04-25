@@ -1,17 +1,17 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-aqua>
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <meta name="theme-color" content="#040c14"/>
-  <meta name="color-scheme" content="dark"/>
+  <meta name="theme-color" content="#f4f6fb"/>
+  <meta name="color-scheme" content="light"/>
   <meta name="robots" content="index, follow"/>
   <meta name="description" content="SGM · TRANSPOWER — Plataforma de gestión del mantenimiento especializado en transformadores de potencia. Acceso restringido al equipo."/>
 
   <title>SGM · TRANSPOWER — Acceso</title>
 
   <link rel="canonical" href="https://lordpowertransformersmj.github.io/"/>
-  <link rel="icon" type="image/svg+xml" href="assets/img/favicon.svg"/>
+  <link rel="icon" type="image/svg+xml" href="assets/img/aqua/logo-aqua.svg"/>
 
   <!-- Open Graph -->
   <meta property="og:type"        content="website"/>
@@ -20,218 +20,152 @@
   <meta property="og:url"         content="https://lordpowertransformersmj.github.io/"/>
   <meta property="og:title"       content="SGM · TRANSPOWER — Plataforma de Mantenimiento"/>
   <meta property="og:description" content="Gestión del mantenimiento especializado en transformadores de potencia. Acceso restringido al equipo."/>
-  <meta property="og:image"       content="https://lordpowertransformersmj.github.io/assets/img/favicon.svg"/>
+  <meta property="og:image"       content="https://lordpowertransformersmj.github.io/assets/img/aqua/logo-aqua.svg"/>
 
   <!-- Twitter Card -->
   <meta name="twitter:card"        content="summary"/>
   <meta name="twitter:title"       content="SGM · TRANSPOWER"/>
   <meta name="twitter:description" content="Plataforma de gestión del mantenimiento especializado en transformadores de potencia."/>
-  <meta name="twitter:image"       content="https://lordpowertransformersmj.github.io/assets/img/favicon.svg"/>
+  <meta name="twitter:image"       content="https://lordpowertransformersmj.github.io/assets/img/aqua/logo-aqua.svg"/>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 
-  <link rel="stylesheet" href="assets/css/theme.css"/>
+  <link rel="stylesheet" href="assets/css/aqua-components.css"/>
   <link rel="stylesheet" href="assets/css/base.css"/>
 
   <style>
-    /* ══════════════════════════════════════════════════════
-       LOGIN PORTAL — SGM · TRANSPOWER (Fase 14)
-       Layout centrado single-panel, estilo SaaS/operaciones.
-    ══════════════════════════════════════════════════════ */
-
+    /* Login portal — overrides locales del shell .auth-* */
     .auth-shell {
       min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 2rem 1rem;
+      display: grid; place-items: center;
+      padding: 40px 20px;
       position: relative;
       z-index: 1;
     }
-
     .auth-card {
-      width: 100%;
-      max-width: 440px;
-      background: rgba(15, 22, 41, 0.72);
-      backdrop-filter: blur(20px) saturate(160%);
-      -webkit-backdrop-filter: blur(20px) saturate(160%);
-      border: 1px solid var(--edge-muted);
-      border-radius: var(--radius-xl);
-      padding: 2.6rem 2.2rem 2.2rem;
-      box-shadow:
-        0 40px 100px rgba(0,0,0,.55),
-        0 0 0 1px rgba(79,140,255,.08),
-        inset 0 1px 0 rgba(255,255,255,.04);
-      animation: fadeUp .45s var(--ease-out);
+      width: 100%; max-width: 460px;
+      padding: 40px 36px 32px;
+      border-radius: var(--r-xl);
+      background: var(--glass-ultra);
+      backdrop-filter: var(--glass-blur-thick);
+      -webkit-backdrop-filter: var(--glass-blur-thick);
+      box-shadow: var(--glass-ring), var(--sh-xl);
+      position: relative; overflow: hidden;
+      animation: authIn .55s var(--ease-ios);
     }
-
+    .auth-card::before {
+      content:""; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+      background: var(--glass-specular);
+    }
+    .auth-card > * { position: relative; z-index: 2; }
+    @keyframes authIn {
+      from { opacity: 0; transform: translateY(18px) scale(.98); }
+      to   { opacity: 1; transform: none; }
+    }
     .auth-brand {
-      display: flex;
-      align-items: center;
-      gap: .8rem;
-      margin-bottom: 1.4rem;
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 28px;
     }
     .auth-logo {
-      width: 48px; height: 48px;
-      border-radius: 50%;
-      background: radial-gradient(circle at 30% 30%, rgba(0,200,255,.22), transparent 60%),
-                  radial-gradient(circle at 70% 70%, rgba(240,165,0,.18), transparent 60%);
-      border: 1px solid var(--border);
+      width: 46px; height: 46px;
+      border-radius: 14px;
+      background: var(--grad-brand);
       display: grid; place-items: center;
-      box-shadow: var(--glow);
+      box-shadow: var(--sh-md), inset 0 1px 0 rgba(255,255,255,.45);
     }
-    .auth-logo svg { width: 34px; height: 34px; }
-
-    .auth-brand-text {
-      font-family: var(--font-head);
-      letter-spacing: .08em;
+    .auth-logo svg { width: 24px; height: 24px; color: #fff; }
+    .auth-brand-text { display: flex; flex-direction: column; gap: 2px; }
+    .auth-brand-name {
+      font-size: 16px; font-weight: 700; color: var(--ink-1);
+      letter-spacing: -.01em; line-height: 1;
     }
-    .auth-brand-text .brand-main {
-      font-size: 1rem;
-      color: var(--text);
-      font-weight: 700;
+    .auth-brand-name em {
+      font-style: normal; color: var(--brand); font-weight: 400;
     }
-    .auth-brand-text .brand-main em {
-      color: var(--accent);
-      font-style: normal;
-    }
-    .auth-brand-text .brand-sub {
-      font-family: var(--font-mono);
-      font-size: .68rem;
-      color: var(--muted);
-      letter-spacing: .2em;
-      margin-top: .2rem;
+    .auth-brand-tag {
+      font-family: var(--font-mono); font-size: 10.5px;
+      color: var(--ink-3); letter-spacing: var(--tracking-caps);
+      font-weight: 600;
     }
 
     .auth-title {
-      font-family: var(--font-head);
-      font-weight: 600;
-      font-size: 1.45rem;
-      color: var(--text);
-      margin-bottom: .3rem;
+      font-size: 26px; font-weight: 700;
+      color: var(--ink-1); letter-spacing: -.02em;
+      margin: 0 0 6px; line-height: 1.15;
+    }
+    .auth-title em {
+      font-family: var(--font-serif); font-style: italic; font-weight: 400;
+      background: linear-gradient(180deg,#2a90ff,#00b8d4);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
     }
     .auth-sub {
-      font-family: var(--font-mono);
-      font-size: .72rem;
-      color: var(--muted);
-      letter-spacing: .15em;
-      margin-bottom: 1.6rem;
+      font-size: 11.5px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: var(--tracking-caps);
+      color: var(--ink-4); margin-bottom: 26px;
     }
 
-    .auth-field {
-      display: block;
-      margin-bottom: 1rem;
-    }
-    .auth-field label {
-      display: block;
-      font-family: var(--font-mono);
-      font-size: .7rem;
-      color: var(--muted);
-      letter-spacing: .18em;
-      margin-bottom: .35rem;
-      text-transform: uppercase;
-    }
-    .auth-field input {
-      width: 100%;
-      background: #050d16;
-      border: 1px solid var(--border);
-      color: var(--text);
-      font-family: var(--font-ui);
-      font-size: .95rem;
-      padding: .75rem .9rem;
-      border-radius: 3px;
-      transition: border-color .2s ease, box-shadow .2s ease;
-    }
-    .auth-field input:focus {
-      outline: none;
-      border-color: var(--accent);
-      box-shadow: 0 0 0 2px rgba(0,200,255,.18);
-    }
+    /* Campo de input — usa .field/.input del kit con margin-bottom propio */
+    .auth-card .field { margin-bottom: 14px; }
 
     .auth-row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-family: var(--font-mono);
-      font-size: .72rem;
-      margin-bottom: 1.4rem;
-      gap: .5rem;
+      display: flex; justify-content: space-between; align-items: center;
+      margin: 16px 0 22px; font-size: 12.5px;
+      gap: 12px; flex-wrap: wrap;
     }
-    .auth-row label {
-      display: inline-flex;
-      align-items: center;
-      gap: .45rem;
-      color: var(--muted);
-      letter-spacing: .08em;
-      cursor: pointer;
-      user-select: none;
-    }
-    .auth-row .link-btn {
-      background: none;
-      border: none;
-      color: var(--accent);
-      font-family: var(--font-mono);
-      font-size: .72rem;
-      letter-spacing: .12em;
-      cursor: pointer;
-      padding: 0;
-      text-transform: uppercase;
-    }
-    .auth-row .link-btn:hover { text-decoration: underline; }
+    .auth-row .check { color: var(--ink-2); }
 
-    .btn-submit {
-      width: 100%;
-      background: var(--gradient-brand);
-      color: #04111f;
-      border: none;
-      padding: .95rem 1rem;
-      font-family: var(--font-body);
-      font-weight: 600;
-      letter-spacing: 0.02em;
-      border-radius: var(--radius-md);
-      cursor: pointer;
-      font-size: var(--text-base);
-      transition: filter .2s ease, box-shadow .2s ease, transform .1s ease;
-      box-shadow: 0 10px 28px rgba(79,140,255,.38);
+    .auth-submit {
+      width: 100%; justify-content: center; padding: 13px;
+      font-size: 14px;
     }
-    .btn-submit:hover:not(:disabled) { filter: brightness(1.08); }
-    .btn-submit:active:not(:disabled) { transform: translateY(1px); }
-    .btn-submit:disabled {
-      filter: grayscale(.6) brightness(.8);
-      cursor: not-allowed;
-      box-shadow: none;
-    }
+    .auth-submit:disabled { filter: grayscale(.5) brightness(.92); cursor: not-allowed; }
 
     .auth-msg {
-      min-height: 1.2rem;
-      margin-top: 1rem;
-      font-family: var(--font-mono);
-      font-size: .78rem;
-      letter-spacing: .06em;
+      min-height: 1.4rem;
+      margin-top: 16px; padding: 10px 14px;
+      border-radius: var(--r-sm);
+      font-size: 12.5px; font-family: var(--font-mono);
+      background: rgba(0,122,255,.06);
+      color: var(--ink-3);
+      border: 1px solid rgba(0,122,255,.14);
+      transition: all var(--dur-fast);
     }
-    .auth-msg.err { color: #ff6680; }
-    .auth-msg.ok  { color: var(--accent3); }
-    .auth-msg.info { color: var(--muted); }
+    .auth-msg:empty { display: none; }
+    .auth-msg.err {
+      background: rgba(255,59,48,.08); color: #c91a14;
+      border-color: rgba(255,59,48,.25);
+    }
+    .auth-msg.ok {
+      background: rgba(28,200,112,.08); color: #008f4a;
+      border-color: rgba(28,200,112,.25);
+    }
+    .auth-msg.info { background: rgba(0,122,255,.06); color: var(--ink-2); }
 
     .auth-foot {
-      margin-top: 1.6rem;
-      padding-top: 1.2rem;
-      border-top: 1px solid var(--border);
-      font-family: var(--font-mono);
-      font-size: .64rem;
-      letter-spacing: .12em;
-      color: var(--muted);
-      text-align: center;
-      line-height: 1.7;
+      margin-top: 26px; padding-top: 20px;
+      border-top: 1px solid rgba(0,40,90,.10);
+      font-size: 11px; color: var(--ink-4);
+      line-height: 1.7; font-family: var(--font-mono);
+      text-align: center; letter-spacing: .04em;
     }
-    .auth-foot strong { color: var(--accent3); }
+    .auth-foot strong { color: var(--ink-2); font-weight: 700; letter-spacing: .08em; }
+
+    /* Compatibilidad con el splash del session-guard durante carga */
+    .auth-card { transition: opacity .2s; }
   </style>
 </head>
-<body>
+<body class="aqua">
 
-<div class="sgm-aurora" aria-hidden="true"></div>
-<div class="sgm-grain" aria-hidden="true"></div>
+<!-- Escena Aqua: mesh + grid + transformador SVG + partículas + orbes -->
+<div class="aqua-scene" aria-hidden="true"></div>
+<div class="aqua-grid" aria-hidden="true"></div>
+<div class="aqua-orb aqua-orb--blue"  aria-hidden="true"></div>
+<div class="aqua-orb aqua-orb--cyan"  aria-hidden="true"></div>
+<div class="aqua-orb aqua-orb--teal"  aria-hidden="true"></div>
+<div class="aqua-orb aqua-orb--amber" aria-hidden="true"></div>
+<img class="aqua-transformer-bg" src="assets/img/aqua/transformer.svg" alt="" aria-hidden="true"/>
+<div class="aqua-particles" id="aquaParticles" aria-hidden="true"></div>
 
 <a class="skip-link" href="#main">Saltar al formulario de acceso</a>
 
@@ -241,64 +175,66 @@
 
     <div class="auth-brand">
       <div class="auth-logo" aria-hidden="true">
-        <svg viewBox="0 0 88 88" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="44" cy="44" r="42" stroke="#0d2a3f" stroke-width="1.5"/>
-          <circle cx="44" cy="44" r="42" stroke="url(#lg)" stroke-width="1.5" stroke-dasharray="4 6"/>
-          <rect x="22" y="28" width="44" height="32" rx="2" fill="#070f1a" stroke="#0d2a3f" stroke-width="1"/>
-          <rect x="28" y="34" width="14" height="20" rx="2" fill="none" stroke="#00c8ff" stroke-width="1.5"/>
-          <rect x="46" y="34" width="14" height="20" rx="2" fill="none" stroke="#f0a500" stroke-width="1.5"/>
-          <defs>
-            <linearGradient id="lg" x1="0" y1="0" x2="88" y2="88" gradientUnits="userSpaceOnUse">
-              <stop offset="0" stop-color="#00c8ff"/>
-              <stop offset="1" stop-color="#f0a500"/>
-            </linearGradient>
-          </defs>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
         </svg>
       </div>
       <div class="auth-brand-text">
-        <div class="brand-main">SGM · <em>TRANSPOWER</em></div>
-        <div class="brand-sub">Gestión del Mantenimiento</div>
+        <div class="auth-brand-name">SGM · <em>TRANSPOWER</em></div>
+        <div class="auth-brand-tag">Gestión del mantenimiento</div>
       </div>
     </div>
 
-    <h1 id="authTitle" class="auth-title">Acceso a la plataforma</h1>
-    <div class="auth-sub">// Ingrese sus credenciales de equipo</div>
+    <h1 id="authTitle" class="auth-title">Acceso a la <em>plataforma</em></h1>
+    <div class="auth-sub">Zona restringida · personal técnico autorizado</div>
 
-    <form id="formLogin" novalidate>
-      <div class="auth-field">
+    <form id="formLogin" novalidate autocomplete="on">
+      <div class="field">
         <label for="fEmail">Correo corporativo</label>
-        <input type="email" id="fEmail" name="email" autocomplete="email"
-               required placeholder="nombre@empresa.com"/>
+        <div class="input-icon">
+          <i data-lucide="mail"></i>
+          <input class="input" type="email" id="fEmail" name="email" autocomplete="email"
+                 required placeholder="nombre@empresa.com"/>
+        </div>
       </div>
 
-      <div class="auth-field">
+      <div class="field">
         <label for="fPass">Contraseña</label>
-        <input type="password" id="fPass" name="password" autocomplete="current-password"
-               required minlength="6" placeholder="••••••••"/>
+        <div class="input-icon">
+          <i data-lucide="key-round"></i>
+          <input class="input" type="password" id="fPass" name="password" autocomplete="current-password"
+                 required minlength="6" placeholder="••••••••"/>
+        </div>
       </div>
 
       <div class="auth-row">
-        <label>
+        <label class="check">
           <input type="checkbox" id="fRemember"/>
-          Mantener sesión en este dispositivo
+          <span>Mantener sesión en este dispositivo</span>
         </label>
         <button type="button" class="link-btn" id="btnReset">¿Olvidó su contraseña?</button>
       </div>
 
-      <button type="submit" class="btn-submit" id="btnSubmit">INGRESAR →</button>
+      <button type="submit" class="btn btn--primary auth-submit" id="btnSubmit">
+        <i data-lucide="log-in"></i> Iniciar sesión
+      </button>
 
       <div class="auth-msg" id="authMsg" role="status" aria-live="polite"></div>
     </form>
 
     <div class="auth-foot">
       Acceso restringido al equipo de <strong>Dirección y Gestión del
-      Mantenimiento en Transformadores de Potencia</strong> —
-      Caribe Colombiano.
+      Mantenimiento en Transformadores de Potencia</strong> ·
+      Caribe Colombiano · LORD POWER TRANSFORMERS MJ S.A.S.
     </div>
 
   </section>
 
 </main>
+
+<!-- Lucide icons CDN + Aqua interactions -->
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+<script src="assets/js/aqua.js" defer></script>
 
 <script type="module">
   import {
@@ -346,14 +282,12 @@
     msg.className = 'auth-msg ' + cls;
   }
 
-  // Aviso si Firebase no está configurado.
   if (!isFirebaseConfigured) {
     setMsg('Firebase aún no configurado. Edite assets/js/firebase-config.js.', 'err');
     btn.disabled = true;
     btnReset.disabled = true;
   }
 
-  // Si ya hay sesión válida, saltar directo al home.
   (function bootstrap() {
     const auth = getAuthSafe();
     const db   = getDbSafe();
@@ -366,21 +300,18 @@
     }
     onAuthStateChanged(auth, async (user) => {
       if (!user) return;
-      // Verificar perfil antes de redirigir.
       try {
         const snap = await getDoc(doc(db, 'usuarios', user.uid));
         if (snap.exists() && snap.data().activo !== false) {
           location.replace('home.html');
           return;
         }
-        // Fallback legacy: admins colección
         const adminSnap = await getDoc(doc(db, 'admins', user.uid));
         if (adminSnap.exists()) {
           location.replace('home.html');
           return;
         }
       } catch (_) {}
-      // Perfil inválido → cerrar sesión silenciosamente.
       try { await signOut(auth); } catch (_) {}
     });
   })();
@@ -407,7 +338,6 @@
         auth, email.value.trim(), pass.value
       );
 
-      // Verificar perfil activo en /usuarios/{uid} (o admin legacy).
       let ok = false;
       try {
         const snap = await getDoc(doc(db, 'usuarios', cred.user.uid));
