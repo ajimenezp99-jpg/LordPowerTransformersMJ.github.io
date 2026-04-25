@@ -856,6 +856,268 @@ body.aqua .btn-danger {
   cursor: pointer;
 }
 
+/* ═══════════════════════════════════════════════════════════════
+   OVERRIDES Aqua para PILLS legacy (estado-pill, tipo-pill,
+   prioridad-pill, sev-pill, alerta-tipo-pill, bucket-pill, …)
+═══════════════════════════════════════════════════════════════ */
+
+body.aqua .estado-pill,
+body.aqua .tipo-pill,
+body.aqua .prioridad-pill,
+body.aqua .sev-pill,
+body.aqua .alerta-tipo-pill,
+body.aqua .bucket-pill,
+body.aqua .cat-pill,
+body.aqua .norma-pill,
+body.aqua .upload-status-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 600;
+  letter-spacing: .02em;
+  background: rgba(0,40,90,.06);
+  color: var(--ink-2);
+  border: 1px solid rgba(0,40,90,.10);
+  text-transform: none;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.4);
+}
+
+/* estado_servicio del inventario */
+body.aqua .estado-pill.operativo,
+body.aqua .estado-pill.activo {
+  background: rgba(28,200,112,.14); color: #008f4a; border-color: rgba(28,200,112,.32);
+}
+body.aqua .estado-pill.mantenimiento {
+  background: rgba(255,149,0,.14); color: #b85f00; border-color: rgba(255,149,0,.32);
+}
+body.aqua .estado-pill.fuera_servicio {
+  background: rgba(255,59,48,.14); color: #c91a14; border-color: rgba(255,59,48,.32);
+}
+body.aqua .estado-pill.retirado {
+  background: rgba(0,40,90,.06); color: var(--ink-3); border-color: rgba(0,40,90,.12);
+}
+body.aqua .estado-pill.fallado {
+  background: rgba(255,59,48,.20); color: #c91a14; border-color: rgba(255,59,48,.45); font-weight: 700;
+}
+
+/* estado_orden */
+body.aqua .estado-pill.planificada {
+  background: rgba(0,122,255,.12); color: var(--brand-deep); border-color: rgba(0,122,255,.32);
+}
+body.aqua .estado-pill.en_curso {
+  background: rgba(0,184,212,.14); color: var(--cyan-deep); border-color: rgba(0,184,212,.32);
+}
+body.aqua .estado-pill.cerrada {
+  background: rgba(28,200,112,.14); color: #008f4a; border-color: rgba(28,200,112,.32);
+}
+body.aqua .estado-pill.cancelada {
+  background: rgba(0,40,90,.06); color: var(--ink-3); border-color: rgba(0,40,90,.14); text-decoration: line-through;
+}
+
+/* tipo_orden */
+body.aqua .tipo-pill.preventivo  { border-left: 3px solid var(--cyan); }
+body.aqua .tipo-pill.correctivo  { border-left: 3px solid var(--warn); }
+body.aqua .tipo-pill.predictivo  { border-left: 3px solid var(--brand); }
+body.aqua .tipo-pill.emergencia  { border-left: 3px solid var(--danger); color: #c91a14; }
+
+/* prioridad_orden */
+body.aqua .prioridad-pill.baja    { color: var(--ink-3); }
+body.aqua .prioridad-pill.media   { background: rgba(0,184,212,.08); color: var(--cyan-deep); border-color: rgba(0,184,212,.28); }
+body.aqua .prioridad-pill.alta    { background: rgba(255,149,0,.12); color: #b85f00; border-color: rgba(255,149,0,.32); }
+body.aqua .prioridad-pill.critica { background: rgba(255,59,48,.14); color: #c91a14; border-color: rgba(255,59,48,.42); font-weight: 700; }
+
+/* severidad de alertas */
+body.aqua .sev-pill.critica { background: rgba(255,59,48,.14); color: #c91a14; border-color: rgba(255,59,48,.32); font-weight: 700; }
+body.aqua .sev-pill.warning { background: rgba(255,149,0,.14); color: #b85f00; border-color: rgba(255,149,0,.32); }
+body.aqua .sev-pill.info    { background: rgba(0,122,255,.12); color: var(--brand-deep); border-color: rgba(0,122,255,.30); }
+
+/* buckets de salud HI */
+body.aqua .bucket-pill.b1, body.aqua .bucket-pill[data-b="1"] { background: rgba(28,200,112,.14); color: #008f4a; border-color: rgba(28,200,112,.32); }
+body.aqua .bucket-pill.b2, body.aqua .bucket-pill[data-b="2"] { background: rgba(48,209,176,.14); color: var(--teal-deep); border-color: rgba(48,209,176,.32); }
+body.aqua .bucket-pill.b3, body.aqua .bucket-pill[data-b="3"] { background: rgba(0,122,255,.14); color: var(--brand-deep); border-color: rgba(0,122,255,.32); }
+body.aqua .bucket-pill.b4, body.aqua .bucket-pill[data-b="4"] { background: rgba(255,149,0,.14); color: #b85f00; border-color: rgba(255,149,0,.32); }
+body.aqua .bucket-pill.b5, body.aqua .bucket-pill[data-b="5"] { background: rgba(255,59,48,.14); color: #c91a14; border-color: rgba(255,59,48,.32); font-weight: 700; }
+
+/* TABLAS legacy (.tabla, .table, .data-table) */
+body.aqua .tabla,
+body.aqua .table,
+body.aqua .data-table,
+body.aqua table.dt,
+body.aqua .ord-table,
+body.aqua .inv-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 13.5px; color: var(--ink-2);
+  background: transparent;
+}
+body.aqua .tabla thead th,
+body.aqua .table thead th,
+body.aqua .data-table thead th,
+body.aqua .ord-table thead th,
+body.aqua .inv-table thead th {
+  background: rgba(255,255,255,.55) !important;
+  color: var(--ink-4) !important;
+  font-size: 10.5px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: var(--tracking-caps);
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(0,40,90,.10) !important;
+  text-align: left;
+}
+body.aqua .tabla tbody td,
+body.aqua .table tbody td,
+body.aqua .data-table tbody td,
+body.aqua .ord-table tbody td,
+body.aqua .inv-table tbody td {
+  padding: 14px;
+  border-bottom: 1px solid rgba(0,40,90,.06) !important;
+  color: var(--ink-2);
+}
+body.aqua .tabla tbody tr,
+body.aqua .table tbody tr,
+body.aqua .data-table tbody tr,
+body.aqua .ord-table tbody tr,
+body.aqua .inv-table tbody tr {
+  transition: background var(--dur-fast);
+}
+body.aqua .tabla tbody tr:hover,
+body.aqua .table tbody tr:hover,
+body.aqua .data-table tbody tr:hover,
+body.aqua .ord-table tbody tr:hover,
+body.aqua .inv-table tbody tr:hover {
+  background: rgba(0,122,255,.04) !important;
+}
+
+/* ALERTAS legacy en módulos */
+body.aqua .alert-row,
+body.aqua .alerta-row,
+body.aqua .alert-item {
+  background: var(--glass-thin);
+  backdrop-filter: var(--glass-blur-thin);
+  -webkit-backdrop-filter: var(--glass-blur-thin);
+  border: 1px solid rgba(0,40,90,.08);
+  border-left-width: 3px;
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  margin-bottom: 8px;
+  box-shadow: var(--sh-sm);
+  position: relative;
+}
+body.aqua .alert-row.critica,
+body.aqua .alerta-row.critica { border-left-color: var(--danger); }
+body.aqua .alert-row.warning,
+body.aqua .alerta-row.warning { border-left-color: var(--warn); }
+body.aqua .alert-row.info,
+body.aqua .alerta-row.info    { border-left-color: var(--brand); }
+body.aqua .alert-row.reconocida {
+  opacity: .55;
+  background: rgba(0,40,90,.04);
+  border-left-color: var(--ink-4);
+}
+body.aqua .alert-row.reconocida * { text-decoration: line-through; }
+
+/* TOOLBAR / FILTROS legacy */
+body.aqua .toolbar,
+body.aqua .filtros,
+body.aqua .filter-bar,
+body.aqua .controls-bar {
+  display: flex; gap: 12px; align-items: center; flex-wrap: wrap;
+  padding: 14px 16px;
+  background: var(--glass-regular);
+  backdrop-filter: var(--glass-blur-regular);
+  -webkit-backdrop-filter: var(--glass-blur-regular);
+  border-radius: var(--r-md);
+  box-shadow: var(--glass-ring), var(--sh-sm);
+  margin-bottom: 18px;
+}
+
+/* CARDS / PANELS / SECCIONES legacy */
+body.aqua .card,
+body.aqua .panel-v3,
+body.aqua .stat-v3,
+body.aqua .module-card,
+body.aqua .info-card,
+body.aqua .summary-card,
+body.aqua .section-card,
+body.aqua .data-card {
+  background: var(--glass-regular);
+  backdrop-filter: var(--glass-blur-regular);
+  -webkit-backdrop-filter: var(--glass-blur-regular);
+  border: 0;
+  border-radius: var(--r-lg);
+  box-shadow: var(--glass-ring), var(--sh-md);
+  position: relative;
+  color: var(--ink-2);
+}
+body.aqua .card::before,
+body.aqua .panel-v3::before,
+body.aqua .stat-v3::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background: var(--glass-specular);
+  border-radius: inherit;
+}
+body.aqua .card > *,
+body.aqua .panel-v3 > *,
+body.aqua .stat-v3 > * { position: relative; z-index: 1; }
+
+/* Encabezados / títulos dentro de cards legacy */
+body.aqua .card h2,
+body.aqua .card h3,
+body.aqua .panel-v3 h2,
+body.aqua .panel-v3 h3,
+body.aqua .module-card h2,
+body.aqua .module-card h3 {
+  color: var(--ink-1);
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: -.015em;
+}
+
+/* Page header legacy */
+body.aqua .page-header,
+body.aqua .home-section-head {
+  display: flex; justify-content: space-between; align-items: center; gap: 16px;
+  margin-bottom: 24px; flex-wrap: wrap;
+}
+body.aqua .page-title,
+body.aqua .home-section-title {
+  color: var(--ink-1);
+  font-family: var(--font-sans);
+  font-weight: 700;
+  letter-spacing: -.02em;
+}
+body.aqua .page-title em,
+body.aqua .home-section-title em {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  color: var(--brand);
+}
+body.aqua .page-subtitle,
+body.aqua .home-section-sub {
+  color: var(--ink-3);
+  font-size: 13.5px;
+  margin-top: 4px;
+}
+body.aqua .breadcrumb {
+  color: var(--ink-3);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  letter-spacing: .08em;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+/* Empty/loading states */
+body.aqua .empty-state,
+body.aqua .loading-state {
+  padding: 40px;
+  text-align: center;
+  color: var(--ink-3);
+  background: var(--glass-thin);
+  border-radius: var(--r-lg);
+  border: 1px dashed rgba(0,40,90,.12);
+}
+
 /* ─── FOCUS visible (a11y sobre fondo claro) ─────────────── */
 body.aqua :focus-visible {
   outline: 2px solid var(--brand);
