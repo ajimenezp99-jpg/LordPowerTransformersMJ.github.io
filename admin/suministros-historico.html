@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="es" data-aqua>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <meta name="theme-color" content="#f4f6fb"/>
+  <meta name="color-scheme" content="light"/>
+  <title>SGM · TRANSPOWER — Histórico de Movimientos</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/aqua/logo-aqua.svg"/>
+  <script type="module" src="../assets/js/auth/admin-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="../assets/css/aqua-tokens.css"/>
+  <link rel="stylesheet" href="../assets/css/aqua-components.css"/>
+  <link rel="stylesheet" href="../assets/css/inventario.css"/>
+  <link rel="stylesheet" href="../assets/css/suministros.css"/>
+</head>
+<body class="aqua">
+<main class="app-main page-container">
+
+  <div class="page-header">
+    <div class="breadcrumb">Suministros / Histórico</div>
+    <h1 class="page-title">Histórico de <em>Movimientos</em></h1>
+    <p class="page-subtitle">
+      Bitácora completa de INGRESO/EGRESO. Eliminar requiere justificación
+      obligatoria que queda en <code>/auditoria</code>.
+    </p>
+  </div>
+
+  <div class="inv-toolbar">
+    <div class="inv-filters">
+      <div class="inv-search">
+        <i data-lucide="search"></i>
+        <input type="search" id="fBusqueda" placeholder="Buscar por código MOV, suministro, matrícula, ODT, usuario…" aria-label="Buscar">
+      </div>
+      <select class="form-select" id="fAnio" aria-label="Filtrar por año">
+        <option value="">Todos los años</option>
+      </select>
+      <select class="form-select" id="fTipo" aria-label="Filtrar por tipo">
+        <option value="">Todos los tipos</option>
+        <option value="INGRESO">INGRESO</option>
+        <option value="EGRESO">EGRESO</option>
+      </select>
+      <select class="form-select" id="fZona" aria-label="Filtrar por zona">
+        <option value="">Todas las zonas</option>
+        <option value="BOLIVAR">Bolívar</option>
+        <option value="ORIENTE">Oriente</option>
+        <option value="OCCIDENTE">Occidente</option>
+      </select>
+      <select class="form-select" id="fSum" aria-label="Filtrar por suministro">
+        <option value="">Todos los suministros</option>
+      </select>
+    </div>
+    <button class="btn-secondary" id="btnExportCsv" title="Exportar la lista filtrada a CSV">
+      <i data-lucide="download"></i> Exportar CSV
+    </button>
+  </div>
+
+  <div id="infoBox" class="info-msg" style="display:none"></div>
+
+  <div class="section-head" id="counter">Listado</div>
+  <div class="table-wrap">
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th scope="col">Código MOV</th>
+            <th scope="col">Año · Tipo</th>
+            <th scope="col">Suministro</th>
+            <th scope="col">Marca</th>
+            <th scope="col">Matrícula · Subestación</th>
+            <th scope="col">Zona</th>
+            <th scope="col" style="text-align:right">Cant.</th>
+            <th scope="col" style="text-align:right">Valor (COP)</th>
+            <th scope="col">ODT</th>
+            <th scope="col">Usuario</th>
+            <th scope="col" class="col-actions">Acciones</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="11" class="td-empty">Cargando movimientos…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<!-- ═══ MODAL DETALLE ═══ -->
+<div id="modal" class="modal-overlay" style="display:none">
+  <div class="modal-card" role="dialog" aria-labelledby="modalTitle" aria-modal="true">
+    <div class="modal-head">
+      <h3 id="modalTitle">Detalle del movimiento</h3>
+      <button class="modal-x" id="modalClose" aria-label="Cerrar modal">
+        <i data-lucide="x"></i>
+      </button>
+    </div>
+    <div id="modalBody" class="mov-detalle-body"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn-secondary" id="btnCloseDetalle">
+        <i data-lucide="x"></i> Cerrar
+      </button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="../assets/js/admin/admin-suministros-historico.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+<script src="../assets/js/aqua.js" defer></script>
+<script src="../assets/js/aqua-shell.js" defer></script>
+</body>
+</html>
