@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es" data-aqua>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <title>SGM · TRANSPOWER — Importar Suministros</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/aqua/logo-aqua.svg"/>
+  <script type="module" src="../assets/js/auth/admin-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/aqua-tokens.css"/>
+  <link rel="stylesheet" href="../assets/css/aqua-components.css"/>
+  <style>
+    .wrap { max-width: 1080px; margin: 1rem auto; padding: 0 1rem; }
+    .src-card {
+      background: rgba(255,255,255,.30);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,.45);
+      border-radius: 12px;
+      padding: 1rem 1.2rem;
+      margin-bottom: .8rem;
+    }
+    .src-card h3 { margin: 0 0 .5rem; font-size: 13px; color: var(--ink-1); }
+    .src-line { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-family: var(--font-mono); font-size: 12px; color: var(--ink-2); }
+    .src-line .ok { color: #16A34A; font-weight: 600; }
+    .src-line .err { color: #DC2626; font-weight: 600; }
+    .src-line .loading { color: #EA580C; }
+    .btn-row { display: flex; gap: .7rem; margin-top: 1rem; flex-wrap: wrap; }
+    button.btn {
+      padding: .6rem 1.1rem; border: 0; cursor: pointer;
+      font-family: var(--font-mono); font-size: 12.5px; letter-spacing: .04em;
+      border-radius: 8px;
+    }
+    .btn-primary { background: var(--brand); color: #fff; }
+    .btn-primary:disabled { background: rgba(0,122,255,.4); cursor: not-allowed; }
+    .btn-secondary { background: rgba(0,40,90,.08); color: var(--ink-1); }
+    .btn-dry { background: rgba(245,158,11,.15); color: #B45309; border: 1px solid rgba(245,158,11,.40); }
+    .btn-real { background: var(--brand-deep); color: #fff; }
+    .btn-real:disabled { background: rgba(0,81,213,.4); cursor: not-allowed; }
+    .report-card {
+      background: rgba(255,255,255,.36);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255,255,255,.45);
+      border-radius: 12px; padding: 1rem 1.2rem; margin-top: 1rem;
+    }
+    .report-card h3 { margin: 0 0 .7rem; font-size: 13px; color: var(--ink-1); }
+    .summary-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .summary-table th, .summary-table td { padding: 6px 10px; text-align: left; border-bottom: 1px solid rgba(0,40,90,.08); }
+    .summary-table th { color: var(--ink-2); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }
+    .num { text-align: right; font-family: var(--font-mono); }
+    #msg { margin-top: .8rem; font-family: var(--font-mono); font-size: 13px; }
+    .msg-ok  { color: #16A34A; }
+    .msg-err { color: #DC2626; }
+    .progress { font-family: var(--font-mono); font-size: 12px; color: var(--ink-3); margin-top: .5rem; }
+    code { background: rgba(0,40,90,.05); padding: 2px 5px; border-radius: 4px; font-family: var(--font-mono); font-size: 11.5px; }
+  </style>
+</head>
+<body class="aqua">
+<main id="main" class="wrap">
+  <h1 class="page-title">Importar Suministros</h1>
+  <p class="page-subtitle" style="font-size: 13px; color: var(--ink-3); line-height: 1.5; margin: 6px 0 18px;">
+    Sembrado inicial de <code>/suministros</code>, <code>/marcas</code>,
+    <code>/transformadores</code> y <code>/correcciones</code> desde los archivos fuente
+    <code>Gestion_Suministros_Transformadores-2.xlsm</code> y
+    <code>control_suministros-2.jsx</code>.
+    <br>Idempotente: re-ejecutar no duplica datos. Audit en
+    <code>/auditoria</code> con SHA-256 de cada fuente.
+  </p>
+
+  <section class="src-card">
+    <h3>1 · Fuentes de datos</h3>
+    <div class="src-line">
+      <span>📊 .xlsm:</span>
+      <span id="xlsm-status" class="loading">⋯ sin cargar</span>
+      <input type="file" id="xlsmInput" accept=".xlsm,.xlsx" style="display:none">
+      <button class="btn btn-secondary" id="btnXlsmFile">Subir .xlsm</button>
+    </div>
+    <div class="src-line" style="margin-top: 6px;">
+      <span>📜 .jsx:</span>
+      <span id="jsx-status" class="loading">⋯ sin cargar</span>
+      <input type="file" id="jsxInput" accept=".jsx,.txt" style="display:none">
+      <button class="btn btn-secondary" id="btnJsxFile">Subir .jsx</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="btnLoadRepo">Cargar desde repo</button>
+      <button class="btn btn-secondary" id="btnPlanear" disabled>Planear importación</button>
+    </div>
+    <div class="progress" id="progress"></div>
+  </section>
+
+  <div id="reportWrap" hidden>
+    <section class="report-card">
+      <h3>2 · Plan de importación</h3>
+      <table class="summary-table">
+        <thead>
+          <tr><th scope="col">Colección</th><th scope="col" class="num">Total</th><th scope="col" class="num">Crear</th><th scope="col" class="num">Actualizar</th><th scope="col" class="num">Huérfanos</th></tr>
+        </thead>
+        <tbody id="planBody"></tbody>
+      </table>
+      <p style="font-size: 12px; color: var(--ink-3); margin-top: 8px;">
+        <strong>Huérfanos:</strong> documentos en Firestore que no aparecen en los archivos fuente.
+        <em>No se eliminan</em> (decisión 2·A del plan).
+      </p>
+      <div class="btn-row">
+        <button class="btn btn-dry" id="btnDry">SIMULAR (dry-run)</button>
+        <button class="btn btn-real" id="btnReal">IMPORTAR EN FIRESTORE</button>
+      </div>
+      <div id="msg"></div>
+    </section>
+
+    <section class="report-card" id="huerfanosCard" hidden>
+      <h3>Huérfanos detectados</h3>
+      <div id="huerfanosBody" style="font-family: var(--font-mono); font-size: 12px; color: var(--ink-2);"></div>
+    </section>
+  </div>
+</main>
+
+<script type="module">
+import {
+  parsearArchivos, planearImportacion, ejecutarImportacion, isReady
+} from '../assets/js/data/importador_suministros.js';
+
+// ── SheetJS lazy-load ──
+async function loadSheetJS() {
+  if (window.XLSX) return window.XLSX;
+  await new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+    s.onload = res; s.onerror = rej;
+    document.head.appendChild(s);
+  });
+  return window.XLSX;
+}
+
+const $ = (id) => document.getElementById(id);
+const setMsg = (t, cls = 'msg-ok') => { $('msg').textContent = t; $('msg').className = cls; };
+
+let estado = { xlsmBuffer: null, jsxText: null, plan: null, parsed: null, hashes: null };
+
+function actualizarBotonPlanear() {
+  $('btnPlanear').disabled = !(estado.xlsmBuffer && estado.jsxText);
+}
+
+function setStatus(id, txt, cls) {
+  const el = $(id);
+  el.textContent = txt;
+  el.className = cls;
+}
+
+// ── Subir manual ──
+$('btnXlsmFile').addEventListener('click', () => $('xlsmInput').click());
+$('btnJsxFile').addEventListener('click', () => $('jsxInput').click());
+
+$('xlsmInput').addEventListener('change', async (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  setStatus('xlsm-status', `⋯ leyendo ${f.name}`, 'loading');
+  estado.xlsmBuffer = await f.arrayBuffer();
+  setStatus('xlsm-status', `✓ ${f.name} (${(estado.xlsmBuffer.byteLength/1024).toFixed(1)} KB)`, 'ok');
+  actualizarBotonPlanear();
+});
+
+$('jsxInput').addEventListener('change', async (e) => {
+  const f = e.target.files[0];
+  if (!f) return;
+  setStatus('jsx-status', `⋯ leyendo ${f.name}`, 'loading');
+  estado.jsxText = await f.text();
+  setStatus('jsx-status', `✓ ${f.name} (${(estado.jsxText.length/1024).toFixed(1)} KB)`, 'ok');
+  actualizarBotonPlanear();
+});
+
+// ── Cargar desde repo ──
+$('btnLoadRepo').addEventListener('click', async () => {
+  try {
+    setStatus('xlsm-status', '⋯ fetch /Gestion_Suministros_Transformadores-2.xlsm', 'loading');
+    setStatus('jsx-status', '⋯ fetch /control_suministros-2.jsx', 'loading');
+    const [xlsmRes, jsxRes] = await Promise.all([
+      fetch('/Gestion_Suministros_Transformadores-2.xlsm'),
+      fetch('/control_suministros-2.jsx')
+    ]);
+    if (!xlsmRes.ok) throw new Error(`.xlsm fetch ${xlsmRes.status}`);
+    if (!jsxRes.ok)  throw new Error(`.jsx fetch ${jsxRes.status}`);
+    estado.xlsmBuffer = await xlsmRes.arrayBuffer();
+    estado.jsxText    = await jsxRes.text();
+    setStatus('xlsm-status', `✓ repo (${(estado.xlsmBuffer.byteLength/1024).toFixed(1)} KB)`, 'ok');
+    setStatus('jsx-status',  `✓ repo (${(estado.jsxText.length/1024).toFixed(1)} KB)`, 'ok');
+    actualizarBotonPlanear();
+  } catch (err) {
+    setStatus('xlsm-status', '✕ ' + err.message, 'err');
+    setStatus('jsx-status',  '✕ ' + err.message, 'err');
+  }
+});
+
+// ── Planear ──
+$('btnPlanear').addEventListener('click', async () => {
+  try {
+    if (!isReady()) { setMsg('Firebase no inicializado.', 'msg-err'); return; }
+    $('progress').textContent = '⋯ Cargando SheetJS y leyendo Firestore...';
+    const XLSX = await loadSheetJS();
+    const { plan, parsed, hashes } = await planearImportacion({
+      xlsmBuffer: estado.xlsmBuffer,
+      jsxText:    estado.jsxText,
+      XLSX
+    });
+    estado.plan = plan; estado.parsed = parsed; estado.hashes = hashes;
+    renderPlan(plan);
+    $('reportWrap').hidden = false;
+    $('progress').textContent = '✓ Plan generado. Simular antes de importar.';
+  } catch (err) {
+    console.error(err);
+    $('progress').textContent = '✕ ' + err.message;
+    setMsg('Error: ' + err.message, 'msg-err');
+  }
+});
+
+function renderPlan(plan) {
+  const r = plan.resumen;
+  $('planBody').innerHTML = `
+    <tr><td>suministros</td><td class="num">${r.suministros.total}</td><td class="num">${r.suministros.crear}</td><td class="num">${r.suministros.actualizar}</td><td class="num">${r.suministros.huerfanos}</td></tr>
+    <tr><td>marcas</td><td class="num">${r.marcas.total}</td><td class="num">${r.marcas.crear}</td><td class="num">—</td><td class="num">—</td></tr>
+    <tr><td>transformadores</td><td class="num">${r.transformadores.total}</td><td class="num">${r.transformadores.crear}</td><td class="num">${r.transformadores.actualizar}</td><td class="num">${r.transformadores.huerfanos}</td></tr>
+    <tr><td>correcciones</td><td class="num">${r.correcciones.total}</td><td class="num">${r.correcciones.total}</td><td class="num">—</td><td class="num">—</td></tr>
+  `;
+  const huer = [...plan.suministros.huerfanos.map((s) => `suministro: ${s}`),
+                ...plan.transformadores.huerfanos.map((m) => `trafo: ${m}`)];
+  if (huer.length === 0) {
+    $('huerfanosCard').hidden = true;
+  } else {
+    $('huerfanosCard').hidden = false;
+    $('huerfanosBody').innerHTML = huer.slice(0, 50).join('<br>') +
+      (huer.length > 50 ? `<br><em>... y ${huer.length - 50} más</em>` : '');
+  }
+}
+
+// ── Ejecutar ──
+async function ejecutar(dryRun) {
+  if (!estado.plan) return;
+  try {
+    setMsg(dryRun ? '⋯ Simulando...' : '⋯ Importando...', 'msg-ok');
+    const session = window.__sgmSession;
+    const out = await ejecutarImportacion({
+      plan: estado.plan,
+      parsed: estado.parsed,
+      hashes: estado.hashes,
+      dryRun,
+      uid: session && session.user && session.user.uid,
+      onProgress: ({ etapa, i, total }) => {
+        $('progress').textContent = `⋯ ${dryRun ? 'Simulando' : 'Persistiendo'} ${etapa}: ${i}/${total}`;
+      }
+    });
+    setMsg(
+      `✓ ${dryRun ? 'Simulación' : 'Importación'} OK en ${(out.duracion_ms/1000).toFixed(1)}s · ` +
+      `Suministros: ${out.summary.suministros.creados}c/${out.summary.suministros.actualizados}u · ` +
+      `Marcas: ${out.summary.marcas.creadas}c · ` +
+      `Trafos: ${out.summary.transformadores.creados}c/${out.summary.transformadores.actualizados}u · ` +
+      `Correcciones: ${out.summary.correcciones.creadas}c` +
+      (out.auditId ? ` · Audit: ${out.auditId}` : ''),
+      'msg-ok'
+    );
+  } catch (err) {
+    console.error(err);
+    setMsg('Error: ' + err.message, 'msg-err');
+  }
+}
+$('btnDry').addEventListener('click',  () => ejecutar(true));
+$('btnReal').addEventListener('click', () => {
+  if (!confirm('¿Confirmas la IMPORTACIÓN REAL a Firestore?\n\nLos suministros y trafos con código existente se actualizarán; los nuevos se crean.\nLos huérfanos NO se eliminan.\nUna entrada bulk_import_suministros queda en /auditoria.')) return;
+  ejecutar(false);
+});
+</script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+<script src="../assets/js/aqua.js" defer></script>
+<script src="../assets/js/aqua-shell.js" defer></script>
+</body>
+</html>
