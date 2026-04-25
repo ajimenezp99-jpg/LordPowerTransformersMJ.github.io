@@ -23,6 +23,20 @@
   if (window.__aquaShellInjected) return;
   window.__aquaShellInjected = true;
 
+  // Si la página está embebida en un iframe (parte del refactor v2.3
+  // de tabs), marcamos el body con .is-embedded y NO inyectamos
+  // topbar/sidebar — el padre ya tiene su propio shell. Los estilos
+  // de tabs.css ocultan los elementos correspondientes.
+  try {
+    if (window.self !== window.top) {
+      document.body.classList.add('is-embedded');
+      return;
+    }
+  } catch (_) {
+    // Cross-origin guard: si no podemos comparar, asumimos top y
+    // continuamos con el shell normal.
+  }
+
   const path = location.pathname;
   // Calcular base relativa: si estamos en /pages/foo.html o /admin/foo.html → "../"
   // Si /home.html o /index.html (raíz) → "./"
@@ -102,11 +116,11 @@
         <a href="${u('pages/inventario.html')}" class="sb-item" data-key="inventario"><span class="i"><i data-lucide="database"></i></span>Inventario</a>
         <a href="${u('pages/ordenes.html')}" class="sb-item" data-key="ordenes"><span class="i"><i data-lucide="clipboard-list"></i></span>Órdenes</a>
         <a href="${u('pages/mapa.html')}" class="sb-item" data-key="mapa"><span class="i"><i data-lucide="map"></i></span>Mapa</a>
+        <a href="${u('pages/suministros.html')}" class="sb-item" data-key="suministros"><span class="i"><i data-lucide="package"></i></span>Suministros</a>
       </div>
       <div class="sb-group">
         <div class="sb-group-title">Análisis</div>
         <a href="${u('pages/dashboard.html')}" class="sb-item" data-key="dashboard"><span class="i"><i data-lucide="layout-grid"></i></span>Dashboard</a>
-        <a href="${u('pages/suministros-dashboard.html')}" class="sb-item" data-key="suministros-dashboard"><span class="i"><i data-lucide="bar-chart-3"></i></span>Dashboard Suministros</a>
         <a href="${u('pages/kpis.html')}" class="sb-item" data-key="kpis"><span class="i"><i data-lucide="bar-chart-3"></i></span>KPIs &amp; RAM</a>
         <a href="${u('pages/matriz-riesgo.html')}" class="sb-item" data-key="matriz"><span class="i"><i data-lucide="grid-3x3"></i></span>Matriz Riesgo</a>
         <a href="${u('pages/alertas.html')}" class="sb-item" data-key="alertas"><span class="i"><i data-lucide="bell-ring"></i></span>Alertas</a>
@@ -126,12 +140,7 @@
         <a href="${u('admin/subestaciones.html')}" class="sb-item sb-admin" data-key="subestaciones"><span class="i"><i data-lucide="factory"></i></span>Subestaciones</a>
         <a href="${u('admin/contratos.html')}" class="sb-item sb-admin" data-key="contratos"><span class="i"><i data-lucide="file-text"></i></span>Contratos</a>
         <a href="${u('admin/catalogos.html')}" class="sb-item sb-admin" data-key="catalogos"><span class="i"><i data-lucide="book-open"></i></span>Catálogos</a>
-        <a href="${u('admin/suministros-catalogo.html')}" class="sb-item sb-admin" data-key="suministros-catalogo"><span class="i"><i data-lucide="package"></i></span>Suministros · Catálogo</a>
-        <a href="${u('admin/suministros-movimiento.html')}" class="sb-item sb-admin" data-key="suministros-movimiento"><span class="i"><i data-lucide="arrow-right-left"></i></span>Suministros · Movimiento</a>
-        <a href="${u('admin/suministros-historico.html')}" class="sb-item sb-admin" data-key="suministros-historico"><span class="i"><i data-lucide="history"></i></span>Suministros · Histórico</a>
-        <a href="${u('admin/suministros-correcciones.html')}" class="sb-item sb-admin" data-key="suministros-correcciones"><span class="i"><i data-lucide="file-edit"></i></span>Suministros · Correcciones</a>
         <a href="${u('admin/importar.html')}" class="sb-item sb-admin" data-key="importar"><span class="i"><i data-lucide="upload-cloud"></i></span>Importar Excel</a>
-        <a href="${u('admin/importar-suministros.html')}" class="sb-item sb-admin" data-key="importar-suministros"><span class="i"><i data-lucide="package-plus"></i></span>Importar Suministros</a>
         <a href="${u('admin/auditoria.html')}" class="sb-item sb-admin" data-key="auditoria"><span class="i"><i data-lucide="scroll-text"></i></span>Auditoría</a>
         <a href="${u('admin/plan-inversion.html')}" class="sb-item sb-admin" data-key="plan-inversion"><span class="i"><i data-lucide="trending-up"></i></span>Plan Inversión</a>
         <a href="${u('admin/desempeno-aliados.html')}" class="sb-item sb-admin" data-key="desempeno"><span class="i"><i data-lucide="award"></i></span>Desempeño aliados</a>
