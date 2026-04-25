@@ -252,6 +252,60 @@
   .mov-detalle-grid { grid-template-columns: 1fr; }
 }
 
+/* ── F47/F48 · KPI cards ─────────────────────────────────── */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 18px;
+}
+@media (max-width: 900px) {
+  .kpi-row { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 500px) {
+  .kpi-row { grid-template-columns: 1fr; }
+}
+.kpi-card {
+  background: rgba(255, 255, 255, .42);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, .55);
+  border-radius: 14px;
+  padding: 16px 18px;
+  box-shadow: 0 1px 2px rgba(0, 40, 90, .06);
+  position: relative;
+  overflow: hidden;
+}
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 3px;
+  background: var(--accent-color, #94A3B8);
+}
+.kpi-blue   { --accent-color: #2563EB; }
+.kpi-green  { --accent-color: #16A34A; }
+.kpi-orange { --accent-color: #EA580C; }
+.kpi-red    { --accent-color: #DC2626; }
+.kpi-teal   { --accent-color: #0D9488; }
+.kpi-slate  { --accent-color: #475569; }
+.kpi-purple { --accent-color: #7C3AED; }
+.kpi-amber  { --accent-color: #F59E0B; }
+
+.kpi-label {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: 8px;
+}
+.kpi-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink-1);
+  font-family: var(--font-mono);
+  letter-spacing: -.01em;
+}
+
 /* Hint pequeño bajo inputs */
 .form-hint {
   display: block;

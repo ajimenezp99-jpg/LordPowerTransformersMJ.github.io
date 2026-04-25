@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="es" data-aqua>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <meta name="theme-color" content="#f4f6fb"/>
+  <meta name="color-scheme" content="light"/>
+  <title>SGM · TRANSPOWER — Stock de Suministros</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/aqua/logo-aqua.svg"/>
+  <script type="module" src="../assets/js/auth/page-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="../assets/css/aqua-tokens.css"/>
+  <link rel="stylesheet" href="../assets/css/aqua-components.css"/>
+  <link rel="stylesheet" href="../assets/css/inventario.css"/>
+  <link rel="stylesheet" href="../assets/css/suministros.css"/>
+</head>
+<body class="aqua">
+<main class="app-main page-container">
+
+  <div class="page-header">
+    <div class="breadcrumb">Suministros / Stock</div>
+    <h1 class="page-title">Stock de <em>Suministros</em></h1>
+    <p class="page-subtitle">
+      Estado en tiempo real de los 22 ítems contractuales. Stock_actual se
+      calcula sobre la bitácora de movimientos. Semáforo de 6 estados.
+    </p>
+  </div>
+
+  <!-- KPIs operativos -->
+  <div class="kpi-row">
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-label">Stock inicial total</div>
+      <div class="kpi-value" id="kStockIni">—</div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-label">Disponible total</div>
+      <div class="kpi-value" id="kDisponible">—</div>
+    </div>
+    <div class="kpi-card kpi-orange">
+      <div class="kpi-label">Consumido total</div>
+      <div class="kpi-value" id="kConsumido">—</div>
+    </div>
+    <div class="kpi-card kpi-red">
+      <div class="kpi-label">Críticos / Agotados</div>
+      <div class="kpi-value" id="kCriticos">—</div>
+    </div>
+  </div>
+
+  <!-- KPIs económicos -->
+  <div class="kpi-row">
+    <div class="kpi-card kpi-slate">
+      <div class="kpi-label">Valor contrato</div>
+      <div class="kpi-value" id="kValorContrato">—</div>
+    </div>
+    <div class="kpi-card kpi-orange">
+      <div class="kpi-label">Valor consumido</div>
+      <div class="kpi-value" id="kValorConsumido">—</div>
+    </div>
+    <div class="kpi-card kpi-teal">
+      <div class="kpi-label">Valor disponible</div>
+      <div class="kpi-value" id="kValorDisponible">—</div>
+    </div>
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-label">% ejecución $</div>
+      <div class="kpi-value" id="kEjecucion">—</div>
+    </div>
+  </div>
+
+  <div class="inv-toolbar">
+    <div class="inv-filters">
+      <div class="inv-search">
+        <i data-lucide="search"></i>
+        <input type="search" id="fBusqueda" placeholder="Buscar por código o nombre…" aria-label="Buscar">
+      </div>
+      <select class="form-select" id="fEstado" aria-label="Filtrar por estado">
+        <option value="">Todos los estados</option>
+        <option value="OK">🟢 OK</option>
+        <option value="MEDIO">🟡 Medio</option>
+        <option value="CRITICO">🟠 Crítico</option>
+        <option value="AGOTADO">⛔ Agotado</option>
+        <option value="NEGATIVO">🔴 Negativo</option>
+        <option value="SIN_STOCK">⚪ Sin stock</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="infoBox" class="info-msg" style="display:none"></div>
+
+  <div class="section-head" id="counter">Catálogo</div>
+  <div class="table-wrap">
+    <div class="table-scroll">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th scope="col">Código</th>
+            <th scope="col">Nombre</th>
+            <th scope="col">Marca</th>
+            <th scope="col">Unidad</th>
+            <th scope="col" style="text-align:right">Inicial</th>
+            <th scope="col" style="text-align:right">+Ingresos</th>
+            <th scope="col" style="text-align:right">−Egresos</th>
+            <th scope="col" style="text-align:right">Disponible</th>
+            <th scope="col" style="text-align:right">% rest</th>
+            <th scope="col">Estado</th>
+            <th scope="col" style="text-align:right">Valor disp. (COP)</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="11" class="td-empty">Cargando stock…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<script type="module" src="../assets/js/suministros-stock-public.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+<script src="../assets/js/aqua.js" defer></script>
+<script src="../assets/js/aqua-shell.js" defer></script>
+</body>
+</html>

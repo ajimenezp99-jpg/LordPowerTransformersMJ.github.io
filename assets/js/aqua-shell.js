@@ -102,6 +102,7 @@
         <a href="${u('pages/inventario.html')}" class="sb-item" data-key="inventario"><span class="i"><i data-lucide="database"></i></span>Inventario</a>
         <a href="${u('pages/ordenes.html')}" class="sb-item" data-key="ordenes"><span class="i"><i data-lucide="clipboard-list"></i></span>Órdenes</a>
         <a href="${u('pages/mapa.html')}" class="sb-item" data-key="mapa"><span class="i"><i data-lucide="map"></i></span>Mapa</a>
+        <a href="${u('pages/suministros-stock.html')}" class="sb-item" data-key="suministros-stock"><span class="i"><i data-lucide="package"></i></span>Stock Suministros</a>
       </div>
       <div class="sb-group">
         <div class="sb-group-title">Análisis</div>
