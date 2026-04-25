@@ -196,3 +196,83 @@ describe('proyeccionV1 — retrocompat', () => {
     assert.equal(v1.estado, 'retirado');
   });
 });
+
+// ── F41 · Sub-section repuesto + dual-write retrocompat ──────────
+describe('F41 · sub-section repuesto', () => {
+  test('input v1 con re plano produce repuesto.estado coherente', () => {
+    const v2 = sanitizarTransformador({
+      identificacion: { codigo: 'X', nombre: 'x' },
+      ubicacion: { departamento: 'bolivar' },
+      re: 'OPERATIVA'
+    });
+    assert.equal(v2.repuesto.estado, 'OPERATIVA');
+  });
+
+  test('input v2 con sub-section produce re flat coherente', () => {
+    const v2 = sanitizarTransformador({
+      identificacion: { codigo: 'X', nombre: 'x' },
+      ubicacion: { departamento: 'bolivar' },
+      repuesto: { estado: 'OBSOLETA', notas: 'fabricante descontinuó' }
+    });
+    const v1 = proyeccionV1(v2);
+    assert.equal(v1.re, 'OBSOLETA');
+    assert.equal(v2.repuesto.notas, 'fabricante descontinuó');
+  });
+
+  test('doc sin ningún campo recibe N/A en ambos lados', () => {
+    const v2 = sanitizarTransformador({
+      identificacion: { codigo: 'X', nombre: 'x' },
+      ubicacion: { departamento: 'bolivar' }
+    });
+    const v1 = proyeccionV1(v2);
+    assert.equal(v2.repuesto.estado, 'N/A');
+    assert.equal(v1.re, 'N/A');
+  });
+
+  test('input v1 con re=null se sanea a N/A (caso típico del JSX fuente)', () => {
+    const v2 = sanitizarTransformador({
+      identificacion: { codigo: 'X', nombre: 'x' },
+      ubicacion: { departamento: 'bolivar' },
+      re: null
+    });
+    assert.equal(v2.repuesto.estado, 'N/A');
+  });
+
+  test('estado lowercase se eleva a uppercase', () => {
+    const v2 = sanitizarTransformador({
+      identificacion: { codigo: 'X', nombre: 'x' },
+      ubicacion: { departamento: 'bolivar' },
+      re: 'operativa'
+    });
+    assert.equal(v2.repuesto.estado, 'OPERATIVA');
+  });
+
+  test('estado fuera de catálogo se descarta a N/A', () => {
+    const v2 = sanitizarTransformador({
+      identificacion: { codigo: 'X', nombre: 'x' },
+      ubicacion: { departamento: 'bolivar' },
+      repuesto: { estado: 'FUTURO' }
+    });
+    assert.equal(v2.repuesto.estado, 'N/A');
+  });
+
+  test('sub-section gana sobre flat re cuando ambas vienen', () => {
+    const v2 = sanitizarTransformador({
+      identificacion: { codigo: 'X', nombre: 'x' },
+      ubicacion: { departamento: 'bolivar' },
+      re: 'OBSOLETA',
+      repuesto: { estado: 'OPERATIVA' }
+    });
+    assert.equal(v2.repuesto.estado, 'OPERATIVA');
+    assert.equal(proyeccionV1(v2).re, 'OPERATIVA');
+  });
+
+  test('serial_repuesto preserva null cuando no se provee', () => {
+    const v2 = sanitizarTransformador({
+      identificacion: { codigo: 'X', nombre: 'x' },
+      ubicacion: { departamento: 'bolivar' },
+      repuesto: { estado: 'OPERATIVA' }
+    });
+    assert.equal(v2.repuesto.serial_repuesto, null);
+  });
+});

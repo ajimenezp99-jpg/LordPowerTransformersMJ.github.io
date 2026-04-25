@@ -189,7 +189,11 @@ service cloud.firestore {
         && (!('estado' in request.resource.data)
             || request.resource.data.estado == request.resource.data.estado_servicio
             || (request.resource.data.estado_servicio == 'fallado'
-                && request.resource.data.estado == 'retirado'));
+                && request.resource.data.estado == 'retirado'))
+        // F41 · sub-section repuesto opcional. Si está, valida enum.
+        && (!('repuesto' in request.resource.data)
+            || !('estado' in request.resource.data.repuesto)
+            || isEstadoRepuestoValido(request.resource.data.repuesto.estado));
 
       allow update: if isAdmin()
         && (!('schema_version' in request.resource.data)
@@ -208,7 +212,11 @@ service cloud.firestore {
         && (!('ubicacion' in request.resource.data)
             || !('zona' in request.resource.data.ubicacion)
             || request.resource.data.ubicacion.zona == ''
-            || isZonaValida(request.resource.data.ubicacion.zona));
+            || isZonaValida(request.resource.data.ubicacion.zona))
+        // F41 · sub-section repuesto opcional. Si está, valida enum.
+        && (!('repuesto' in request.resource.data)
+            || !('estado' in request.resource.data.repuesto)
+            || isEstadoRepuestoValido(request.resource.data.repuesto.estado));
 
       allow delete: if isAdmin();
 
