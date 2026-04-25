@@ -211,34 +211,41 @@ export function enriquecerCatalogoConJsx(catalogoXlsm, catalogoJsx) {
 
 /**
  * Convierte una entrada JSX (formato compacto) al docV2 normalizado.
- * Mapping de keys del JSX → secciones v2:
- *   m   → identificacion.codigo (también matricula)
- *   sub → ubicacion.subestacion_nombre
+ * Mapping CORREGIDO de keys del JSX → secciones v2:
+ *   m    → identificacion.matricula (matrícula operativa, ej. T1A-A/M-BYC)
+ *   cod  → identificacion.codigo (código administrativo numérico, ej. 20016689)
+ *   sub  → identificacion.nombre + ubicacion.subestacion_nombre
+ *          (denominación humana del trafo = nombre de la subestación)
  *   zona → ubicacion.zona
- *   dep → ubicacion.departamento (lowercase)
- *   cod → identificacion.codigo_administrativo (no la PK)
- *   ser → placa.serial
- *   pot → placa.potencia_kva
- *   gr  → identificacion.grupo
- *   rt  → refrigeracion.tipo
- *   re  → repuesto.estado (sub-section F41)
- *   reg → identificacion.regulacion (NLTC/OLTC)
- *   vp  → electrico.tension_primaria_kv
- *   vs  → electrico.tension_secundaria_kv
- *   vt  → electrico.tension_terciaria_kv
- *   uu  → identificacion.uucc
+ *   dep  → ubicacion.departamento (lowercase)
+ *   ser  → placa.serial
+ *   pot  → placa.potencia_kva
+ *   gr   → identificacion.grupo
+ *   rt   → refrigeracion.tipo_refrigeracion
+ *   re   → repuesto.estado (sub-section F41)
+ *   reg  → electrico.tipo_tap (NLTC/OLTC)
+ *   vp/vs/vt → electrico.tension_primaria/secundaria/terciaria_kv
+ *   uu   → identificacion.uucc
+ *
+ * Si `cod` viene null/vacío en el JSX (1 caso conocido: LA SALVACION),
+ * se usa la matrícula como fallback para el codigo — no se inventa nada,
+ * pero se garantiza que el doc tenga PK no vacía. La matrícula sigue
+ * disponible siempre en `identificacion.matricula` para reconciliación.
  *
  * El sanitizador F41 toma `re` plano y lo eleva a `repuesto.estado`.
  */
 export function jsxRowADocV2(jsxRow) {
   const r = jsxRow || {};
-  const matricula = str(r.m);
+  const matricula  = str(r.m);
+  const subestacion = str(r.sub);
+  // cod puede venir como número, string o null. Stringify y fallback.
+  const codigoAdmin = (r.cod != null && r.cod !== '') ? String(r.cod) : matricula;
   const docV2 = sanitizarTransformador({
     identificacion: {
-      codigo: matricula,                     // matrícula es la PK humana (consistente con JSX)
-      matricula,
-      nombre: matricula,
-      tipo_activo: 'POTENCIA',               // todo el JSX es parque de potencia
+      codigo: codigoAdmin,                    // código administrativo numérico (cod del JSX)
+      matricula: matricula,                   // matrícula operativa (m del JSX)
+      nombre: subestacion || matricula,       // nombre = subestación; fallback a matrícula
+      tipo_activo: 'POTENCIA',
       grupo: str(r.gr),
       uucc:  str(r.uu)
     },
@@ -251,23 +258,20 @@ export function jsxRowADocV2(jsxRow) {
     ubicacion: {
       departamento:        str(r.dep).toLowerCase(),
       zona:                str(r.zona).toUpperCase(),
-      subestacion_nombre:  str(r.sub)
+      subestacion_nombre:  subestacion
     },
     electrico: {
       tension_primaria_kv:   num(r.vp),
       tension_secundaria_kv: num(r.vs),
       tension_terciaria_kv:  num(r.vt),
-      tipo_tap:              str(r.reg)      // NLTC | OLTC del JSX → electrico.tipo_tap
+      tipo_tap:              str(r.reg)
     },
     refrigeracion: {
-      tipo_refrigeracion: str(r.rt)          // ONAN | ONAF | OFAF
+      tipo_refrigeracion: str(r.rt)
     },
     estado_servicio: 'operativo',
-    re: r.re                                  // sanitizer F41 lo eleva a repuesto.estado
+    re: r.re
   });
-  // Inyecta proyección plana al raíz para retrocompat (data layer
-  // de transformadores también lo hace; aquí lo hacemos para que el
-  // doc esté 1:1 listo para escribir sin pasar por su CRUD).
   return { ...docV2, ...proyeccionV1(docV2) };
 }
 
@@ -324,15 +328,22 @@ export function extraerCorreccionesEmbedded() {
 export function reconciliarEquipos(equiposXlsm, equiposJsx) {
   const porMatricula = new Map();
   const conflictos = [];
+  // Helper: extrae matrícula del shape v2 o de variantes legacy.
+  const extractMat = (e) => str(
+    (e.identificacion && e.identificacion.matricula) ||
+    e.matricula ||
+    (e.identificacion && e.identificacion.codigo) ||
+    e.codigo || ''
+  ).toUpperCase();
   if (Array.isArray(equiposXlsm)) {
     for (const e of equiposXlsm) {
-      const k = str(e.matricula || e.identificacion?.codigo).toUpperCase();
+      const k = extractMat(e);
       if (k) porMatricula.set(k, { ...e, _origen: 'xlsm' });
     }
   }
   if (Array.isArray(equiposJsx)) {
     for (const e of equiposJsx) {
-      const k = str(e.matricula || e.identificacion?.codigo).toUpperCase();
+      const k = extractMat(e);
       if (!k) continue;
       if (porMatricula.has(k)) conflictos.push(k);
       porMatricula.set(k, { ...e, _origen: 'jsx' });
@@ -382,8 +393,13 @@ export function prepararPlanImportacion(parsed, existentes) {
 
   const trafoCrear = [], trafoActualizar = [];
   for (const t of (parsed.transformadores || [])) {
-    const matricula = (t.identificacion && t.identificacion.codigo) || t.codigo || '';
-    const docId = exTrafos.get(matricula.toUpperCase());
+    const matricula = String(
+      (t.identificacion && t.identificacion.matricula) ||
+      t.matricula ||
+      (t.identificacion && t.identificacion.codigo) ||
+      t.codigo || ''
+    ).toUpperCase();
+    const docId = exTrafos.get(matricula);
     if (docId) trafoActualizar.push({ ...t, _existingId: docId });
     else trafoCrear.push(t);
   }
@@ -397,9 +413,12 @@ export function prepararPlanImportacion(parsed, existentes) {
   const sumIdsPlan = new Set((parsed.suministros || []).map((s) => s.codigo));
   const sumHuerfanos = [...exSumIds].filter((id) => !sumIdsPlan.has(id));
   const trafoMatriculasPlan = new Set(
-    (parsed.transformadores || []).map((t) =>
-      ((t.identificacion && t.identificacion.codigo) || t.codigo || '').toUpperCase()
-    )
+    (parsed.transformadores || []).map((t) => String(
+      (t.identificacion && t.identificacion.matricula) ||
+      t.matricula ||
+      (t.identificacion && t.identificacion.codigo) ||
+      t.codigo || ''
+    ).toUpperCase())
   );
   const trafoHuerfanos = [...exTrafos.keys()].filter((m) => !trafoMatriculasPlan.has(m));
 

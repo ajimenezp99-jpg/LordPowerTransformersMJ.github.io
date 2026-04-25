@@ -68,7 +68,13 @@ async function leerExistentes() {
   const transformadoresPorMatricula = new Map();
   for (const x of txSnap.docs) {
     const data = x.data();
-    const m = (data.identificacion && data.identificacion.codigo) || data.codigo || '';
+    // Match por matrícula. Fallback a codigo plano (shape viejo
+    // pre-corrección donde se persistió matrícula como codigo).
+    const m =
+      (data.identificacion && data.identificacion.matricula) ||
+      data.matricula ||
+      (data.identificacion && data.identificacion.codigo) ||
+      data.codigo || '';
     if (m) transformadoresPorMatricula.set(String(m).toUpperCase(), x.id);
   }
 

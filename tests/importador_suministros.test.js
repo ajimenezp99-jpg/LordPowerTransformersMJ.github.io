@@ -116,14 +116,22 @@ describe('parsearJsxTransformadores (regex + JSON.parse, NO eval)', () => {
   });
 });
 
-describe('jsxRowADocV2', () => {
-  test('mapea keys del JSX a secciones v2 + proyección plana', () => {
+describe('jsxRowADocV2 — mapping corregido (codigo=cod, matricula=m, nombre=sub)', () => {
+  test('mapping correcto: codigo del JSX → identificacion.codigo, matricula separada, nombre = subestación', () => {
     const docV2 = jsxRowADocV2({
       m: 'T1-A/M-BYC', sub: 'BAYUNCA', zona: 'BOLIVAR', dep: 'BOLIVAR',
       cod: 20016689, ser: 'P186144', pot: 60000, gr: 'G3', rt: 'ONAF',
       re: 'OPERATIVA', reg: 'OLTC', vp: 66, vs: '34.5', vt: '13.8', uu: 'N4T18'
     });
-    assert.equal(docV2.identificacion.codigo, 'T1-A/M-BYC');
+    // PK administrativa: codigo numérico del JSX, NO la matrícula.
+    assert.equal(docV2.identificacion.codigo, '20016689');
+    // Matrícula separada del codigo.
+    assert.equal(docV2.identificacion.matricula, 'T1-A/M-BYC');
+    // Nombre = subestación (legible), NO la matrícula.
+    assert.equal(docV2.identificacion.nombre, 'BAYUNCA');
+    // Subestación también en ubicacion.
+    assert.equal(docV2.ubicacion.subestacion_nombre, 'BAYUNCA');
+    // Resto del shape sin tocar.
     assert.equal(docV2.identificacion.tipo_activo, 'POTENCIA');
     assert.equal(docV2.identificacion.grupo, 'G3');
     assert.equal(docV2.identificacion.uucc, 'N4T18');
@@ -136,9 +144,34 @@ describe('jsxRowADocV2', () => {
     assert.equal(docV2.electrico.tipo_tap, 'OLTC');
     assert.equal(docV2.refrigeracion.tipo_refrigeracion, 'ONAF');
     assert.equal(docV2.repuesto.estado, 'OPERATIVA');
-    // Proyección plana al raíz para retrocompat.
-    assert.equal(docV2.codigo, 'T1-A/M-BYC');
+    // Proyección plana al raíz: refleja el nuevo shape.
+    assert.equal(docV2.codigo, '20016689');
+    assert.equal(docV2.nombre, 'BAYUNCA');
+    assert.equal(docV2.subestacion, 'BAYUNCA');
     assert.equal(docV2.re, 'OPERATIVA');
+  });
+
+  test('codigo numérico se stringifica', () => {
+    const docV2 = jsxRowADocV2({ m: 'M', sub: 'S', cod: 12345, dep: 'BOLIVAR', zona: 'BOLIVAR' });
+    assert.equal(typeof docV2.identificacion.codigo, 'string');
+    assert.equal(docV2.identificacion.codigo, '12345');
+  });
+
+  test('cod=null cae a matrícula como fallback (caso real LA SALVACION del JSX)', () => {
+    const docV2 = jsxRowADocV2({
+      m: 'T1-M/M-SLV', sub: 'LA SALVACION', zona: 'ORIENTE', dep: 'CESAR',
+      cod: null, ser: 1072462802, pot: 12500, gr: 'G1'
+    });
+    // Sin cod válido, usa la matrícula para que el doc tenga PK no vacía.
+    assert.equal(docV2.identificacion.codigo, 'T1-M/M-SLV');
+    assert.equal(docV2.identificacion.matricula, 'T1-M/M-SLV');
+    // Nombre sigue siendo la subestación.
+    assert.equal(docV2.identificacion.nombre, 'LA SALVACION');
+  });
+
+  test('sub vacía cae a matrícula como nombre fallback', () => {
+    const docV2 = jsxRowADocV2({ m: 'T1', sub: '', cod: 999, dep: 'BOLIVAR', zona: 'BOLIVAR' });
+    assert.equal(docV2.identificacion.nombre, 'T1');
   });
 
   test('re=null se sanea a N/A (regla F41)', () => {
