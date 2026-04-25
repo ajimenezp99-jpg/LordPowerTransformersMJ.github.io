@@ -24,16 +24,17 @@
     linear-gradient(180deg, #f7f9fd 0%, #eef3fa 50%, #e6edf7 100%);
 
   /* ── VIDRIO LIQUID GLASS (4 materiales — macOS Tahoe 26.3) ───
-     Tahoe usa MUCHO más blur y saturación que el glassmorphism
-     genérico, con specular intenso y refracción visible en bordes. */
-  --glass-thin:    linear-gradient(140deg, rgba(255,255,255,.42) 0%, rgba(238,247,255,.22) 100%);
-  --glass-regular: linear-gradient(140deg, rgba(255,255,255,.52) 0%, rgba(232,243,255,.32) 100%);
-  --glass-thick:   linear-gradient(140deg, rgba(255,255,255,.66) 0%, rgba(228,240,255,.44) 100%);
-  --glass-ultra:   linear-gradient(140deg, rgba(255,255,255,.82) 0%, rgba(228,240,255,.62) 100%);
+     Más translúcido que el glassmorphism genérico para que la foto
+     de fondo se aprecie a través de cada superficie. El blur fuerte
+     (compensa la baja opacidad y mantiene legibilidad del texto). */
+  --glass-thin:    linear-gradient(140deg, rgba(255,255,255,.22) 0%, rgba(238,247,255,.10) 100%);
+  --glass-regular: linear-gradient(140deg, rgba(255,255,255,.30) 0%, rgba(232,243,255,.16) 100%);
+  --glass-thick:   linear-gradient(140deg, rgba(255,255,255,.42) 0%, rgba(228,240,255,.24) 100%);
+  --glass-ultra:   linear-gradient(140deg, rgba(255,255,255,.62) 0%, rgba(228,240,255,.42) 100%);
 
-  --glass-blur-thin:    blur(28px) saturate(190%) brightness(108%);
-  --glass-blur-regular: blur(44px) saturate(200%) brightness(108%);
-  --glass-blur-thick:   blur(60px) saturate(220%) brightness(110%);
+  --glass-blur-thin:    blur(32px) saturate(190%) brightness(108%);
+  --glass-blur-regular: blur(48px) saturate(200%) brightness(108%);
+  --glass-blur-thick:   blur(64px) saturate(220%) brightness(110%);
 
   /* Ring 3D — luz arriba MUY brillante, sombra abajo, lados con
      refracción cromática (efecto borde prismático Tahoe) */
