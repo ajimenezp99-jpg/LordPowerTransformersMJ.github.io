@@ -96,11 +96,14 @@
   --grad-warn:    linear-gradient(180deg, #ffb866 0%, #ff9500 50%, #b85f00 100%);
   --grad-success: linear-gradient(180deg, #5fdb95 0%, #1cc870 50%, #008f4a 100%);
 
-  /* ── TEXTO (sobre perla claro) ────────────────────────── */
-  --ink-1: #0a1628;   /* títulos, números KPI */
-  --ink-2: #2a3a52;   /* cuerpo */
-  --ink-3: #5a6c87;   /* meta / muted */
-  --ink-4: #8896ad;   /* placeholder / disabled */
+  /* ── TEXTO (Steel Corporate Navy — match con entorno Aqua) ───
+     Misma familia cromática que el brand iOS blue #007aff pero más
+     saturada y oscura. Da seriedad corporativa sin competir con
+     los acentos. Usado por GE, Siemens, ISA en sus interfaces. */
+  --ink-1: #0d1f38;   /* títulos, números KPI · steel navy deep */
+  --ink-2: #1f3656;   /* cuerpo, items de menú · corporate steel */
+  --ink-3: #4d6485;   /* subtítulos, meta · muted blue-gray */
+  --ink-4: #8093ad;   /* placeholder / disabled · light blue-gray */
 
   /* ── TIPOGRAFÍA ───────────────────────────────────────── */
   --font-sans:  -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Inter', sans-serif;
