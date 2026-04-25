@@ -184,6 +184,31 @@ modal.addEventListener('click', (e) => { if (e.target === modal) cerrarModal(); 
   el.addEventListener('change', render);
 });
 
+// ── Export XLSM 1:1 con template (preserva VBA + add-in) ──
+const btnExportXlsm = $('btnExportXlsm');
+btnExportXlsm?.addEventListener('click', async () => {
+  if (cacheMovs.length === 0) {
+    showInfo('No hay movimientos para exportar todavía.', 'err');
+    return;
+  }
+  const orig = btnExportXlsm.textContent;
+  btnExportXlsm.disabled = true;
+  btnExportXlsm.textContent = 'Generando XLSM…';
+  try {
+    const { generarXlsmExport, descargarXlsm } = await import('../exports/xlsm_suministros.js');
+    const buf = await generarXlsmExport(cacheMovs);
+    descargarXlsm(buf);
+    showInfo(`✓ XLSM generado con ${cacheMovs.length} movimientos. Descarga iniciada.`, 'ok');
+  } catch (err) {
+    console.error(err);
+    showInfo('Error al generar XLSM: ' + (err.message || err), 'err');
+  } finally {
+    btnExportXlsm.disabled = false;
+    btnExportXlsm.textContent = orig;
+    window.sgmRefreshIcons?.();
+  }
+});
+
 // ── Export CSV ──
 btnExportCsv.addEventListener('click', () => {
   const rows = aplicarFiltros();
