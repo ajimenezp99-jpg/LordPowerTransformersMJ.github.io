@@ -119,9 +119,7 @@
       </div>
       <div class="sb-group">
         <div class="sb-group-title">Análisis</div>
-        <a href="${u('pages/dashboard.html')}" class="sb-item" data-key="dashboard"><span class="i"><i data-lucide="layout-grid"></i></span>Dashboard</a>
-        <a href="${u('pages/kpis.html')}" class="sb-item" data-key="kpis"><span class="i"><i data-lucide="bar-chart-3"></i></span>KPIs &amp; RAM</a>
-        <a href="${u('pages/alertas.html')}" class="sb-item" data-key="alertas"><span class="i"><i data-lucide="bell-ring"></i></span>Alertas</a>
+        <a href="${u('pages/analisis.html')}" class="sb-item" data-key="analisis"><span class="i"><i data-lucide="bar-chart-3"></i></span>Análisis e Indicadores</a>
       </div>
       <div class="sb-group">
         <div class="sb-group-title">Salud del activo</div>
@@ -134,8 +132,6 @@
         <a href="${u('admin/catalogos.html')}" class="sb-item sb-admin" data-key="catalogos"><span class="i"><i data-lucide="book-open"></i></span>Catálogos</a>
         <a href="${u('admin/importar.html')}" class="sb-item sb-admin" data-key="importar"><span class="i"><i data-lucide="upload-cloud"></i></span>Importar Excel</a>
         <a href="${u('admin/auditoria.html')}" class="sb-item sb-admin" data-key="auditoria"><span class="i"><i data-lucide="scroll-text"></i></span>Auditoría</a>
-        <a href="${u('admin/plan-inversion.html')}" class="sb-item sb-admin" data-key="plan-inversion"><span class="i"><i data-lucide="trending-up"></i></span>Plan Inversión</a>
-        <a href="${u('admin/desempeno-aliados.html')}" class="sb-item sb-admin" data-key="desempeno"><span class="i"><i data-lucide="award"></i></span>Desempeño aliados</a>
       </div>
       <div class="sb-group">
         <div class="sb-group-title">Recursos</div>
