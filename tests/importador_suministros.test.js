@@ -8,6 +8,7 @@ import assert from 'node:assert/strict';
 import {
   parsearCatalogoRows, parsearMarcasRows,
   parsearJsxTransformadores, jsxRowADocV2,
+  parsearJsxCatalogo, enriquecerCatalogoConJsx,
   extraerCorreccionesEmbedded,
   reconciliarEquipos, prepararPlanImportacion
 } from '../assets/js/domain/importador_suministros.js';
@@ -57,10 +58,12 @@ describe('parsearMarcasRows (Sheet3)', () => {
     assert.equal(marcas[0].marca, 'ZIEHL ABEGG');
   });
 
-  test('skipea "Por definir"', () => {
+  test('skipea placeholders "Por definir" y "(edite)"', () => {
     const { marcas } = parsearMarcasRows([
       { ID_Suministro: 'S01', Nombre_Suministro: 'Coraza', Marca: 'Por definir' },
-      { ID_Suministro: 'S02', Nombre_Suministro: 'X',      Marca: 'ABB' }
+      { ID_Suministro: 'S02', Nombre_Suministro: 'X',      Marca: 'ABB' },
+      { ID_Suministro: 'S03', Nombre_Suministro: 'Y',      Marca: '(edite)' },
+      { ID_Suministro: 'S04', Nombre_Suministro: 'Z',      Marca: '—' }
     ]);
     assert.equal(marcas.length, 1);
     assert.equal(marcas[0].marca, 'ABB');
@@ -145,6 +148,43 @@ describe('jsxRowADocV2', () => {
     });
     assert.equal(docV2.repuesto.estado, 'N/A');
     assert.equal(docV2.re, 'N/A');
+  });
+});
+
+describe('parsearJsxCatalogo + enriquecerCatalogoConJsx', () => {
+  test('extrae array CATALOGO con keys shorthand', () => {
+    const jsx = `
+      const CATALOGO = [
+        { cod: "CAT-01", n: 1, desc: "Coraza",         unid: "m",   valU: 15120.00,  stock: 0,  marca: "Por definir" },
+        { cod: "CAT-02", n: 2, desc: "Motoventiladores", unid: "Und", valU: 5233200.00, stock: 55, marca: "ZIEHL ABEGG" }
+      ];
+    `;
+    const arr = parsearJsxCatalogo(jsx);
+    assert.equal(arr.length, 2);
+    assert.equal(arr[0].cod, 'CAT-01');
+    assert.equal(arr[1].valU, 5233200);
+  });
+
+  test('enriquece catálogo del .xlsm con valor_unitario del JSX por posición', () => {
+    const xlsm = [
+      { codigo: 'S01', nombre: 'A', unidad: 'Mt', stock_inicial: 0, valor_unitario: 0, marcas_disponibles: [], observaciones: '' },
+      { codigo: 'S02', nombre: 'B', unidad: 'Und', stock_inicial: 55, valor_unitario: 0, marcas_disponibles: [], observaciones: '' }
+    ];
+    const jsxCat = [
+      { cod: 'CAT-01', valU: 15120 },
+      { cod: 'CAT-02', valU: 5233200 }
+    ];
+    const merged = enriquecerCatalogoConJsx(xlsm, jsxCat);
+    assert.equal(merged[0].valor_unitario, 15120);
+    assert.equal(merged[1].valor_unitario, 5233200);
+    assert.equal(merged[0].codigo, 'S01');  // resto del shape sin tocar
+  });
+
+  test('si JSX es más corto, completa lo que pueda', () => {
+    const xlsm = [{ codigo: 'S01', valor_unitario: 0 }, { codigo: 'S02', valor_unitario: 0 }];
+    const merged = enriquecerCatalogoConJsx(xlsm, [{ valU: 100 }]);
+    assert.equal(merged[0].valor_unitario, 100);
+    assert.equal(merged[1].valor_unitario, 0);
   });
 });
 

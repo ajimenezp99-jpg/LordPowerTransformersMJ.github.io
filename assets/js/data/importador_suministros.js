@@ -24,6 +24,7 @@ import { getDbSafe, isFirebaseConfigured } from '../firebase-init.js';
 import {
   parsearCatalogoRows, parsearMarcasRows,
   parsearJsxTransformadores, jsxRowADocV2,
+  parsearJsxCatalogo, enriquecerCatalogoConJsx,
   extraerCorreccionesEmbedded,
   reconciliarEquipos, prepararPlanImportacion
 } from '../domain/importador_suministros.js';
@@ -84,14 +85,27 @@ export async function parsearArchivos({ xlsmBuffer, jsxText, XLSX }) {
   if (!jsxText)    throw new Error('jsxText es obligatorio.');
 
   const wb = XLSX.read(xlsmBuffer, { type: 'array', cellDates: true });
-  const rowsCat = XLSX.utils.sheet_to_json(wb.Sheets['Catalogo_Suministros'] || {}, { raw: false, defval: '' });
-  const rowsMar = XLSX.utils.sheet_to_json(wb.Sheets['Marcas']               || {}, { raw: false, defval: '' });
+  // El .xlsm fuente tiene un título mergeado en row 1 y los headers
+  // reales en row 3. range: 2 le dice a SheetJS que la fila 3
+  // (índice 2 zero-based) es el header.
+  const rowsCat = XLSX.utils.sheet_to_json(wb.Sheets['Catalogo_Suministros'] || {}, { range: 2, raw: false, defval: '' });
+  const rowsMar = XLSX.utils.sheet_to_json(wb.Sheets['Marcas']               || {}, { range: 2, raw: false, defval: '' });
 
   const catRes = parsearCatalogoRows(rowsCat);
   const marRes = parsearMarcasRows(rowsMar);
 
   const jsxArr = parsearJsxTransformadores(jsxText);
   const transformadores = jsxArr.map((r) => jsxRowADocV2(r));
+
+  // Enriquece el catálogo del .xlsm con valor_unitario del JSX CATALOGO
+  // (merge por posición; el .xlsm fuente no incluye precios).
+  let catalogoEnriquecido = catRes.suministros;
+  try {
+    const jsxCatalogo = parsearJsxCatalogo(jsxText);
+    catalogoEnriquecido = enriquecerCatalogoConJsx(catRes.suministros, jsxCatalogo);
+  } catch (err) {
+    console.warn('[importador.parsearArchivos] no se pudo enriquecer con JSX CATALOGO:', err.message);
+  }
 
   const correcciones = extraerCorreccionesEmbedded();
 
@@ -101,7 +115,7 @@ export async function parsearArchivos({ xlsmBuffer, jsxText, XLSX }) {
 
   return {
     parsed: {
-      suministros:     catRes.suministros,
+      suministros:     catalogoEnriquecido,
       marcas:          marRes.marcas,
       transformadores,
       correcciones

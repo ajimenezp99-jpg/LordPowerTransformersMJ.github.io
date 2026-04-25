@@ -119,8 +119,10 @@ export function parsearMarcasRows(rows) {
       errores.push({ fila: i + 2, suministro_id: sane.suministro_id, errores: errs });
       continue;
     }
-    // Skip "Por definir" — mantenemos el item pero sin marca persistible.
-    if (sane.marca.toUpperCase() === 'POR DEFINIR') continue;
+    // Skip placeholders del .xlsm fuente — el item del catálogo
+    // queda sin marca persistible hasta que el director edite.
+    const placeholders = ['POR DEFINIR', '(EDITE)', 'EDITE', '—', '-'];
+    if (placeholders.includes(sane.marca.toUpperCase())) continue;
     out.push(sane);
   }
   return { marcas: out, errores };
@@ -158,6 +160,53 @@ export function parsearJsxTransformadores(jsxText) {
   }
   if (!Array.isArray(arr)) throw new Error('parsearJsxTransformadores: el bloque no es un array.');
   return arr;
+}
+
+/**
+ * Extrae el array CATALOGO del JSX (22 items con CAT-XX + valU + marca).
+ * Mismo enfoque seguro que parsearJsxTransformadores: regex + JSON.parse.
+ *
+ * El .xlsm Sheet2 trae S01-S22 + stock_inicial pero NO el valor unitario.
+ * El JSX CATALOGO sí lo trae. Se asume mismo orden (CAT-01 ↔ S01) para
+ * hacer merge por posición en `enriquecerCatalogoConJsx`.
+ */
+export function parsearJsxCatalogo(jsxText) {
+  if (typeof jsxText !== 'string' || jsxText.length === 0) {
+    throw new Error('parsearJsxCatalogo: input vacío.');
+  }
+  const m = jsxText.match(/const\s+CATALOGO\s*=\s*(\[[\s\S]*?\])\s*;/);
+  if (!m) throw new Error('parsearJsxCatalogo: no se encontró el array CATALOGO.');
+  let normalized = m[1]
+    .replace(/([{,]\s*)([a-zA-Z_$][\w$]*)\s*:/g, '$1"$2":')
+    .replace(/,(\s*[\]}])/g, '$1');
+  let arr;
+  try { arr = JSON.parse(normalized); } catch (err) {
+    throw new Error('parsearJsxCatalogo: no es JSON válido tras normalización: ' + err.message);
+  }
+  if (!Array.isArray(arr)) throw new Error('parsearJsxCatalogo: el bloque no es un array.');
+  return arr;
+}
+
+/**
+ * Enriquece los suministros parseados desde el .xlsm con el
+ * valor_unitario que vive en el JSX CATALOGO. Merge por posición:
+ * catalogoXlsm[i] ← catalogoJsx[i].valU. Asume mismo orden 1-22.
+ *
+ * Si las longitudes difieren, completa lo que pueda y retorna el
+ * resto sin enriquecer (el director ve valor_unitario=0 y puede
+ * ajustarlo manualmente desde admin/catalogo).
+ */
+export function enriquecerCatalogoConJsx(catalogoXlsm, catalogoJsx) {
+  if (!Array.isArray(catalogoXlsm) || !Array.isArray(catalogoJsx)) return catalogoXlsm || [];
+  return catalogoXlsm.map((s, i) => {
+    const jsxItem = catalogoJsx[i];
+    if (!jsxItem) return s;
+    const valU = num(jsxItem.valU);
+    return {
+      ...s,
+      valor_unitario: (valU != null && valU >= 0) ? valU : s.valor_unitario
+    };
+  });
 }
 
 /**
