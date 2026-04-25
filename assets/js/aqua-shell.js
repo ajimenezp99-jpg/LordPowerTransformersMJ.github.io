@@ -27,8 +27,10 @@
   // de tabs), marcamos el body con .is-embedded y NO inyectamos
   // topbar/sidebar — el padre ya tiene su propio shell. Los estilos
   // de tabs.css ocultan los elementos correspondientes.
+  let isEmbedded = false;
   try {
     if (window.self !== window.top) {
+      isEmbedded = true;
       document.body.classList.add('is-embedded');
       return;
     }
@@ -40,20 +42,67 @@
   const path = location.pathname;
   // Calcular base relativa: si estamos en /pages/foo.html o /admin/foo.html → "../"
   // Si /home.html o /index.html (raíz) → "./"
-  const segs = path.replace(/\/+$/, '').split('/').filter(Boolean);
-  // El último segmento es el archivo. Los demás son carpetas → tantas "../" como carpetas.
-  // Si el path termina en /admin/x.html, segs = [...repo, 'admin', 'x.html'] → 1 carpeta a subir.
-  // Para GitHub Pages el repo es root, no hay prefijo de proyecto. Funciona tanto en raíz como subpath.
   let base = '';
-  const file = segs[segs.length - 1] || '';
-  const isFile = /\.html?$/.test(file);
-  const folderDepth = isFile ? Math.max(0, segs.length - 1) : segs.length;
-  // Detectar si la página está en /pages/ o /admin/ (subir un nivel) o en raíz (no subir)
   if (path.includes('/pages/') || path.includes('/admin/')) base = '../';
   else base = './';
   // Permitir override explícito
   const explicit = document.documentElement.getAttribute('data-aqua-base');
   if (explicit !== null) base = explicit;
+
+  // R8 · Redirects de URLs legacy → módulo padre con tab activa.
+  // Solo aplica cuando la página NO está embebida (top-level). Preserva
+  // bookmarks viejos sin duplicar contenido.
+  if (!isEmbedded) {
+    const LEGACY_REDIRECTS = {
+      // Suministros
+      '/pages/suministros-dashboard.html':   'pages/suministros.html#tab=dashboard',
+      '/admin/suministros-catalogo.html':    'pages/suministros.html#tab=catalogo',
+      '/admin/suministros-movimiento.html':  'pages/suministros.html#tab=movimiento',
+      '/admin/suministros-historico.html':   'pages/suministros.html#tab=historico',
+      '/admin/suministros-correcciones.html':'pages/suministros.html#tab=correcciones',
+      '/admin/importar-suministros.html':    'pages/suministros.html#tab=importar',
+      // Activos
+      '/pages/inventario.html':              'pages/activos.html#tab=inventario',
+      '/pages/mapa.html':                    'pages/activos.html#tab=mapa',
+      '/admin/subestaciones.html':           'pages/activos.html#tab=subestaciones',
+      '/admin/contratos.html':               'pages/activos.html#tab=contratos',
+      // Salud
+      '/pages/muestras.html':                'pages/salud.html#tab=muestras',
+      '/admin/motor-salud.html':             'pages/salud.html#tab=motor',
+      '/admin/propuestas-fur.html':          'pages/salud.html#tab=fur',
+      '/admin/contramuestras.html':          'pages/salud.html#tab=contramuestras',
+      '/admin/fallados.html':                'pages/salud.html#tab=fallados',
+      '/pages/matriz-riesgo.html':           'pages/salud.html#tab=matriz',
+      // Análisis
+      '/pages/dashboard.html':               'pages/analisis.html#tab=dashboard',
+      '/pages/kpis.html':                    'pages/analisis.html#tab=kpis',
+      '/pages/alertas.html':                 'pages/analisis.html#tab=alertas',
+      '/admin/plan-inversion.html':          'pages/analisis.html#tab=plan-inversion',
+      '/admin/desempeno-aliados.html':       'pages/analisis.html#tab=desempeno',
+      // Administración
+      '/admin/index.html':                   'admin/administracion.html#tab=panel',
+      '/admin/usuarios.html':                'admin/administracion.html#tab=usuarios',
+      '/admin/catalogos.html':               'admin/administracion.html#tab=catalogos',
+      '/admin/importar.html':                'admin/administracion.html#tab=importar',
+      '/admin/auditoria.html':               'admin/administracion.html#tab=auditoria',
+      // Recursos
+      '/pages/documentos.html':              'pages/recursos.html#tab=documentos',
+      '/pages/normativa.html':               'pages/recursos.html#tab=normativa',
+      '/pages/cobertura.html':               'pages/recursos.html#tab=cobertura',
+      '/pages/about.html':                   'pages/recursos.html#tab=about'
+    };
+    // Match contra el suffix del pathname (acepta cualquier prefijo de
+    // base path, p.ej. /LordPowerTransformersMJ.github.io/).
+    const cleanPath = location.pathname;
+    for (const [legacy, target] of Object.entries(LEGACY_REDIRECTS)) {
+      if (cleanPath.endsWith(legacy)) {
+        // Si el query/search trae ?legacy=keep, no redirigir (escape hatch).
+        if (location.search && /[?&]legacy=keep\b/.test(location.search)) break;
+        location.replace(base + target);
+        return;
+      }
+    }
+  }
 
   const u = (p) => base + p.replace(/^\/+/, '');
 
