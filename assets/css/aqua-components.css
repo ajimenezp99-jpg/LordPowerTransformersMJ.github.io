@@ -710,10 +710,28 @@ body.aqua *, body.aqua *::before, body.aqua *::after {
 .crumb span { color: var(--ink-4); }
 
 /* ─── PAGE HEADER ─────────────────────────────────────────── */
-.page-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 28px; gap: 16px; flex-wrap: wrap; }
-.page-title { font-size: 28px; font-weight: 700; color: var(--ink-1); letter-spacing: -.02em; margin: 0; }
+.page-head {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 28px; gap: 16px; flex-wrap: wrap;
+}
+/* Títulos directamente sobre la foto: sombra blanca sutil para
+   legibilidad sobre zonas claras (cielo) y oscuras (transformador). */
+.page-title {
+  font-size: 28px; font-weight: 700; color: var(--ink-1);
+  letter-spacing: -.02em; margin: 0;
+  text-shadow: 0 1px 0 rgba(255,255,255,.55), 0 2px 8px rgba(244,249,255,.42);
+}
 .page-title em { font-family: var(--font-serif); font-style: italic; font-weight: 400; color: var(--brand); }
-.page-sub { font-size: 13px; color: var(--ink-3); margin-top: 4px; }
+.page-sub {
+  font-size: 13px; color: var(--ink-3); margin-top: 4px;
+  text-shadow: 0 1px 0 rgba(255,255,255,.45);
+}
+.section-title {
+  text-shadow: 0 1px 0 rgba(255,255,255,.42), 0 2px 6px rgba(244,249,255,.32);
+}
+.section-sub {
+  text-shadow: 0 1px 0 rgba(255,255,255,.40);
+}
 
 /* ─── FORM GRID ───────────────────────────────────────────── */
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
