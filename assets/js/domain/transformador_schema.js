@@ -20,6 +20,7 @@ import {
   TIPOS_ACTIVO, ZONAS, GRUPOS, DEPARTAMENTOS,
   ESTADOS_SERVICIO, ESTADOS_ESPECIALES, BUCKETS_HI,
   UBICACIONES_FUGA, UUCC_PATTERN, esUUCCValida,
+  ESTADOS_REPUESTO,
   SCHEMA_VERSION, enValores
 } from './schema.js';
 
@@ -280,6 +281,29 @@ function sanitizeRestriccionesOperativas(src) {
   };
 }
 
+// ── Sub-objeto repuesto (F41) ──────────────────────────────────
+// Sub-section dual-write: la fuente de verdad vive en
+// `repuesto.estado`; la proyección plana `re` se reconstruye en
+// `proyeccionV1`. Si el input solo trae `re` (formato del JSX
+// fuente / vistas legacy), se infiere `repuesto.estado`.
+//
+// Default `'N/A'` cuando el campo falta o es `null` — los reads
+// siempre obtienen un valor consultable, sin queries que excluyan
+// el doc por campo undefined.
+function sanitizeRepuesto(input, fallbackFlatRe) {
+  const src = (input && typeof input === 'object') ? input : {};
+  // Inferencia desde flat `re` cuando el input v1 no trae sub-section.
+  let estado = src.estado;
+  if (estado == null && fallbackFlatRe != null) estado = fallbackFlatRe;
+  estado = (estado == null) ? 'N/A' : String(estado).toUpperCase();
+  if (!enValores(ESTADOS_REPUESTO, estado)) estado = 'N/A';
+  return {
+    estado,
+    serial_repuesto: src.serial_repuesto == null ? null : String(src.serial_repuesto).trim(),
+    notas:           str(src.notas)
+  };
+}
+
 // ── Sanitizador raíz (API pública) ─────────────────────────────
 /**
  * Toma una entrada cualquiera (formulario, fila Excel, doc v1) y
@@ -325,7 +349,11 @@ export function sanitizarTransformador(input) {
     // Restricciones operativas (OTC — A9.3). `null` si no aplica.
     restricciones_operativas: src.restricciones_operativas
       ? sanitizeRestriccionesOperativas(src.restricciones_operativas)
-      : null
+      : null,
+
+    // Sub-section repuesto (F41). Acepta input v2 (sub-section
+    // explícita) o v1 (flat `re` en la raíz). Default 'N/A'.
+    repuesto: sanitizeRepuesto(src.repuesto, src.re)
   };
 }
 
@@ -369,6 +397,15 @@ export function validarTransformador(doc) {
   // salud_actual.calif_* ∈ [1,5] ya está clampeado por el
   // sanitizador; no se valida aquí.
 
+  // Repuesto (opcional): si está, su estado debe ser un enum válido.
+  // El sanitizer ya defaultea a 'N/A' cuando falta, así que en
+  // documentos canonicalizados nunca debería fallar aquí.
+  if (doc.repuesto && doc.repuesto.estado != null) {
+    if (!enValores(ESTADOS_REPUESTO, doc.repuesto.estado)) {
+      errs.push(`repuesto.estado inválido: "${doc.repuesto.estado}".`);
+    }
+  }
+
   return errs;
 }
 
@@ -408,6 +445,8 @@ export function proyeccionV1(docV2) {
     estado:                estadoV1 || 'operativo',
     latitud:               ub.latitud,
     longitud:              ub.longitud,
-    observaciones:         se.observaciones || ''
+    observaciones:         se.observaciones || '',
+    // F41: proyección plana del repuesto (vistas legacy + JSX fuente).
+    re:                    (d.repuesto && d.repuesto.estado) || 'N/A'
   };
 }
