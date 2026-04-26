@@ -69,8 +69,9 @@ export function isReady() {
   return isFirebaseConfigured && !!getDbSafe();
 }
 
-export async function listar(filtros = {}) {
+function buildConstraints(filtros) {
   const constraints = [];
+  if (filtros.contrato_id)      constraints.push(where('contrato_id',      '==', filtros.contrato_id));
   if (filtros.anio)             constraints.push(where('anio',             '==', filtros.anio));
   if (filtros.tipo)             constraints.push(where('tipo',             '==', filtros.tipo));
   if (filtros.suministro_id)    constraints.push(where('suministro_id',    '==', filtros.suministro_id));
@@ -79,22 +80,17 @@ export async function listar(filtros = {}) {
   constraints.push(orderBy('anio', 'desc'));
   constraints.push(orderBy('codigo', 'desc'));
   if (filtros.limite) constraints.push(limit(filtros.limite));
-  const snap = await getDocs(query(collRef(), ...constraints));
+  return constraints;
+}
+
+export async function listar(filtros = {}) {
+  const snap = await getDocs(query(collRef(), ...buildConstraints(filtros)));
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
 export function suscribir(filtros = {}, onData, onError) {
-  const constraints = [];
-  if (filtros.anio)             constraints.push(where('anio',             '==', filtros.anio));
-  if (filtros.tipo)             constraints.push(where('tipo',             '==', filtros.tipo));
-  if (filtros.suministro_id)    constraints.push(where('suministro_id',    '==', filtros.suministro_id));
-  if (filtros.transformador_id) constraints.push(where('transformador_id', '==', filtros.transformador_id));
-  if (filtros.zona)             constraints.push(where('zona',             '==', filtros.zona));
-  constraints.push(orderBy('anio', 'desc'));
-  constraints.push(orderBy('codigo', 'desc'));
-  if (filtros.limite) constraints.push(limit(filtros.limite));
   return onSnapshot(
-    query(collRef(), ...constraints),
+    query(collRef(), ...buildConstraints(filtros)),
     (snap) => onData(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
     (err)  => { if (onError) onError(err); else console.warn('[movimientos.suscribir]', err); }
   );
@@ -213,7 +209,20 @@ export async function eliminar(id, opts = {}) {
  *
  * Emite { suministros: [{...sumDoc, stock: {inicial,ingresado,egresado,actual}}], generatedAt }.
  */
-export function suscribirStockGlobal(onData, onError) {
+export function suscribirStockGlobal(onDataOrFiltros, onDataMaybe, onErrorMaybe) {
+  // Compat: la firma original era suscribirStockGlobal(onData, onError).
+  // Ahora aceptamos también suscribirStockGlobal({contrato_id}, onData, onError).
+  let filtros = {};
+  let onData, onError;
+  if (typeof onDataOrFiltros === 'function') {
+    onData = onDataOrFiltros;
+    onError = onDataMaybe;
+  } else {
+    filtros = onDataOrFiltros || {};
+    onData = onDataMaybe;
+    onError = onErrorMaybe;
+  }
+  const contratoId = filtros.contrato_id || null;
   const state = { suministros: null, movimientos: null, config: null };
   let timer = null;
   let stopped = false;
@@ -246,13 +255,20 @@ export function suscribirStockGlobal(onData, onError) {
   };
 
   const sumColl = collection(db(), COL_SUMINISTROS);
+  const sumConstraints = [];
+  if (contratoId) sumConstraints.push(where('contrato_id', '==', contratoId));
+  sumConstraints.push(orderBy('codigo'));
   const unsubS = onSnapshot(
-    query(sumColl, orderBy('codigo')),
+    query(sumColl, ...sumConstraints),
     (s) => { state.suministros = s.docs.map((d) => ({ id: d.id, ...d.data() })); schedule(); },
     fail
   );
+  const movConstraints = [];
+  if (contratoId) movConstraints.push(where('contrato_id', '==', contratoId));
+  movConstraints.push(orderBy('anio', 'desc'));
+  movConstraints.push(orderBy('codigo', 'desc'));
   const unsubM = onSnapshot(
-    query(collRef(), orderBy('anio', 'desc'), orderBy('codigo', 'desc')),
+    query(collRef(), ...movConstraints),
     (s) => { state.movimientos = s.docs.map((d) => ({ id: d.id, ...d.data() })); schedule(); },
     fail
   );
