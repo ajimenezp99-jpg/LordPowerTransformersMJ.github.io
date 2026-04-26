@@ -7,6 +7,66 @@ Formato inspirado en [Keep a Changelog](https://keepachangelog.com/).
 Semver por tag. Pulido post-v2.0 incrementa el patch (v2.0.1,
 v2.0.2, …) sin promesas de incompatibilidad.
 
+## v2.4.0 — Refactor Contratos · arquitectura escalable multi-contrato (2026-04-25)
+
+Reorganización de la navegación para soportar de forma escalable múltiples
+contratos de suministro. El módulo "Suministros" (que era flat y
+monocontrato) pasa a vivir jerárquicamente dentro de un contrato; cada
+contrato futuro replica la misma estructura de tabs sin duplicación de
+código. 5 microfases atómicas (M1–M5).
+
+### Microfases
+
+- **M1** — Eliminación del módulo Correcciones. Tab + tabpanel removidos
+  de pages/suministros.html, archivos admin/suministros-correcciones.html
+  y assets/js/admin/admin-suministros-correcciones.js eliminados, redirect
+  legacy retirado de aqua-shell.js. El data layer
+  data/correcciones.js y la rule firestore.rules para /correcciones
+  permanecen intactos por backwards-compat (3 docs sembrados desde el JSX
+  siguen accesibles, colección reusable a futuro).
+- **M2** — pages/contratos.html con grid responsive de cards. Cada card
+  tiene icon + número + estado-pill + nombre + fechas + footer con flecha
+  animada. Suscripción realtime a /contratos con filter tipo='suministros';
+  fallback a contrato semilla 4123000081 cuando la query devuelve vacío,
+  con tag visible 'SEMILLA' para indicar que aún no está formalmente
+  registrado.
+- **M3** — pages/contrato.html?id=XXX shell dinámico. Lee el id del query,
+  renderiza header con número y nombre cargados desde /contratos/{id}
+  (con fallback a META_SEMILLA mientras Firestore responde). 5 tabs sin
+  Correcciones: Dashboard (público) · Catálogo · Movimiento · Histórico ·
+  Importar (admin). Reusa initModuleShell del refactor v2.3.
+- **M4** — Sidebar refactor: 'Suministros' → 'Contratos' (icon
+  file-text). LEGACY_REDIRECTS actualizado para que las 5 URLs viejas
+  de Suministros lleven al contrato semilla con tab correcta. El shell
+  pages/suministros.html antiguo también redirige.
+- **M5** — Cache PWA sgm-v3-3-0 → sgm-v3-4-0 + CHANGELOG + tag.
+
+### Patrón escalable para nuevos contratos
+
+Cuando llegue un Excel de un contrato adicional:
+1. Importador F42 amplía para detectar el `contrato_id` del Excel.
+2. Crea/actualiza /contratos/{id} con tipo='suministros'.
+3. Filtra los docs sembrados por contrato_id (suministros, marcas,
+   movimientos).
+4. La página pages/contratos.html lo lista automáticamente vía
+   onSnapshot.
+5. Click en la card → pages/contrato.html?id={N} carga sus tabs
+   con datos filtrados.
+
+Cero refactor de UI necesario para soportar el contrato N+1.
+
+### Métricas
+
+- 5 microfases · 5 commits aislados
+- ~530 LOC nuevas (pages contratos/contrato + controllers + CSS cards)
+- 341 LOC eliminadas (módulo Correcciones)
+- Tests siguen 399/399 verdes (el módulo de Correcciones eliminado no
+  tenía tests automatizados)
+- Cero deploys nuevos
+- Cache PWA bump
+
+---
+
 ## v2.3.0 — Refactor UX · Navegación consolidada con tabs (2026-04-25)
 
 Reorganización inteligente de TODOS los menús del portal. Sidebar pasa

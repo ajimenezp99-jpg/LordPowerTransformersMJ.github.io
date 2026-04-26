@@ -6,7 +6,7 @@
   <meta name="robots" content="noindex, nofollow"/>
   <meta name="theme-color" content="#f4f6fb"/>
   <meta name="color-scheme" content="light"/>
-  <title>SGM · TRANSPOWER — Suministros</title>
+  <title>SGM · TRANSPOWER — Contrato</title>
   <link rel="icon" type="image/svg+xml" href="../assets/img/aqua/logo-aqua.svg"/>
   <script type="module" src="../assets/js/auth/page-guard.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,17 +21,18 @@
 <main class="app-main page-container">
 
   <div class="page-header">
-    <div class="breadcrumb">Operación / Suministros</div>
-    <h1 class="page-title">Módulo <em>Suministros</em></h1>
-    <p class="page-subtitle">
-      Gestión integral del catálogo contractual, movimientos, marcas
-      y trazabilidad. Cada pestaña carga la vista correspondiente
-      sin perder el contexto principal.
+    <div class="breadcrumb">
+      <a href="contratos.html" style="color: var(--ink-3); text-decoration: none;">Contratos</a>
+      / <span id="contratoBreadcrumb">—</span>
+    </div>
+    <h1 class="page-title">Contrato <em id="contratoNumero">—</em></h1>
+    <p class="page-subtitle" id="contratoNombre">
+      Cargando información del contrato…
     </p>
   </div>
 
-  <div class="sgm-tabs" id="suministrosTabs">
-    <div role="tablist" class="tab-bar" aria-label="Secciones del módulo Suministros">
+  <div class="sgm-tabs" id="contratoTabs">
+    <div role="tablist" class="tab-bar" aria-label="Secciones del contrato">
       <button type="button" role="tab" data-tab="dashboard">
         <span class="i"><i data-lucide="bar-chart-3"></i></span>Dashboard
       </button>
@@ -51,16 +52,16 @@
 
     <div class="tab-panels">
       <div role="tabpanel" data-tab-panel="dashboard">
-        <iframe class="tab-iframe" data-src="suministros-dashboard.html" title="Dashboard Suministros" loading="lazy"></iframe>
+        <iframe class="tab-iframe" data-src="suministros-dashboard.html" title="Dashboard del Contrato" loading="lazy"></iframe>
       </div>
       <div role="tabpanel" data-tab-panel="catalogo" hidden>
-        <iframe class="tab-iframe" data-src="../admin/suministros-catalogo.html" title="Catálogo de Suministros" loading="lazy"></iframe>
+        <iframe class="tab-iframe" data-src="../admin/suministros-catalogo.html" title="Catálogo del Contrato" loading="lazy"></iframe>
       </div>
       <div role="tabpanel" data-tab-panel="movimiento" hidden>
-        <iframe class="tab-iframe" data-src="../admin/suministros-movimiento.html" title="Movimiento de Suministros" loading="lazy"></iframe>
+        <iframe class="tab-iframe" data-src="../admin/suministros-movimiento.html" title="Movimiento" loading="lazy"></iframe>
       </div>
       <div role="tabpanel" data-tab-panel="historico" hidden>
-        <iframe class="tab-iframe" data-src="../admin/suministros-historico.html" title="Histórico de Movimientos" loading="lazy"></iframe>
+        <iframe class="tab-iframe" data-src="../admin/suministros-historico.html" title="Histórico" loading="lazy"></iframe>
       </div>
       <div role="tabpanel" data-tab-panel="importar" hidden>
         <iframe class="tab-iframe" data-src="../admin/importar-suministros.html" title="Importar Suministros" loading="lazy"></iframe>
@@ -70,7 +71,7 @@
 
 </main>
 
-<script type="module" src="../assets/js/suministros-shell.js"></script>
+<script type="module" src="../assets/js/contrato-shell.js"></script>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
 <script src="../assets/js/aqua.js" defer></script>
 <script src="../assets/js/aqua-shell.js" defer></script>

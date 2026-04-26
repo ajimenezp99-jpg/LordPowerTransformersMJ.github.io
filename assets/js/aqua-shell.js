@@ -54,13 +54,14 @@
   // bookmarks viejos sin duplicar contenido.
   if (!isEmbedded) {
     const LEGACY_REDIRECTS = {
-      // Suministros
-      '/pages/suministros-dashboard.html':   'pages/suministros.html#tab=dashboard',
-      '/admin/suministros-catalogo.html':    'pages/suministros.html#tab=catalogo',
-      '/admin/suministros-movimiento.html':  'pages/suministros.html#tab=movimiento',
-      '/admin/suministros-historico.html':   'pages/suministros.html#tab=historico',
-      '/admin/suministros-correcciones.html':'pages/suministros.html#tab=correcciones',
-      '/admin/importar-suministros.html':    'pages/suministros.html#tab=importar',
+      // Contratos · v2.4: el módulo Suministros migró a vivir DENTRO
+      // del contrato 4123000081 (único contrato actualmente registrado).
+      '/pages/suministros.html':             'pages/contrato.html?id=4123000081#tab=dashboard',
+      '/pages/suministros-dashboard.html':   'pages/contrato.html?id=4123000081#tab=dashboard',
+      '/admin/suministros-catalogo.html':    'pages/contrato.html?id=4123000081#tab=catalogo',
+      '/admin/suministros-movimiento.html':  'pages/contrato.html?id=4123000081#tab=movimiento',
+      '/admin/suministros-historico.html':   'pages/contrato.html?id=4123000081#tab=historico',
+      '/admin/importar-suministros.html':    'pages/contrato.html?id=4123000081#tab=importar',
       // Activos
       '/pages/inventario.html':              'pages/activos.html#tab=inventario',
       '/pages/mapa.html':                    'pages/activos.html#tab=mapa',
@@ -164,7 +165,7 @@
         <a href="${u('home.html')}" class="sb-item" data-key="home"><span class="i"><i data-lucide="layout-dashboard"></i></span>Inicio</a>
         <a href="${u('pages/activos.html')}" class="sb-item" data-key="activos"><span class="i"><i data-lucide="database"></i></span>Activos</a>
         <a href="${u('pages/ordenes.html')}" class="sb-item" data-key="ordenes"><span class="i"><i data-lucide="clipboard-list"></i></span>Órdenes</a>
-        <a href="${u('pages/suministros.html')}" class="sb-item" data-key="suministros"><span class="i"><i data-lucide="package"></i></span>Suministros</a>
+        <a href="${u('pages/contratos.html')}" class="sb-item" data-key="contratos"><span class="i"><i data-lucide="file-text"></i></span>Contratos</a>
       </div>
       <div class="sb-group">
         <div class="sb-group-title">Análisis</div>
