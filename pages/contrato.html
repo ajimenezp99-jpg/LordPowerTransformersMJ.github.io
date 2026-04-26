@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es" data-aqua>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <meta name="theme-color" content="#f4f6fb"/>
+  <meta name="color-scheme" content="light"/>
+  <title>SGM · TRANSPOWER — Contrato</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/aqua/logo-aqua.svg"/>
+  <script type="module" src="../assets/js/auth/page-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="../assets/css/aqua-tokens.css"/>
+  <link rel="stylesheet" href="../assets/css/aqua-components.css"/>
+  <link rel="stylesheet" href="../assets/css/inventario.css"/>
+  <link rel="stylesheet" href="../assets/css/suministros.css"/>
+  <link rel="stylesheet" href="../assets/css/tabs.css"/>
+</head>
+<body class="aqua">
+<main class="app-main page-container">
+
+  <div class="page-header">
+    <div class="breadcrumb">
+      <a href="contratos.html" style="color: var(--ink-3); text-decoration: none;">Contratos</a>
+      / <span id="contratoBreadcrumb">—</span>
+    </div>
+    <h1 class="page-title">Contrato <em id="contratoNumero">—</em></h1>
+    <p class="page-subtitle" id="contratoNombre">
+      Cargando información del contrato…
+    </p>
+  </div>
+
+  <div class="sgm-tabs" id="contratoTabs">
+    <div role="tablist" class="tab-bar" aria-label="Secciones del contrato">
+      <button type="button" role="tab" data-tab="dashboard">
+        <span class="i"><i data-lucide="bar-chart-3"></i></span>Dashboard
+      </button>
+      <button type="button" role="tab" data-tab="catalogo" data-admin="1">
+        <span class="i"><i data-lucide="package"></i></span>Catálogo
+      </button>
+      <button type="button" role="tab" data-tab="movimiento" data-admin="1">
+        <span class="i"><i data-lucide="arrow-right-left"></i></span>Movimiento
+      </button>
+      <button type="button" role="tab" data-tab="historico" data-admin="1">
+        <span class="i"><i data-lucide="history"></i></span>Histórico
+      </button>
+      <button type="button" role="tab" data-tab="importar" data-admin="1">
+        <span class="i"><i data-lucide="package-plus"></i></span>Importar
+      </button>
+    </div>
+
+    <div class="tab-panels">
+      <div role="tabpanel" data-tab-panel="dashboard">
+        <iframe class="tab-iframe" data-src="suministros-dashboard.html" title="Dashboard del Contrato" loading="lazy"></iframe>
+      </div>
+      <div role="tabpanel" data-tab-panel="catalogo" hidden>
+        <iframe class="tab-iframe" data-src="../admin/suministros-catalogo.html" title="Catálogo del Contrato" loading="lazy"></iframe>
+      </div>
+      <div role="tabpanel" data-tab-panel="movimiento" hidden>
+        <iframe class="tab-iframe" data-src="../admin/suministros-movimiento.html" title="Movimiento" loading="lazy"></iframe>
+      </div>
+      <div role="tabpanel" data-tab-panel="historico" hidden>
+        <iframe class="tab-iframe" data-src="../admin/suministros-historico.html" title="Histórico" loading="lazy"></iframe>
+      </div>
+      <div role="tabpanel" data-tab-panel="importar" hidden>
+        <iframe class="tab-iframe" data-src="../admin/importar-suministros.html" title="Importar Suministros" loading="lazy"></iframe>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script type="module" src="../assets/js/contrato-shell.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+<script src="../assets/js/aqua.js" defer></script>
+<script src="../assets/js/aqua-shell.js" defer></script>
+</body>
+</html>
