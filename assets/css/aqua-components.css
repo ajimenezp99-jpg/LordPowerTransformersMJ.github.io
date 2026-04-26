@@ -380,6 +380,84 @@ body.aqua .sb-item.is-active {
 .sb-tree .sb-item-child.is-active .sb-contrato-num {
   color: var(--brand-deep);
 }
+
+/* Nivel intermedio: categoría con texto largo (multi-línea) */
+.sb-tree .sb-item-category {
+  align-items: flex-start;
+  padding: 8px 30px 8px 24px;
+  line-height: 1.32;
+}
+.sb-tree .sb-item-category .sb-child-bullet {
+  margin-top: 8px;
+}
+.sb-tree .sb-item-category .sb-cat-text {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 500;
+  letter-spacing: -.005em;
+  white-space: normal;
+  flex: 1;
+}
+.sb-tree .sb-item-category.is-active .sb-cat-text {
+  font-weight: 600;
+  color: var(--brand-deep);
+}
+.sb-caret-sm {
+  width: 20px !important;
+  height: 20px !important;
+  right: 4px !important;
+}
+.sb-caret-sm svg, .sb-caret-sm i {
+  width: 12px !important;
+  height: 12px !important;
+}
+
+/* Nested tree (categoría dentro de Contratos) */
+.sb-tree-nested {
+  margin: 2px 0;
+}
+.sb-tree-nested .sb-children {
+  margin-top: 1px;
+  padding-left: 4px;
+}
+
+/* Nivel 3: número de contrato */
+.sb-tree .sb-item-grandchild {
+  position: relative;
+  padding: 6px 14px 6px 50px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-2);
+  border-radius: var(--r-sm);
+  margin: 1px 0;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background .12s ease, color .12s ease;
+}
+.sb-tree .sb-item-grandchild .sb-child-bullet {
+  width: 6px;
+  background: rgba(0, 40, 90, .22);
+}
+.sb-tree .sb-item-grandchild:hover {
+  background: rgba(0, 122, 255, .07);
+  color: var(--ink-1);
+}
+.sb-tree .sb-item-grandchild.is-active {
+  background: linear-gradient(180deg, rgba(0,122,255,.18) 0%, rgba(0,122,255,.10) 100%);
+  color: var(--brand-deep);
+  font-weight: 600;
+}
+.sb-tree .sb-item-grandchild .sb-contrato-num {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  background: transparent;
+  padding: 0;
+}
+.sb-tree .sb-item-grandchild.is-active .sb-contrato-num {
+  color: var(--brand-deep);
+}
 .sb-item .i {
   width: 22px; height: 22px;
   display: grid; place-items: center;

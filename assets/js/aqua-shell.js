@@ -166,17 +166,32 @@
         <a href="${u('pages/activos.html')}" class="sb-item" data-key="activos"><span class="i"><i data-lucide="database"></i></span>Activos</a>
         <a href="${u('pages/ordenes.html')}" class="sb-item" data-key="ordenes"><span class="i"><i data-lucide="clipboard-list"></i></span>Órdenes</a>
         <div class="sb-tree" data-tree-key="contratos">
-          <a href="${u('pages/contratos.html')}" class="sb-item sb-item-parent" data-key="contratos" data-tree-toggle="contratos">
+          <a href="${u('pages/contratos.html')}" class="sb-item sb-item-parent" data-key="contratos">
             <span class="i"><i data-lucide="file-text"></i></span>Contratos
             <button type="button" class="sb-caret" aria-label="Expandir Contratos" aria-expanded="true" data-tree-toggle-btn="contratos">
               <i data-lucide="chevron-down"></i>
             </button>
           </a>
           <div class="sb-children" data-tree-children="contratos">
-            <a href="${u('pages/contrato.html')}?id=4123000081" class="sb-item sb-item-child" data-key="contrato-4123000081">
-              <span class="sb-child-bullet" aria-hidden="true"></span>
-              <code class="sb-contrato-num">4123000081</code>
-            </a>
+            <div class="sb-tree sb-tree-nested" data-tree-key="cat-sum-tx">
+              <a href="${u('pages/contratos.html')}?cat=sum-tx" class="sb-item sb-item-child sb-item-category" data-key="cat-sum-tx" title="Suministro de Elementos y Accesorios para Transformadores de Potencia">
+                <span class="sb-child-bullet" aria-hidden="true"></span>
+                <span class="sb-cat-text">Suministro de Elementos y Accesorios para Transformadores de Potencia</span>
+                <button type="button" class="sb-caret sb-caret-sm" aria-label="Expandir categoría" aria-expanded="true" data-tree-toggle-btn="cat-sum-tx">
+                  <i data-lucide="chevron-down"></i>
+                </button>
+              </a>
+              <div class="sb-children" data-tree-children="cat-sum-tx">
+                <a href="${u('pages/contrato.html')}?id=4123000081" class="sb-item sb-item-grandchild" data-key="contrato-4123000081">
+                  <span class="sb-child-bullet" aria-hidden="true"></span>
+                  <code class="sb-contrato-num">4123000081</code>
+                </a>
+                <a href="${u('pages/contrato.html')}?id=4125000143" class="sb-item sb-item-grandchild" data-key="contrato-4125000143">
+                  <span class="sb-child-bullet" aria-hidden="true"></span>
+                  <code class="sb-contrato-num">4125000143</code>
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </div>

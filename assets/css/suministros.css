@@ -503,6 +503,51 @@
   transform: translateX(3px);
 }
 
+/* Sección de categoría (M7 v2.4) */
+.categoria-section {
+  margin-bottom: 28px;
+}
+.categoria-header {
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(0, 40, 90, .08);
+}
+.categoria-header h2 {
+  margin: 0 0 4px;
+  font-family: var(--font-display, 'Space Grotesk', sans-serif);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--ink-1);
+  letter-spacing: -.01em;
+  line-height: 1.25;
+}
+.categoria-subtitle {
+  margin: 0;
+  font-size: 12.5px;
+  color: var(--ink-3);
+}
+
+/* Tag SIN DATOS (contrato registrado pero sin Excel cargado) */
+.contrato-pendiente-tag {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: rgba(220, 38, 38, .14);
+  color: #B91C1C;
+}
+.contrato-card.is-pendiente .contrato-card-head {
+  background: linear-gradient(180deg, rgba(220, 38, 38, .06), rgba(220, 38, 38, .02));
+}
+.contrato-card.is-pendiente .contrato-icon {
+  background: rgba(220, 38, 38, .14);
+  color: #B91C1C;
+}
+.contrato-card.is-pendiente .contrato-card-foot {
+  color: #B91C1C;
+}
+
 /* Hint pequeño bajo inputs */
 .form-hint {
   display: block;
