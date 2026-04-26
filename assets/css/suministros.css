@@ -335,6 +335,174 @@
   max-height: 320px;
 }
 
+/* ── M2 v2.4 · Grid de Contratos ─────────────────────────── */
+.contratos-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 18px;
+  margin-bottom: 20px;
+}
+.contrato-card-skeleton {
+  grid-column: 1 / -1;
+  padding: 24px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--ink-3);
+  background: rgba(255, 255, 255, .42);
+  border-radius: 14px;
+  border: 1px dashed rgba(0, 40, 90, .15);
+}
+.contrato-empty {
+  grid-column: 1 / -1;
+  padding: 32px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--ink-3);
+  background: rgba(255, 255, 255, .42);
+  border-radius: 14px;
+  border: 1px dashed rgba(0, 40, 90, .15);
+}
+.contrato-card {
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, .50);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, .55);
+  border-radius: 16px;
+  padding: 0;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+  box-shadow: 0 1px 2px rgba(0, 40, 90, .05);
+}
+.contrato-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 40, 90, .10);
+  border-color: rgba(0, 122, 255, .35);
+}
+.contrato-card:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+.contrato-card.is-cerrado {
+  opacity: .68;
+}
+.contrato-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  background: linear-gradient(180deg, rgba(0, 122, 255, .08), rgba(0, 122, 255, .02));
+  border-bottom: 1px solid rgba(0, 40, 90, .06);
+}
+.contrato-icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: rgba(0, 122, 255, .14);
+  color: var(--brand-deep);
+  flex-shrink: 0;
+}
+.contrato-icon svg { width: 18px; height: 18px; }
+.contrato-numero {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--ink-1);
+}
+.contrato-numero code {
+  background: rgba(0, 40, 90, .06);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+}
+.contrato-semilla-tag {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  padding: 2px 7px;
+  border-radius: 5px;
+  background: rgba(245, 158, 11, .18);
+  color: #92400E;
+}
+.contrato-estado-pill {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  padding: 3px 8px;
+  border-radius: 8px;
+  text-transform: uppercase;
+}
+.contrato-estado-pill.estado-activo,
+.contrato-estado-pill.estado-vigente {
+  background: rgba(22, 163, 74, .16);
+  color: #166534;
+}
+.contrato-estado-pill.estado-cerrado,
+.contrato-estado-pill.estado-finalizado {
+  background: rgba(0, 40, 90, .10);
+  color: var(--ink-3);
+}
+.contrato-card-body {
+  padding: 14px 18px 16px;
+  flex: 1;
+}
+.contrato-card-body h3 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: var(--ink-1);
+  line-height: 1.35;
+  font-weight: 600;
+}
+.contrato-meta {
+  display: flex;
+  gap: 16px;
+  margin: 0;
+  font-size: 12px;
+  color: var(--ink-3);
+}
+.contrato-meta div { flex: 1; }
+.contrato-meta dt {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--ink-4);
+  margin: 0 0 3px;
+}
+.contrato-meta dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  color: var(--ink-2);
+}
+.contrato-card-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 18px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--brand-deep);
+  border-top: 1px solid rgba(0, 40, 90, .05);
+  background: rgba(255, 255, 255, .35);
+}
+.contrato-card-foot svg {
+  width: 16px;
+  height: 16px;
+  transition: transform .15s ease;
+}
+.contrato-card:hover .contrato-card-foot svg {
+  transform: translateX(3px);
+}
+
 /* Hint pequeño bajo inputs */
 .form-hint {
   display: block;
