@@ -83,6 +83,22 @@ async function cargarMeta() {
 
 cargarMeta();
 
+// Propaga el contrato_id a los iframes embebidos · multi-contrato (N4).
+// Cada subscreen lee window.location.search para detectar el contratoId
+// y filtrar sus queries Firestore. Sin filtro = comportamiento legacy.
+(function propagarContratoIdALosIframes() {
+  const tabsEl = document.getElementById('contratoTabs');
+  if (!tabsEl) return;
+  for (const iframe of tabsEl.querySelectorAll('iframe[data-src]')) {
+    const src = iframe.getAttribute('data-src') || '';
+    if (!src) continue;
+    // Solo añadimos contratoId si la URL no la trae ya (defensivo).
+    const sep = src.includes('?') ? '&' : '?';
+    if (/[?&]contratoId=/.test(src)) continue;
+    iframe.setAttribute('data-src', `${src}${sep}contratoId=${encodeURIComponent(contratoId)}`);
+  }
+})();
+
 // Inicializa los tabs. Lazy-load de iframes + ocultar tabs admin a
 // no-admins (Dashboard sigue público).
 initModuleShell('contratoTabs', { defaultTab: 'dashboard' });
