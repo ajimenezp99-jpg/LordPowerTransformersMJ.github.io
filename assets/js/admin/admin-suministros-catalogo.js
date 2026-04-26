@@ -13,6 +13,7 @@ import {
   crear as crearMarca,
   eliminar as eliminarMarca
 } from '../data/marcas.js';
+import { getContratoActivo, withContratoFiltro } from '../ui/contrato-context.js';
 
 // ── Elementos ──
 const $ = (id) => document.getElementById(id);
@@ -182,6 +183,7 @@ function fillForm(s) {
 }
 function readForm() {
   return {
+    contrato_id:    getContratoActivo() || (suministroEnEdicion && suministroEnEdicion.contrato_id) || '',
     codigo:         fCodigo.value.trim().toUpperCase(),
     nombre:         fNombre.value.trim(),
     unidad:         fUnidadMain.value,
@@ -200,7 +202,7 @@ function arrancarSuscripcion() {
   }
   if (unsub) { try { unsub(); } catch (_) {} }
   unsub = suscribir(
-    {},
+    withContratoFiltro(),
     (rows) => { cacheRows = rows; render(); },
     (err)  => {
       console.error(err);

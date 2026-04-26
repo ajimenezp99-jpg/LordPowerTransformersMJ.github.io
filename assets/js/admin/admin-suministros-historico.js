@@ -8,6 +8,7 @@ import {
   obtener, eliminar, suscribir, isReady
 } from '../data/movimientos.js';
 import { suscribir as suscribirSuministros } from '../data/suministros.js';
+import { withContratoFiltro } from '../ui/contrato-context.js';
 
 const $ = (id) => document.getElementById(id);
 const tbody       = $('tbody');
@@ -245,10 +246,10 @@ function arrancar() {
   }
   if (unsubMovs) try { unsubMovs(); } catch (_) {}
   if (unsubSums) try { unsubSums(); } catch (_) {}
-  unsubSums = suscribirSuministros({}, (rows) => {
+  unsubSums = suscribirSuministros(withContratoFiltro(), (rows) => {
     cacheSums = rows; rebuildSumFilter();
   }, (err) => console.warn('[sums]', err));
-  unsubMovs = suscribir({}, (rows) => {
+  unsubMovs = suscribir(withContratoFiltro(), (rows) => {
     cacheMovs = rows;
     rebuildAnioFilter();
     render();

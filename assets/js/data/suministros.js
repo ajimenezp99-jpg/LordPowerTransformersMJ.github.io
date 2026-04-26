@@ -8,7 +8,7 @@
 import {
   collection, doc,
   setDoc, updateDoc, deleteDoc,
-  getDoc, getDocs, query, orderBy, limit,
+  getDoc, getDocs, query, where, orderBy, limit,
   onSnapshot, serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
 
@@ -17,6 +17,9 @@ import {
   sanitizarSuministro, validarSuministro
 } from '../domain/suministro_schema.js';
 import { auditar, diffSimple, persistirAuditoria } from '../domain/audit.js';
+import { composeDocId } from '../domain/contratos.js';
+
+export { composeDocId };
 
 const COL_NAME = 'suministros';
 
@@ -48,18 +51,22 @@ export function isReady() {
   return isFirebaseConfigured && !!getDbSafe();
 }
 
-export async function listar(filtros = {}) {
-  const constraints = [orderBy('codigo')];
+function buildConstraints(filtros) {
+  const constraints = [];
+  if (filtros.contrato_id) constraints.push(where('contrato_id', '==', filtros.contrato_id));
+  constraints.push(orderBy('codigo'));
   if (filtros.limite) constraints.push(limit(filtros.limite));
-  const snap = await getDocs(query(collRef(), ...constraints));
+  return constraints;
+}
+
+export async function listar(filtros = {}) {
+  const snap = await getDocs(query(collRef(), ...buildConstraints(filtros)));
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
 export function suscribir(filtros = {}, onData, onError) {
-  const constraints = [orderBy('codigo')];
-  if (filtros.limite) constraints.push(limit(filtros.limite));
   return onSnapshot(
-    query(collRef(), ...constraints),
+    query(collRef(), ...buildConstraints(filtros)),
     (snap) => onData(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
     (err)  => { if (onError) onError(err); else console.warn('[suministros.suscribir]', err); }
   );
@@ -76,8 +83,11 @@ export async function obtener(id) {
  */
 export async function crear(data, uid) {
   const payload = prepararDoc(data, uid);
-  const id = payload.codigo;
-  if (!id) throw new Error('codigo es obligatorio para crear un suministro.');
+  if (!payload.codigo) throw new Error('codigo es obligatorio para crear un suministro.');
+  // docId compuesto cuando hay contrato_id (multi-contrato seguro);
+  // si no, el docId es solo el codigo (compat con docs legacy
+  // pre-migración que existen con id S01..S22).
+  const id = composeDocId(payload.contrato_id, payload.codigo);
   const exists = await obtener(id);
   if (exists) throw new Error(`Suministro ${id} ya existe.`);
   payload.createdAt = serverTimestamp();
@@ -89,6 +99,7 @@ export async function crear(data, uid) {
   }));
   return id;
 }
+
 
 export async function actualizar(id, data, opts = {}) {
   const prev = opts.prev || (await obtener(id));

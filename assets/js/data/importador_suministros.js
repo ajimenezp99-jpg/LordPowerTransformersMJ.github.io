@@ -28,6 +28,7 @@ import {
   extraerCorreccionesEmbedded,
   reconciliarEquipos, prepararPlanImportacion
 } from '../domain/importador_suministros.js';
+import { composeDocId } from '../domain/contratos.js';
 
 const COL_SUMINISTROS = 'suministros';
 const COL_MARCAS      = 'marcas';
@@ -153,11 +154,13 @@ export async function planearImportacion({ xlsmBuffer, jsxText, XLSX }) {
  */
 export async function ejecutarImportacion({
   plan, parsed, hashes,
+  contrato_id = '',
   dryRun = false, uid = null, onProgress = null
 }) {
   if (!plan) throw new Error('plan es obligatorio.');
   const d = db();
   const t0 = Date.now();
+  const cid = String(contrato_id || '').trim();
 
   const idsCreados = { suministros: [], marcas: [], correcciones: [], transformadores: [] };
   const idsActualizados = { suministros: [], transformadores: [] };
@@ -186,31 +189,34 @@ export async function ejecutarImportacion({
     const { marcas_disponibles, ...rest } = s;
     return rest;
   };
+  // docId helper: si hay contrato_id, compone {cid}_{codigo}; si no,
+  // mantiene el codigo plano (compat con docs legacy del 4123000081).
+  const sumDocId = (codigo) => composeDocId(cid, codigo);
   let i = 0;
   for (const s of plan.suministros.crear) {
     if (!dryRun) {
-      batch.set(doc(d, COL_SUMINISTROS, s.codigo), {
+      batch.set(doc(d, COL_SUMINISTROS, sumDocId(s.codigo)), {
         ...limpiarPayloadSuministro(s),
-        // En CREAR sí inicializamos el array vacío para que el
-        // doc tenga el campo presente y arrayUnion funcione luego.
+        contrato_id: cid,
         marcas_disponibles: [],
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         createdBy: uid
       });
     }
-    idsCreados.suministros.push(s.codigo);
+    idsCreados.suministros.push(sumDocId(s.codigo));
     await enqueue();
     reportProgress('suministros', ++i, plan.suministros.crear.length + plan.suministros.actualizar.length);
   }
   for (const s of plan.suministros.actualizar) {
     if (!dryRun) {
-      batch.set(doc(d, COL_SUMINISTROS, s.codigo), {
+      batch.set(doc(d, COL_SUMINISTROS, sumDocId(s.codigo)), {
         ...limpiarPayloadSuministro(s),
+        contrato_id: cid,
         updatedAt: serverTimestamp()
       }, { merge: true });
     }
-    idsActualizados.suministros.push(s.codigo);
+    idsActualizados.suministros.push(sumDocId(s.codigo));
     await enqueue();
     reportProgress('suministros', ++i, plan.suministros.crear.length + plan.suministros.actualizar.length);
   }
@@ -224,6 +230,7 @@ export async function ejecutarImportacion({
       const ref = doc(collection(d, COL_MARCAS));
       batch.set(ref, {
         ...m,
+        contrato_id: cid,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
         createdBy: uid
@@ -249,7 +256,7 @@ export async function ejecutarImportacion({
     }
     for (const [sid, lista] of marcasPorSum) {
       batch.set(
-        doc(d, COL_SUMINISTROS, sid),
+        doc(d, COL_SUMINISTROS, sumDocId(sid)),
         { marcas_disponibles: arrayUnion(...lista), updatedAt: serverTimestamp() },
         { merge: true }
       );
@@ -297,15 +304,21 @@ export async function ejecutarImportacion({
   // control_suministros-2.jsx, skip. Implementación simple: query.
   if (!dryRun) {
     for (const c of plan.correcciones.crear) {
-      const q = query(
-        collection(d, COL_CORRECC),
-        where('numero',  '==', c.numero),
-        where('fuente',  '==', c.fuente)
-      );
+      // Idempotencia ahora considera también el contrato_id, para que
+      // dos contratos puedan tener la misma corrección sin colisionar.
+      const q = cid
+        ? query(collection(d, COL_CORRECC),
+            where('numero',      '==', c.numero),
+            where('fuente',      '==', c.fuente),
+            where('contrato_id', '==', cid))
+        : query(collection(d, COL_CORRECC),
+            where('numero',  '==', c.numero),
+            where('fuente',  '==', c.fuente));
       const snap = await getDocs(q);
       if (snap.empty) {
         const ref = await addDoc(collection(d, COL_CORRECC), {
           ...c,
+          contrato_id: cid,
           createdAt: serverTimestamp(),
           createdBy: uid
         });
@@ -314,6 +327,36 @@ export async function ejecutarImportacion({
     }
   } else {
     for (const _ of plan.correcciones.crear) idsCreados.correcciones.push('(dry-run)');
+  }
+
+  // ── 4b. Registrar el contrato en /contratos/{id} ─────────────
+  // Crea o actualiza el doc para que pages/contratos.html lo liste
+  // automáticamente sin depender del semilla hardcoded.
+  if (!dryRun && cid) {
+    try {
+      await setDoc(
+        doc(d, 'contratos', cid),
+        {
+          numero: cid,
+          tipo: 'suministros',
+          nombre: (parsed && parsed.contrato_nombre) || 'Suministro de Elementos y Accesorios para Transformadores de Potencia',
+          estado: 'activo',
+          ultima_importacion: serverTimestamp(),
+          ultima_importacion_uid: uid || null,
+          ultima_importacion_summary: {
+            suministros_creados:     idsCreados.suministros.length,
+            suministros_actualizados: idsActualizados.suministros.length,
+            marcas_creadas:          idsCreados.marcas.length,
+            transformadores_creados: idsCreados.transformadores.length,
+            transformadores_actualizados: idsActualizados.transformadores.length,
+            correcciones_creadas:    idsCreados.correcciones.length
+          }
+        },
+        { merge: true }
+      );
+    } catch (err) {
+      console.warn('[importador.contrato] no se pudo registrar /contratos/' + cid + ':', err);
+    }
   }
 
   // ── 5. Audit entry granular ──────────────────────────────────

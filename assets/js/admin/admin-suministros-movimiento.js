@@ -10,6 +10,7 @@ import {
 } from '../data/movimientos.js';
 import { suscribir as suscribirSuministros } from '../data/suministros.js';
 import { suscribir as suscribirTransformadores } from '../data/transformadores.js';
+import { getContratoActivo, withContratoFiltro } from '../ui/contrato-context.js';
 
 const $ = (id) => document.getElementById(id);
 
@@ -173,9 +174,11 @@ function arrancar() {
   }
   if (unsubSums)   try { unsubSums(); }   catch (_) {}
   if (unsubTrafos) try { unsubTrafos(); } catch (_) {}
-  unsubSums = suscribirSuministros({}, (rows) => {
+  unsubSums = suscribirSuministros(withContratoFiltro(), (rows) => {
     cacheSums = rows; rebuildDatalistSums();
   }, (err) => console.warn('[sums]', err));
+  // Transformadores se mantienen sin filtro de contrato — el parque es
+  // único y cada movimiento debe poder asociarse a cualquier trafo.
   unsubTrafos = suscribirTransformadores({}, (rows) => {
     cacheTrafos = rows; rebuildDatalistTrafos();
   }, (err) => console.warn('[trafos]', err));
@@ -241,6 +244,7 @@ form.addEventListener('submit', async (e) => {
     // El sanitizer F38 lo ignora si traemos placeholder; el data layer F39
     // reescribe con el correlativo real del año.
     const movId = await crearMovimiento({
+      contrato_id: getContratoActivo() || (sumSel && sumSel.contrato_id) || '',
       anio: parseInt(fAnio.value, 10),
       tipo: tipo,
       suministro_id: sumSel.codigo,

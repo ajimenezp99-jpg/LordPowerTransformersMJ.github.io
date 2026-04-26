@@ -11,7 +11,7 @@
 // Funciones PURAS. I/O vive en assets/js/data/correcciones.js.
 // ══════════════════════════════════════════════════════════════
 
-import { TIPOS_CORRECCION, enValores } from './schema.js';
+import { TIPOS_CORRECCION, CONTRATO_ID_PATTERN, enValores } from './schema.js';
 
 const str = (v) => (v == null) ? '' : String(v).trim();
 const num = (v) => {
@@ -24,6 +24,7 @@ export function sanitizarCorreccion(input) {
   const src = input || {};
   const tipo = str(src.tipo).toLowerCase();
   return {
+    contrato_id:    str(src.contrato_id),
     numero:         num(src.numero),
     tipo:           enValores(TIPOS_CORRECCION, tipo) ? tipo : '',
     ubicacion:      str(src.ubicacion),
@@ -37,6 +38,9 @@ export function sanitizarCorreccion(input) {
 export function validarCorreccion(doc) {
   const errs = [];
   if (!doc) { errs.push('Documento vacío.'); return errs; }
+  if (doc.contrato_id && !CONTRATO_ID_PATTERN.test(doc.contrato_id)) {
+    errs.push(`contrato_id inválido: "${doc.contrato_id}". Esperado 8-14 dígitos.`);
+  }
   if (!Number.isInteger(doc.numero) || doc.numero < 1) {
     errs.push('numero debe ser entero >= 1.');
   }

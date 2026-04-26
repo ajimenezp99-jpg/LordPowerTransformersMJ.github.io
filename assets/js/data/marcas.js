@@ -52,24 +52,24 @@ export function isReady() {
   return isFirebaseConfigured && !!getDbSafe();
 }
 
-export async function listar(filtros = {}) {
+function buildConstraints(filtros) {
   const constraints = [];
+  if (filtros.contrato_id)   constraints.push(where('contrato_id',   '==', filtros.contrato_id));
   if (filtros.suministro_id) constraints.push(where('suministro_id', '==', filtros.suministro_id));
   constraints.push(orderBy('suministro_id'));
   constraints.push(orderBy('marca'));
   if (filtros.limite) constraints.push(limit(filtros.limite));
-  const snap = await getDocs(query(collRef(), ...constraints));
+  return constraints;
+}
+
+export async function listar(filtros = {}) {
+  const snap = await getDocs(query(collRef(), ...buildConstraints(filtros)));
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
 }
 
 export function suscribir(filtros = {}, onData, onError) {
-  const constraints = [];
-  if (filtros.suministro_id) constraints.push(where('suministro_id', '==', filtros.suministro_id));
-  constraints.push(orderBy('suministro_id'));
-  constraints.push(orderBy('marca'));
-  if (filtros.limite) constraints.push(limit(filtros.limite));
   return onSnapshot(
-    query(collRef(), ...constraints),
+    query(collRef(), ...buildConstraints(filtros)),
     (snap) => onData(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
     (err)  => { if (onError) onError(err); else console.warn('[marcas.suscribir]', err); }
   );

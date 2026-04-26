@@ -12,6 +12,7 @@
 import { suscribirStockGlobal, suscribir as suscribirMovimientos, isReady } from '../js/data/movimientos.js';
 import { suscribir as suscribirSuministros } from '../js/data/suministros.js';
 import { estadoStock, ESTADOS_STOCK } from '../js/domain/schema.js';
+import { withContratoFiltro } from '../js/ui/contrato-context.js';
 
 const $ = (id) => document.getElementById(id);
 const info = $('infoBox');
@@ -317,7 +318,8 @@ function arrancar() {
   if (unsubMovs)  try { unsubMovs(); }  catch (_) {}
   if (unsubSums)  try { unsubSums(); }  catch (_) {}
 
-  unsubStock = suscribirStockGlobal(({ suministros, config }) => {
+  const filtros = withContratoFiltro();
+  unsubStock = suscribirStockGlobal(filtros, ({ suministros, config }) => {
     cacheStockGlobal = suministros;
     configCache = config || null;
     recomputarTodo();
@@ -325,11 +327,11 @@ function arrancar() {
     console.error(err);
     showInfo('Error realtime stock: ' + (err.message || err), 'err');
   });
-  unsubMovs = suscribirMovimientos({}, (rows) => {
+  unsubMovs = suscribirMovimientos(filtros, (rows) => {
     cacheMovs = rows;
     recomputarTodo();
   }, (err) => console.warn('[movs]', err));
-  unsubSums = suscribirSuministros({}, (rows) => {
+  unsubSums = suscribirSuministros(filtros, (rows) => {
     cacheSums = rows;
     recomputarTodo();
   }, (err) => console.warn('[sums]', err));
