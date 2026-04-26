@@ -87,6 +87,12 @@
       <input type="file" id="jsxInput" accept=".jsx,.txt" style="display:none">
       <button class="btn btn-secondary" id="btnJsxFile">Subir .jsx</button>
     </div>
+    <div class="src-line" style="margin-top: 12px;">
+      <span>🔢 contrato_id:</span>
+      <input type="text" id="fContratoIdImport" maxlength="14" pattern="^\d{8,14}$"
+             placeholder="4123000081" style="font-family: var(--font-mono); padding: 6px 10px; border-radius: 8px; border: 1px solid rgba(0,40,90,.15); background: rgba(255,255,255,.55); width: 180px;">
+      <span style="font-size: 11px; color: var(--ink-3);">Aislamiento multi-contrato. Pre-rellenado si abriste esta vista desde un contrato.</span>
+    </div>
     <div class="btn-row">
       <button class="btn btn-primary" id="btnLoadRepo">Cargar desde repo</button>
       <button class="btn btn-secondary" id="btnPlanear" disabled>Planear importación</button>
@@ -246,10 +252,19 @@ async function ejecutar(dryRun) {
   try {
     setMsg(dryRun ? '⋯ Simulando...' : '⋯ Importando...', 'msg-ok');
     const session = window.__sgmSession;
+    const contratoIdInput = ($('fContratoIdImport').value || '').trim();
+    if (contratoIdInput && !/^\d{8,14}$/.test(contratoIdInput)) {
+      setMsg('contrato_id inválido. Esperado 8-14 dígitos.', 'msg-err');
+      return;
+    }
+    if (!contratoIdInput && !dryRun) {
+      if (!confirm('No has indicado contrato_id. Los datos se importarán sin asignación de contrato (modo legacy). ¿Continuar?')) return;
+    }
     const out = await ejecutarImportacion({
       plan: estado.plan,
       parsed: estado.parsed,
       hashes: estado.hashes,
+      contrato_id: contratoIdInput,
       dryRun,
       uid: session && session.user && session.user.uid,
       onProgress: ({ etapa, i, total }) => {
@@ -271,6 +286,17 @@ async function ejecutar(dryRun) {
   }
 }
 $('btnDry').addEventListener('click',  () => ejecutar(true));
+// Pre-rellenar contrato_id desde el query string si la página fue
+// abierta desde el shell de un contrato (pages/contrato.html?id=...).
+(() => {
+  const cid = (new URLSearchParams(location.search).get('contratoId') || '').trim();
+  if (cid && /^\d{8,14}$/.test(cid)) {
+    $('fContratoIdImport').value = cid;
+    $('fContratoIdImport').readOnly = true;
+    $('fContratoIdImport').title = 'Heredado del contrato activo';
+  }
+})();
+
 $('btnReal').addEventListener('click', () => {
   if (!confirm('¿Confirmas la IMPORTACIÓN REAL a Firestore?\n\nLos suministros y trafos con código existente se actualizarán; los nuevos se crean.\nLos huérfanos NO se eliminan.\nUna entrada bulk_import_suministros queda en /auditoria.')) return;
   ejecutar(false);
