@@ -23,23 +23,86 @@
   if (window.__aquaShellInjected) return;
   window.__aquaShellInjected = true;
 
+  // Si la página está embebida en un iframe (parte del refactor v2.3
+  // de tabs), marcamos el body con .is-embedded y NO inyectamos
+  // topbar/sidebar — el padre ya tiene su propio shell. Los estilos
+  // de tabs.css ocultan los elementos correspondientes.
+  let isEmbedded = false;
+  try {
+    if (window.self !== window.top) {
+      isEmbedded = true;
+      document.body.classList.add('is-embedded');
+      return;
+    }
+  } catch (_) {
+    // Cross-origin guard: si no podemos comparar, asumimos top y
+    // continuamos con el shell normal.
+  }
+
   const path = location.pathname;
   // Calcular base relativa: si estamos en /pages/foo.html o /admin/foo.html → "../"
   // Si /home.html o /index.html (raíz) → "./"
-  const segs = path.replace(/\/+$/, '').split('/').filter(Boolean);
-  // El último segmento es el archivo. Los demás son carpetas → tantas "../" como carpetas.
-  // Si el path termina en /admin/x.html, segs = [...repo, 'admin', 'x.html'] → 1 carpeta a subir.
-  // Para GitHub Pages el repo es root, no hay prefijo de proyecto. Funciona tanto en raíz como subpath.
   let base = '';
-  const file = segs[segs.length - 1] || '';
-  const isFile = /\.html?$/.test(file);
-  const folderDepth = isFile ? Math.max(0, segs.length - 1) : segs.length;
-  // Detectar si la página está en /pages/ o /admin/ (subir un nivel) o en raíz (no subir)
   if (path.includes('/pages/') || path.includes('/admin/')) base = '../';
   else base = './';
   // Permitir override explícito
   const explicit = document.documentElement.getAttribute('data-aqua-base');
   if (explicit !== null) base = explicit;
+
+  // R8 · Redirects de URLs legacy → módulo padre con tab activa.
+  // Solo aplica cuando la página NO está embebida (top-level). Preserva
+  // bookmarks viejos sin duplicar contenido.
+  if (!isEmbedded) {
+    const LEGACY_REDIRECTS = {
+      // Suministros
+      '/pages/suministros-dashboard.html':   'pages/suministros.html#tab=dashboard',
+      '/admin/suministros-catalogo.html':    'pages/suministros.html#tab=catalogo',
+      '/admin/suministros-movimiento.html':  'pages/suministros.html#tab=movimiento',
+      '/admin/suministros-historico.html':   'pages/suministros.html#tab=historico',
+      '/admin/suministros-correcciones.html':'pages/suministros.html#tab=correcciones',
+      '/admin/importar-suministros.html':    'pages/suministros.html#tab=importar',
+      // Activos
+      '/pages/inventario.html':              'pages/activos.html#tab=inventario',
+      '/pages/mapa.html':                    'pages/activos.html#tab=mapa',
+      '/admin/subestaciones.html':           'pages/activos.html#tab=subestaciones',
+      '/admin/contratos.html':               'pages/activos.html#tab=contratos',
+      // Salud
+      '/pages/muestras.html':                'pages/salud.html#tab=muestras',
+      '/admin/motor-salud.html':             'pages/salud.html#tab=motor',
+      '/admin/propuestas-fur.html':          'pages/salud.html#tab=fur',
+      '/admin/contramuestras.html':          'pages/salud.html#tab=contramuestras',
+      '/admin/fallados.html':                'pages/salud.html#tab=fallados',
+      '/pages/matriz-riesgo.html':           'pages/salud.html#tab=matriz',
+      // Análisis
+      '/pages/dashboard.html':               'pages/analisis.html#tab=dashboard',
+      '/pages/kpis.html':                    'pages/analisis.html#tab=kpis',
+      '/pages/alertas.html':                 'pages/analisis.html#tab=alertas',
+      '/admin/plan-inversion.html':          'pages/analisis.html#tab=plan-inversion',
+      '/admin/desempeno-aliados.html':       'pages/analisis.html#tab=desempeno',
+      // Administración
+      '/admin/index.html':                   'admin/administracion.html#tab=panel',
+      '/admin/usuarios.html':                'admin/administracion.html#tab=usuarios',
+      '/admin/catalogos.html':               'admin/administracion.html#tab=catalogos',
+      '/admin/importar.html':                'admin/administracion.html#tab=importar',
+      '/admin/auditoria.html':               'admin/administracion.html#tab=auditoria',
+      // Recursos
+      '/pages/documentos.html':              'pages/recursos.html#tab=documentos',
+      '/pages/normativa.html':               'pages/recursos.html#tab=normativa',
+      '/pages/cobertura.html':               'pages/recursos.html#tab=cobertura',
+      '/pages/about.html':                   'pages/recursos.html#tab=about'
+    };
+    // Match contra el suffix del pathname (acepta cualquier prefijo de
+    // base path, p.ej. /LordPowerTransformersMJ.github.io/).
+    const cleanPath = location.pathname;
+    for (const [legacy, target] of Object.entries(LEGACY_REDIRECTS)) {
+      if (cleanPath.endsWith(legacy)) {
+        // Si el query/search trae ?legacy=keep, no redirigir (escape hatch).
+        if (location.search && /[?&]legacy=keep\b/.test(location.search)) break;
+        location.replace(base + target);
+        return;
+      }
+    }
+  }
 
   const u = (p) => base + p.replace(/^\/+/, '');
 
@@ -99,49 +162,25 @@
       <div class="sb-group">
         <div class="sb-group-title">Operación</div>
         <a href="${u('home.html')}" class="sb-item" data-key="home"><span class="i"><i data-lucide="layout-dashboard"></i></span>Inicio</a>
-        <a href="${u('pages/inventario.html')}" class="sb-item" data-key="inventario"><span class="i"><i data-lucide="database"></i></span>Inventario</a>
+        <a href="${u('pages/activos.html')}" class="sb-item" data-key="activos"><span class="i"><i data-lucide="database"></i></span>Activos</a>
         <a href="${u('pages/ordenes.html')}" class="sb-item" data-key="ordenes"><span class="i"><i data-lucide="clipboard-list"></i></span>Órdenes</a>
-        <a href="${u('pages/mapa.html')}" class="sb-item" data-key="mapa"><span class="i"><i data-lucide="map"></i></span>Mapa</a>
+        <a href="${u('pages/suministros.html')}" class="sb-item" data-key="suministros"><span class="i"><i data-lucide="package"></i></span>Suministros</a>
       </div>
       <div class="sb-group">
         <div class="sb-group-title">Análisis</div>
-        <a href="${u('pages/dashboard.html')}" class="sb-item" data-key="dashboard"><span class="i"><i data-lucide="layout-grid"></i></span>Dashboard</a>
-        <a href="${u('pages/suministros-dashboard.html')}" class="sb-item" data-key="suministros-dashboard"><span class="i"><i data-lucide="bar-chart-3"></i></span>Dashboard Suministros</a>
-        <a href="${u('pages/kpis.html')}" class="sb-item" data-key="kpis"><span class="i"><i data-lucide="bar-chart-3"></i></span>KPIs &amp; RAM</a>
-        <a href="${u('pages/matriz-riesgo.html')}" class="sb-item" data-key="matriz"><span class="i"><i data-lucide="grid-3x3"></i></span>Matriz Riesgo</a>
-        <a href="${u('pages/alertas.html')}" class="sb-item" data-key="alertas"><span class="i"><i data-lucide="bell-ring"></i></span>Alertas</a>
+        <a href="${u('pages/analisis.html')}" class="sb-item" data-key="analisis"><span class="i"><i data-lucide="bar-chart-3"></i></span>Análisis e Indicadores</a>
       </div>
       <div class="sb-group">
         <div class="sb-group-title">Salud del activo</div>
-        <a href="${u('pages/muestras.html')}" class="sb-item" data-key="muestras"><span class="i"><i data-lucide="flask-conical"></i></span>Muestras</a>
-        <a href="${u('admin/motor-salud.html')}" class="sb-item sb-admin" data-key="motor-salud"><span class="i"><i data-lucide="activity"></i></span>Motor de Salud</a>
-        <a href="${u('admin/propuestas-fur.html')}" class="sb-item sb-admin" data-key="propuestas-fur"><span class="i"><i data-lucide="gavel"></i></span>Propuestas FUR</a>
-        <a href="${u('admin/contramuestras.html')}" class="sb-item sb-admin" data-key="contramuestras"><span class="i"><i data-lucide="repeat-2"></i></span>Contramuestras</a>
-        <a href="${u('admin/fallados.html')}" class="sb-item sb-admin" data-key="fallados"><span class="i"><i data-lucide="alert-octagon"></i></span>Fallados + RCA</a>
+        <a href="${u('pages/salud.html')}" class="sb-item" data-key="salud"><span class="i"><i data-lucide="heart-pulse"></i></span>Salud del Activo</a>
       </div>
       <div class="sb-group sb-admin-group" hidden>
         <div class="sb-group-title">Administración</div>
-        <a href="${u('admin/index.html')}" class="sb-item sb-admin" data-key="admin-index"><span class="i"><i data-lucide="settings"></i></span>Panel admin</a>
-        <a href="${u('admin/usuarios.html')}" class="sb-item sb-admin" data-key="usuarios"><span class="i"><i data-lucide="users"></i></span>Usuarios</a>
-        <a href="${u('admin/subestaciones.html')}" class="sb-item sb-admin" data-key="subestaciones"><span class="i"><i data-lucide="factory"></i></span>Subestaciones</a>
-        <a href="${u('admin/contratos.html')}" class="sb-item sb-admin" data-key="contratos"><span class="i"><i data-lucide="file-text"></i></span>Contratos</a>
-        <a href="${u('admin/catalogos.html')}" class="sb-item sb-admin" data-key="catalogos"><span class="i"><i data-lucide="book-open"></i></span>Catálogos</a>
-        <a href="${u('admin/suministros-catalogo.html')}" class="sb-item sb-admin" data-key="suministros-catalogo"><span class="i"><i data-lucide="package"></i></span>Suministros · Catálogo</a>
-        <a href="${u('admin/suministros-movimiento.html')}" class="sb-item sb-admin" data-key="suministros-movimiento"><span class="i"><i data-lucide="arrow-right-left"></i></span>Suministros · Movimiento</a>
-        <a href="${u('admin/suministros-historico.html')}" class="sb-item sb-admin" data-key="suministros-historico"><span class="i"><i data-lucide="history"></i></span>Suministros · Histórico</a>
-        <a href="${u('admin/suministros-correcciones.html')}" class="sb-item sb-admin" data-key="suministros-correcciones"><span class="i"><i data-lucide="file-edit"></i></span>Suministros · Correcciones</a>
-        <a href="${u('admin/importar.html')}" class="sb-item sb-admin" data-key="importar"><span class="i"><i data-lucide="upload-cloud"></i></span>Importar Excel</a>
-        <a href="${u('admin/importar-suministros.html')}" class="sb-item sb-admin" data-key="importar-suministros"><span class="i"><i data-lucide="package-plus"></i></span>Importar Suministros</a>
-        <a href="${u('admin/auditoria.html')}" class="sb-item sb-admin" data-key="auditoria"><span class="i"><i data-lucide="scroll-text"></i></span>Auditoría</a>
-        <a href="${u('admin/plan-inversion.html')}" class="sb-item sb-admin" data-key="plan-inversion"><span class="i"><i data-lucide="trending-up"></i></span>Plan Inversión</a>
-        <a href="${u('admin/desempeno-aliados.html')}" class="sb-item sb-admin" data-key="desempeno"><span class="i"><i data-lucide="award"></i></span>Desempeño aliados</a>
+        <a href="${u('admin/administracion.html')}" class="sb-item sb-admin" data-key="administracion"><span class="i"><i data-lucide="settings"></i></span>Administración</a>
       </div>
       <div class="sb-group">
         <div class="sb-group-title">Recursos</div>
-        <a href="${u('pages/documentos.html')}" class="sb-item" data-key="documentos"><span class="i"><i data-lucide="folder-open"></i></span>Documentos</a>
-        <a href="${u('pages/normativa.html')}" class="sb-item" data-key="normativa"><span class="i"><i data-lucide="scroll-text"></i></span>Normativa</a>
-        <a href="${u('pages/cobertura.html')}" class="sb-item" data-key="cobertura"><span class="i"><i data-lucide="globe-2"></i></span>Cobertura</a>
-        <a href="${u('pages/about.html')}" class="sb-item" data-key="about"><span class="i"><i data-lucide="info"></i></span>Acerca</a>
+        <a href="${u('pages/recursos.html')}" class="sb-item" data-key="recursos"><span class="i"><i data-lucide="folder-open"></i></span>Recursos</a>
       </div>`;
 
     const main = document.querySelector('main.app-main') || document.querySelector('main');

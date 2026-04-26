@@ -7,6 +7,83 @@ Formato inspirado en [Keep a Changelog](https://keepachangelog.com/).
 Semver por tag. Pulido post-v2.0 incrementa el patch (v2.0.1,
 v2.0.2, …) sin promesas de incompatibilidad.
 
+## v2.3.0 — Refactor UX · Navegación consolidada con tabs (2026-04-25)
+
+Reorganización inteligente de TODOS los menús del portal. Sidebar pasa
+de 32 entradas dispersas a **8 módulos jerárquicos** con tabs internas.
+9 microfases (R0–R9) atómicas, cada una shippable independientemente.
+
+### Bloque · Componente reutilizable
+
+- **R0** — `assets/js/ui/tabs.js` ARIA-compliant con keyboard nav y hash
+  routing. `assets/css/tabs.css` con estilo Aqua liquid-glass sticky.
+  17 tests para los helpers puros (parseHash/buildHash/mergeHash).
+
+### Bloque · Consolidación módulo a módulo
+
+- **R1** — Suministros: 6 vistas (Catálogo, Movimiento, Histórico,
+  Correcciones, Importar, Dashboard) → 1 con tabs.
+- **R2** — Salud del Activo: 5 vistas (Muestras, Motor HI, Propuestas
+  FUR, Contramuestras, Fallados+RCA) + Matriz Riesgo movida desde
+  Análisis → 1 con tabs.
+- **R3** — Activos: 4 vistas (Inventario, Mapa, Subestaciones,
+  Contratos) → 1 con tabs.
+- **R4** — Análisis: 5 vistas (Dashboard, KPIs RAM, Alertas, Plan
+  Inversión, Desempeño Aliados) → 1 con tabs.
+- **R5** — Administración: 5 vistas (Panel, Usuarios, Catálogos,
+  Importar Excel, Auditoría) → 1 con tabs.
+- **R6** — Recursos: 4 vistas (Documentos, Normativa, Cobertura,
+  Acerca) → 1 con tabs.
+- **R7** — Reescritura del sidebar: distribuida orgánicamente en R1–R6.
+
+### Bloque · Compatibilidad y cierre
+
+- **R8** — `LEGACY_REDIRECTS` en aqua-shell.js: 28 URLs viejas
+  redirigen automáticamente a la página padre con tab activa. Preserva
+  bookmarks. Escape hatch `?legacy=keep` para acceso standalone.
+- **R9** — Cache PWA `sgm-v3-2-0` → `sgm-v3-3-0` + CHANGELOG + tag.
+
+### Patrón técnico
+
+- **Sin refactor de subscreens**: cada vista existente sigue siendo una
+  página completa que se embebe vía `<iframe lazy data-src>`. El
+  `module-shell.js` genérico (initModuleShell) es un wrapper de 1
+  línea por módulo sobre `tabs.js`.
+- **Detección de iframe en aqua-shell.js**: si `window.self !== window.top`
+  marca el body con `.is-embedded` y oculta topbar/sidebar/escena Aqua
+  para no duplicar el shell del padre.
+- **Hash routing**: cada tab activa actualiza `location.hash` con
+  `history.replaceState` (no llena el back stack); `hashchange` listener
+  permite back/forward del browser entre tabs.
+- **RBAC visual**: tabs marcadas `data-admin="1"` se ocultan a
+  no-admins leyendo `window.__sgmSession.profile.rol`.
+
+### Métricas
+
+| Métrica | Antes (v2.2.0) | Después (v2.3.0) |
+|---|---|---|
+| Entradas en sidebar | 32 | **8** (-75%) |
+| Páginas standalone | 30+ | mantenidas (compat) |
+| Tests | 382 | **399** (+17 helpers tabs) |
+| LOC nuevas | — | ~900 (shells + redirects) |
+| LOC eliminadas | — | 0 (zero refactor de legacy) |
+| Deploys nuevos | 0 | 0 (puro client-side) |
+
+### Estructura final del sidebar
+
+| Grupo | Entrada | Ruta | Tabs internas |
+|---|---|---|---|
+| Operación | Inicio | `home.html` | — |
+| Operación | **Activos** | `pages/activos.html` | Inventario · Mapa · Subestaciones · Contratos |
+| Operación | Órdenes | `pages/ordenes.html` | — |
+| Operación | **Suministros** | `pages/suministros.html` | Dashboard · Catálogo · Movimiento · Histórico · Correcciones · Importar |
+| Análisis | **Análisis e Indicadores** | `pages/analisis.html` | Dashboard · KPIs RAM · Alertas · Plan Inversión · Desempeño |
+| Salud del activo | **Salud del Activo** | `pages/salud.html` | Muestras · Motor HI · FUR · Contramuestras · Fallados+RCA · Matriz |
+| Administración | **Administración** | `admin/administracion.html` | Panel · Usuarios · Catálogos · Importar Excel · Auditoría |
+| Recursos | **Recursos** | `pages/recursos.html` | Documentos · Normativa · Cobertura · Acerca |
+
+---
+
 ## v2.2.0 — Suministros + Repuestos · F38–F50 (2026-04-25)
 
 Integración del sistema de control de suministros del .xlsm fuente

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="es" data-aqua>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <meta name="theme-color" content="#f4f6fb"/>
+  <meta name="color-scheme" content="light"/>
+  <title>SGM · TRANSPOWER — Análisis</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/aqua/logo-aqua.svg"/>
+  <script type="module" src="../assets/js/auth/page-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="../assets/css/aqua-tokens.css"/>
+  <link rel="stylesheet" href="../assets/css/aqua-components.css"/>
+  <link rel="stylesheet" href="../assets/css/inventario.css"/>
+  <link rel="stylesheet" href="../assets/css/tabs.css"/>
+</head>
+<body class="aqua">
+<main class="app-main page-container">
+
+  <div class="page-header">
+    <div class="breadcrumb">Análisis / Indicadores</div>
+    <h1 class="page-title">Análisis e <em>Indicadores</em></h1>
+    <p class="page-subtitle">
+      Vista ejecutiva consolidada: dashboard general, KPIs RAM,
+      plan de inversión, desempeño de aliados y alertas activas.
+    </p>
+  </div>
+
+  <div class="sgm-tabs" id="analisisTabs">
+    <div role="tablist" class="tab-bar" aria-label="Secciones del módulo Análisis">
+      <button type="button" role="tab" data-tab="dashboard">
+        <span class="i"><i data-lucide="layout-grid"></i></span>Dashboard
+      </button>
+      <button type="button" role="tab" data-tab="kpis">
+        <span class="i"><i data-lucide="bar-chart-3"></i></span>KPIs &amp; RAM
+      </button>
+      <button type="button" role="tab" data-tab="alertas">
+        <span class="i"><i data-lucide="bell-ring"></i></span>Alertas
+      </button>
+      <button type="button" role="tab" data-tab="plan-inversion" data-admin="1">
+        <span class="i"><i data-lucide="trending-up"></i></span>Plan Inversión
+      </button>
+      <button type="button" role="tab" data-tab="desempeno" data-admin="1">
+        <span class="i"><i data-lucide="award"></i></span>Desempeño Aliados
+      </button>
+    </div>
+
+    <div class="tab-panels">
+      <div role="tabpanel" data-tab-panel="dashboard">
+        <iframe class="tab-iframe" data-src="dashboard.html" title="Dashboard ejecutivo" loading="lazy"></iframe>
+      </div>
+      <div role="tabpanel" data-tab-panel="kpis" hidden>
+        <iframe class="tab-iframe" data-src="kpis.html" title="KPIs RAM" loading="lazy"></iframe>
+      </div>
+      <div role="tabpanel" data-tab-panel="alertas" hidden>
+        <iframe class="tab-iframe" data-src="alertas.html" title="Alertas" loading="lazy"></iframe>
+      </div>
+      <div role="tabpanel" data-tab-panel="plan-inversion" hidden>
+        <iframe class="tab-iframe" data-src="../admin/plan-inversion.html" title="Plan de Inversión" loading="lazy"></iframe>
+      </div>
+      <div role="tabpanel" data-tab-panel="desempeno" hidden>
+        <iframe class="tab-iframe" data-src="../admin/desempeno-aliados.html" title="Desempeño Aliados" loading="lazy"></iframe>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script type="module" src="../assets/js/analisis-shell.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+<script src="../assets/js/aqua.js" defer></script>
+<script src="../assets/js/aqua-shell.js" defer></script>
+</body>
+</html>

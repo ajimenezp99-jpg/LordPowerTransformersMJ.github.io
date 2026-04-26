@@ -134,3 +134,41 @@
     white-space: nowrap;
   }
 }
+
+/* ── Iframe embebido por tab (lazy-loaded) ─────────────────── */
+.tab-iframe {
+  display: block;
+  width: 100%;
+  /* Calcula altura disponible: viewport - topbar(64) - page-header
+     (~150) - tab-bar (~58) - margenes/breathing (50). */
+  height: calc(100vh - 320px);
+  min-height: 540px;
+  border: 0;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, .42);
+  box-shadow: 0 1px 2px rgba(0, 40, 90, .05);
+}
+
+@media (max-width: 1024px) {
+  .tab-iframe { height: calc(100vh - 280px); min-height: 600px; }
+}
+@media (max-width: 700px) {
+  .tab-iframe { height: calc(100vh - 240px); min-height: 520px; border-radius: 10px; }
+}
+
+/* Cuando el body está en modo embebido (cargado dentro de iframe),
+   ocultamos topbar y sidebar para no duplicar el shell del padre. */
+body.aqua.is-embedded .topbar,
+body.aqua.is-embedded .sb,
+body.aqua.is-embedded .aqua-power-scene,
+body.aqua.is-embedded .aqua-particles {
+  display: none !important;
+}
+body.aqua.is-embedded .app-main {
+  margin-left: 0 !important;
+  padding-top: 16px !important;
+}
+body.aqua.is-embedded {
+  /* Fondo neutro dentro del iframe — el padre ya muestra la escena Aqua. */
+  background: transparent !important;
+}

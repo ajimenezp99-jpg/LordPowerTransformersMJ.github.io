@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es" data-aqua>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <meta name="theme-color" content="#f4f6fb"/>
+  <meta name="color-scheme" content="light"/>
+  <title>SGM · TRANSPOWER — Activos</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/aqua/logo-aqua.svg"/>
+  <script type="module" src="../assets/js/auth/page-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="../assets/css/aqua-tokens.css"/>
+  <link rel="stylesheet" href="../assets/css/aqua-components.css"/>
+  <link rel="stylesheet" href="../assets/css/inventario.css"/>
+  <link rel="stylesheet" href="../assets/css/tabs.css"/>
+</head>
+<body class="aqua">
+<main class="app-main page-container">
+
+  <div class="page-header">
+    <div class="breadcrumb">Operación / Activos</div>
+    <h1 class="page-title">Activos del <em>Parque</em></h1>
+    <p class="page-subtitle">
+      Inventario de transformadores, georreferenciación, subestaciones
+      y contratos vigentes. Una sola vista con pestañas.
+    </p>
+  </div>
+
+  <div class="sgm-tabs" id="activosTabs">
+    <div role="tablist" class="tab-bar" aria-label="Secciones del módulo Activos">
+      <button type="button" role="tab" data-tab="inventario">
+        <span class="i"><i data-lucide="database"></i></span>Inventario
+      </button>
+      <button type="button" role="tab" data-tab="mapa">
+        <span class="i"><i data-lucide="map"></i></span>Mapa
+      </button>
+      <button type="button" role="tab" data-tab="subestaciones" data-admin="1">
+        <span class="i"><i data-lucide="factory"></i></span>Subestaciones
+      </button>
+      <button type="button" role="tab" data-tab="contratos" data-admin="1">
+        <span class="i"><i data-lucide="file-text"></i></span>Contratos
+      </button>
+    </div>
+
+    <div class="tab-panels">
+      <div role="tabpanel" data-tab-panel="inventario">
+        <iframe class="tab-iframe" data-src="inventario.html" title="Inventario" loading="lazy"></iframe>
+      </div>
+      <div role="tabpanel" data-tab-panel="mapa" hidden>
+        <iframe class="tab-iframe" data-src="mapa.html" title="Mapa" loading="lazy"></iframe>
+      </div>
+      <div role="tabpanel" data-tab-panel="subestaciones" hidden>
+        <iframe class="tab-iframe" data-src="../admin/subestaciones.html" title="Subestaciones" loading="lazy"></iframe>
+      </div>
+      <div role="tabpanel" data-tab-panel="contratos" hidden>
+        <iframe class="tab-iframe" data-src="../admin/contratos.html" title="Contratos" loading="lazy"></iframe>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script type="module" src="../assets/js/activos-shell.js"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+<script src="../assets/js/aqua.js" defer></script>
+<script src="../assets/js/aqua-shell.js" defer></script>
+</body>
+</html>
