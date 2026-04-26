@@ -392,6 +392,9 @@ export const ESTADOS_STOCK = Object.freeze([
 export const SUMINISTRO_CODIGO_PATTERN = /^S\d{2}$/;
 // Movimiento: MOV-YYYY-NNNN (correlativo anual, decisión auto F39).
 export const MOVIMIENTO_CODIGO_PATTERN = /^MOV-\d{4}-\d{4}$/;
+// Contrato (consecutivo del cliente, ej. 4123000081, 4125000143).
+// 8–14 dígitos para tolerar formatos futuros sin restringir en exceso.
+export const CONTRATO_ID_PATTERN = /^\d{8,14}$/;
 
 // ── Helper: estado de stock dadas (disponible, inicial) ────────
 // Pure function, sin I/O. Usada por la UI pública (F47), por la

@@ -11,7 +11,7 @@
 // Funciones PURAS. I/O vive en assets/js/data/suministros.js.
 // ══════════════════════════════════════════════════════════════
 
-import { UNIDADES, SUMINISTRO_CODIGO_PATTERN, enValores } from './schema.js';
+import { UNIDADES, SUMINISTRO_CODIGO_PATTERN, CONTRATO_ID_PATTERN, enValores } from './schema.js';
 
 const str = (v) => (v == null) ? '' : String(v).trim();
 const num = (v) => {
@@ -30,6 +30,7 @@ export function sanitizarSuministro(input) {
   const unidad = str(src.unidad);
   const stockIni = num(src.stock_inicial);
   return {
+    contrato_id:          str(src.contrato_id),
     codigo,
     nombre:               str(src.nombre),
     unidad:               enValores(UNIDADES, unidad) ? unidad : 'Und',
@@ -47,6 +48,12 @@ export function validarSuministro(doc) {
     errs.push('codigo es obligatorio.');
   } else if (!SUMINISTRO_CODIGO_PATTERN.test(doc.codigo)) {
     errs.push(`codigo inválido: "${doc.codigo}". Esperado patrón Sxx.`);
+  }
+  // contrato_id es OPCIONAL durante la migración. Si está presente,
+  // debe matchear el patrón. Si está ausente o vacío, el doc se
+  // considera "legado" y será migrado por el script add-contrato-id.
+  if (doc.contrato_id && !CONTRATO_ID_PATTERN.test(doc.contrato_id)) {
+    errs.push(`contrato_id inválido: "${doc.contrato_id}". Esperado 8-14 dígitos.`);
   }
   if (!doc.nombre) errs.push('nombre es obligatorio.');
   if (!doc.unidad) {

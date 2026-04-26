@@ -15,7 +15,8 @@
 
 import {
   TIPOS_MOVIMIENTO, MOVIMIENTO_CODIGO_PATTERN,
-  SUMINISTRO_CODIGO_PATTERN, ZONAS, DEPARTAMENTOS, enValores
+  SUMINISTRO_CODIGO_PATTERN, CONTRATO_ID_PATTERN,
+  ZONAS, DEPARTAMENTOS, enValores
 } from './schema.js';
 
 const str = (v) => (v == null) ? '' : String(v).trim();
@@ -43,6 +44,7 @@ export function sanitizarMovimiento(input) {
     ? valTotalSrc
     : ((cantidad != null && valU != null) ? cantidad * valU : null);
   return {
+    contrato_id:         str(src.contrato_id),
     codigo:              str(src.codigo).toUpperCase(),
     anio:                num(src.anio),
     tipo:                enValores(TIPOS_MOVIMIENTO, tipo) ? tipo : '',
@@ -66,6 +68,9 @@ export function sanitizarMovimiento(input) {
 export function validarMovimiento(doc) {
   const errs = [];
   if (!doc) { errs.push('Documento vacío.'); return errs; }
+  if (doc.contrato_id && !CONTRATO_ID_PATTERN.test(doc.contrato_id)) {
+    errs.push(`contrato_id inválido: "${doc.contrato_id}". Esperado 8-14 dígitos.`);
+  }
   if (!doc.codigo) {
     errs.push('codigo es obligatorio.');
   } else if (!MOVIMIENTO_CODIGO_PATTERN.test(doc.codigo)) {
