@@ -206,6 +206,7 @@
       <div class="sb-group sb-admin-group" hidden>
         <div class="sb-group-title">Administración</div>
         <a href="${u('admin/administracion.html')}" class="sb-item sb-admin" data-key="administracion"><span class="i"><i data-lucide="settings"></i></span>Administración</a>
+        <a href="${u('admin/migrate-contrato-id.html')}" class="sb-item sb-admin" data-key="migrate-contrato-id" title="Acceso temporal · retirar después de ejecutar la migración"><span class="i"><i data-lucide="database-zap"></i></span>Migrar contrato_id</a>
       </div>
       <div class="sb-group">
         <div class="sb-group-title">Recursos</div>
