@@ -59,7 +59,6 @@
       '/admin/suministros-catalogo.html':    'pages/suministros.html#tab=catalogo',
       '/admin/suministros-movimiento.html':  'pages/suministros.html#tab=movimiento',
       '/admin/suministros-historico.html':   'pages/suministros.html#tab=historico',
-      '/admin/suministros-correcciones.html':'pages/suministros.html#tab=correcciones',
       '/admin/importar-suministros.html':    'pages/suministros.html#tab=importar',
       // Activos
       '/pages/inventario.html':              'pages/activos.html#tab=inventario',
