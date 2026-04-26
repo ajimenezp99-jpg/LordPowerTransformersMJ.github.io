@@ -165,7 +165,20 @@
         <a href="${u('home.html')}" class="sb-item" data-key="home"><span class="i"><i data-lucide="layout-dashboard"></i></span>Inicio</a>
         <a href="${u('pages/activos.html')}" class="sb-item" data-key="activos"><span class="i"><i data-lucide="database"></i></span>Activos</a>
         <a href="${u('pages/ordenes.html')}" class="sb-item" data-key="ordenes"><span class="i"><i data-lucide="clipboard-list"></i></span>Órdenes</a>
-        <a href="${u('pages/contratos.html')}" class="sb-item" data-key="contratos"><span class="i"><i data-lucide="file-text"></i></span>Contratos</a>
+        <div class="sb-tree" data-tree-key="contratos">
+          <a href="${u('pages/contratos.html')}" class="sb-item sb-item-parent" data-key="contratos" data-tree-toggle="contratos">
+            <span class="i"><i data-lucide="file-text"></i></span>Contratos
+            <button type="button" class="sb-caret" aria-label="Expandir Contratos" aria-expanded="true" data-tree-toggle-btn="contratos">
+              <i data-lucide="chevron-down"></i>
+            </button>
+          </a>
+          <div class="sb-children" data-tree-children="contratos">
+            <a href="${u('pages/contrato.html')}?id=4123000081" class="sb-item sb-item-child" data-key="contrato-4123000081">
+              <span class="sb-child-bullet" aria-hidden="true"></span>
+              <code class="sb-contrato-num">4123000081</code>
+            </a>
+          </div>
+        </div>
       </div>
       <div class="sb-group">
         <div class="sb-group-title">Análisis</div>
@@ -193,13 +206,49 @@
   function markActive() {
     const fileNow = (path.split('/').pop() || 'home.html').replace(/\?.*$/, '');
     const folderNow = path.includes('/admin/') ? 'admin' : (path.includes('/pages/') ? 'pages' : '');
+    const queryNow = location.search || '';
     document.querySelectorAll('.sb-item').forEach((a) => {
       try {
         const href = a.getAttribute('href') || '';
-        const last = href.split('/').pop() || '';
-        const folder = href.includes('admin/') ? 'admin' : (href.includes('pages/') ? 'pages' : '');
-        if (last === fileNow && folder === folderNow) a.classList.add('is-active');
+        const [pathPart, queryPart = ''] = href.split('?');
+        const last = pathPart.split('/').pop() || '';
+        const folder = pathPart.includes('admin/') ? 'admin' : (pathPart.includes('pages/') ? 'pages' : '');
+        if (last !== fileNow || folder !== folderNow) return;
+        // Match exacto si el sidebar item tiene ?id=N: comparar query.
+        if (queryPart) {
+          const idLink = new URLSearchParams('?' + queryPart).get('id');
+          const idNow  = new URLSearchParams(queryNow).get('id');
+          if (idLink && idNow && idLink !== idNow) return;
+          if (idLink && !idNow) return;
+        }
+        a.classList.add('is-active');
+        // Si está dentro de un sb-tree, expandirlo automáticamente.
+        const tree = a.closest('.sb-tree');
+        if (tree) tree.classList.add('is-expanded');
       } catch (_) {}
+    });
+  }
+
+  /* ─── Tree toggle (sidebar expandible) ──────────────────── */
+  function bindTreeToggle() {
+    document.querySelectorAll('.sb-tree').forEach((tree) => {
+      // Estado inicial: si no tiene .is-expanded por markActive, queda
+      // expandido por default (mostrar contratos disponibles).
+      if (!tree.classList.contains('is-expanded')) {
+        tree.classList.add('is-expanded');
+      }
+    });
+    document.querySelectorAll('[data-tree-toggle-btn]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const key = btn.getAttribute('data-tree-toggle-btn');
+        const tree = document.querySelector(`.sb-tree[data-tree-key="${key}"]`);
+        if (!tree) return;
+        const expanded = tree.classList.toggle('is-expanded');
+        btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        btn.setAttribute('aria-label', (expanded ? 'Colapsar ' : 'Expandir ') + (tree.dataset.treeKey || ''));
+      });
     });
   }
 
@@ -265,6 +314,7 @@
     injectTopbar();
     injectSidebar();
     markActive();
+    bindTreeToggle();
     bindLogout();
     bindKeys();
 

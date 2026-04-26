@@ -305,6 +305,81 @@ body.aqua .sb-item.is-active {
   border-radius: 0 var(--r-pill) var(--r-pill) 0;
   box-shadow: 0 0 8px rgba(0,122,255,.4);
 }
+
+/* ── Sidebar tree (Contratos expandible · M6 v2.4) ─────────── */
+.sb-tree { display: block; }
+.sb-tree .sb-item-parent {
+  position: relative;
+  padding-right: 36px;
+}
+.sb-tree .sb-caret {
+  position: absolute;
+  right: 6px; top: 50%; transform: translateY(-50%);
+  display: grid; place-items: center;
+  width: 24px; height: 24px;
+  border: 0; padding: 0;
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background .12s ease;
+}
+.sb-tree .sb-caret:hover { background: rgba(0, 40, 90, .08); color: var(--ink-1); }
+.sb-tree .sb-caret svg,
+.sb-tree .sb-caret i { width: 14px; height: 14px; transition: transform .18s ease; }
+.sb-tree:not(.is-expanded) .sb-caret svg,
+.sb-tree:not(.is-expanded) .sb-caret i { transform: rotate(-90deg); }
+
+.sb-tree .sb-children {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows .22s ease;
+  margin-top: 2px;
+}
+.sb-tree:not(.is-expanded) .sb-children {
+  grid-template-rows: 0fr;
+  overflow: hidden;
+}
+.sb-tree .sb-children > * { min-height: 0; }
+
+.sb-tree .sb-item-child {
+  position: relative;
+  padding: 7px 14px 7px 38px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--ink-2);
+  border-radius: var(--r-sm);
+  margin: 1px 0;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: background .12s ease, color .12s ease;
+}
+.sb-tree .sb-item-child .sb-child-bullet {
+  display: inline-block;
+  width: 8px; height: 1px;
+  background: rgba(0, 40, 90, .25);
+  flex-shrink: 0;
+}
+.sb-tree .sb-item-child:hover {
+  background: rgba(0, 122, 255, .07);
+  color: var(--ink-1);
+}
+.sb-tree .sb-item-child.is-active {
+  background: linear-gradient(180deg, rgba(0,122,255,.18) 0%, rgba(0,122,255,.10) 100%);
+  color: var(--brand-deep);
+  font-weight: 600;
+}
+.sb-tree .sb-item-child .sb-contrato-num {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  background: transparent;
+  padding: 0;
+}
+.sb-tree .sb-item-child.is-active .sb-contrato-num {
+  color: var(--brand-deep);
+}
 .sb-item .i {
   width: 22px; height: 22px;
   display: grid; place-items: center;
