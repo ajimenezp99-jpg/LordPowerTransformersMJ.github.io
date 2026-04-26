@@ -246,6 +246,23 @@
       ]
     },
     {
+      "collectionGroup": "movimientos",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "contrato_id", "order": "ASCENDING"  },
+        { "fieldPath": "anio",        "order": "DESCENDING" },
+        { "fieldPath": "codigo",      "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "suministros",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "contrato_id", "order": "ASCENDING" },
+        { "fieldPath": "codigo",      "order": "ASCENDING" }
+      ]
+    },
+    {
       "collectionGroup": "correcciones",
       "queryScope": "COLLECTION",
       "fields": [
