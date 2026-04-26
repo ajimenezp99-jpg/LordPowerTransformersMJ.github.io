@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="es" data-aqua>
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="robots" content="noindex, nofollow"/>
+  <meta name="theme-color" content="#f4f6fb"/>
+  <meta name="color-scheme" content="light"/>
+  <title>SGM · TRANSPOWER — Migración · Asignar contrato_id</title>
+  <link rel="icon" type="image/svg+xml" href="../assets/img/aqua/logo-aqua.svg"/>
+  <script type="module" src="../assets/js/auth/admin-guard.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="../assets/css/aqua-tokens.css"/>
+  <link rel="stylesheet" href="../assets/css/aqua-components.css"/>
+  <link rel="stylesheet" href="../assets/css/inventario.css"/>
+  <link rel="stylesheet" href="../assets/css/suministros.css"/>
+  <style>
+    .migr-content { max-width: 900px; }
+    .migr-warn {
+      background: rgba(245, 158, 11, .14);
+      border: 1px solid rgba(245, 158, 11, .40);
+      color: #92400E;
+      padding: 12px 16px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+    .migr-grid {
+      display: grid;
+      grid-template-columns: 1fr 80px 80px 80px;
+      gap: 8px 16px;
+      align-items: center;
+      font-size: 13px;
+      margin-top: 14px;
+      font-family: var(--font-mono);
+    }
+    .migr-grid > .h {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--ink-3);
+      padding-bottom: 6px;
+      border-bottom: 1px solid rgba(0, 40, 90, .08);
+    }
+    .migr-grid .num {
+      text-align: right;
+      font-weight: 600;
+    }
+    .migr-grid .col-name { color: var(--ink-1); font-weight: 600; }
+    .migr-input-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      margin: 16px 0 8px;
+    }
+    .migr-input-row label {
+      font-size: 13px;
+      color: var(--ink-2);
+      font-weight: 600;
+    }
+    .migr-input-row input {
+      font-family: var(--font-mono);
+      padding: 8px 12px;
+      font-size: 14px;
+      border-radius: 8px;
+      border: 1px solid rgba(0, 40, 90, .15);
+      background: rgba(255, 255, 255, .55);
+      width: 200px;
+    }
+  </style>
+</head>
+<body class="aqua">
+<main id="main" class="app-main">
+  <div class="migr-content">
+
+  <div class="page-header">
+    <div class="breadcrumb">Administración / Migración contrato_id</div>
+    <h1 class="page-title">Migración · <em>asignar contrato_id</em></h1>
+    <p class="page-subtitle">
+      Script de migración N2 del refactor multi-contrato. Asigna el
+      campo <code>contrato_id</code> a los documentos legacy que aún
+      no lo tienen. <strong>Idempotente:</strong> re-ejecutarlo no
+      modifica los docs ya migrados.
+    </p>
+  </div>
+
+  <div class="migr-warn">
+    ⚠ <strong>Antes de ejecutar:</strong> esta operación marca todos
+    los docs sin <code>contrato_id</code> con el valor que indiques
+    abajo. Si solo hay un contrato vigente (4123000081), todos los
+    228+ docs existentes recibirán ese valor. Si por alguna razón
+    hay docs de otros contratos mezclados, debes limpiarlos primero.
+  </div>
+
+  <section class="report-card" style="background: rgba(255,255,255,.42); border: 1px solid rgba(255,255,255,.55); border-radius: 14px; padding: 16px 18px; margin-bottom: 18px;">
+    <h3 style="margin: 0 0 8px; font-size: 13px; color: var(--ink-1);">1 · Diagnóstico</h3>
+    <button class="btn-secondary" id="btnDiag" style="padding: .6rem 1.1rem; border: 0; cursor: pointer; font-family: var(--font-mono); font-size: 12.5px; border-radius: 8px; background: rgba(0,40,90,.08); color: var(--ink-1);">
+      Contar docs con/sin contrato_id
+    </button>
+    <div class="migr-grid" id="diagGrid" hidden>
+      <div class="h">Colección</div>
+      <div class="h num">Total</div>
+      <div class="h num">Con id</div>
+      <div class="h num">Sin id</div>
+    </div>
+  </section>
+
+  <section class="report-card" style="background: rgba(255,255,255,.42); border: 1px solid rgba(255,255,255,.55); border-radius: 14px; padding: 16px 18px; margin-bottom: 18px;">
+    <h3 style="margin: 0 0 8px; font-size: 13px; color: var(--ink-1);">2 · Asignación</h3>
+    <div class="migr-input-row">
+      <label for="fContratoId">contrato_id objetivo:</label>
+      <input type="text" id="fContratoId" pattern="^\d{8,14}$" maxlength="14" value="4123000081">
+    </div>
+    <p style="font-size: 12px; color: var(--ink-3); margin: 4px 0 12px;">
+      Patrón requerido: 8–14 dígitos. El default 4123000081 corresponde
+      al contrato del .xlsm ya importado.
+    </p>
+    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+      <button class="btn-secondary" id="btnDryRun" style="padding: .6rem 1.1rem; border: 1px solid rgba(245,158,11,.40); cursor: pointer; font-family: var(--font-mono); font-size: 12.5px; border-radius: 8px; background: rgba(245,158,11,.15); color: #B45309;">
+        SIMULAR (dry-run)
+      </button>
+      <button class="btn-primary" id="btnRun" style="padding: .6rem 1.1rem; border: 0; cursor: pointer; font-family: var(--font-mono); font-size: 12.5px; border-radius: 8px; background: var(--brand-deep); color: #fff;">
+        EJECUTAR MIGRACIÓN
+      </button>
+    </div>
+    <div id="msg" style="margin-top: 12px; font-family: var(--font-mono); font-size: 12.5px;"></div>
+    <div id="progress" style="margin-top: 6px; font-family: var(--font-mono); font-size: 12px; color: var(--ink-3);"></div>
+  </section>
+
+  </div>
+</main>
+
+<script type="module">
+import {
+  collection, getDocs, query, where, writeBatch, doc, serverTimestamp, addDoc
+} from 'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js';
+import { getDbSafe, isFirebaseConfigured } from '../assets/js/firebase-init.js';
+import { CONTRATO_ID_PATTERN } from '../assets/js/domain/schema.js';
+
+const COLECCIONES = ['suministros', 'marcas', 'movimientos', 'correcciones'];
+const BATCH_LIMIT = 450;
+
+const $ = (id) => document.getElementById(id);
+const setMsg = (t, kind = 'ok') => {
+  $('msg').textContent = t;
+  $('msg').style.color = kind === 'err' ? '#DC2626' : (kind === 'warn' ? '#B45309' : '#16A34A');
+};
+const setProgress = (t) => { $('progress').textContent = t; };
+
+function checkReady() {
+  if (!isFirebaseConfigured) {
+    setMsg('Firebase no configurado.', 'err');
+    return null;
+  }
+  const db = getDbSafe();
+  if (!db) {
+    setMsg('Firebase no inicializado.', 'err');
+    return null;
+  }
+  return db;
+}
+
+async function diagColeccion(db, name) {
+  const snap = await getDocs(collection(db, name));
+  let con = 0, sin = 0;
+  for (const d of snap.docs) {
+    const data = d.data();
+    if (typeof data.contrato_id === 'string' && data.contrato_id.length > 0) con += 1;
+    else sin += 1;
+  }
+  return { total: snap.size, con, sin };
+}
+
+$('btnDiag').addEventListener('click', async () => {
+  const db = checkReady();
+  if (!db) return;
+  setMsg('⋯ Diagnosticando…');
+  const grid = $('diagGrid');
+  grid.hidden = false;
+  // Limpia filas anteriores (deja headers).
+  grid.querySelectorAll('.row').forEach((el) => el.remove());
+  for (const name of COLECCIONES) {
+    try {
+      const r = await diagColeccion(db, name);
+      grid.insertAdjacentHTML('beforeend', `
+        <div class="row col-name">${name}</div>
+        <div class="row num">${r.total}</div>
+        <div class="row num" style="color:#16A34A">${r.con}</div>
+        <div class="row num" style="color:#EA580C">${r.sin}</div>
+      `);
+    } catch (err) {
+      console.error(err);
+      grid.insertAdjacentHTML('beforeend', `
+        <div class="row col-name">${name}</div>
+        <div class="row num" colspan="3" style="color:#DC2626">error: ${err.message}</div>
+      `);
+    }
+  }
+  setMsg('✓ Diagnóstico listo.');
+});
+
+async function ejecutar(dryRun) {
+  const db = checkReady();
+  if (!db) return;
+  const contratoId = $('fContratoId').value.trim();
+  if (!CONTRATO_ID_PATTERN.test(contratoId)) {
+    setMsg('contrato_id inválido. Esperado 8-14 dígitos.', 'err');
+    return;
+  }
+  if (!dryRun && !confirm(`Confirmar: asignar contrato_id="${contratoId}" a TODOS los docs sin contrato_id en /suministros, /marcas, /movimientos, /correcciones.`)) {
+    return;
+  }
+  setMsg(dryRun ? '⋯ Simulando…' : '⋯ Ejecutando migración…');
+  const t0 = Date.now();
+  const summary = {};
+  const t = dryRun ? 'simular' : 'migrar';
+
+  for (const name of COLECCIONES) {
+    setProgress(`${t} ${name}…`);
+    let modificados = 0, conservados = 0;
+    try {
+      const snap = await getDocs(collection(db, name));
+      let batch = writeBatch(db);
+      let count = 0;
+      for (const d of snap.docs) {
+        const data = d.data();
+        if (typeof data.contrato_id === 'string' && data.contrato_id.length > 0) {
+          conservados += 1;
+          continue;
+        }
+        modificados += 1;
+        if (!dryRun) {
+          batch.update(doc(db, name, d.id), { contrato_id: contratoId });
+          count += 1;
+          if (count >= BATCH_LIMIT) {
+            await batch.commit();
+            batch = writeBatch(db);
+            count = 0;
+          }
+        }
+      }
+      if (!dryRun && count > 0) await batch.commit();
+      summary[name] = { modificados, conservados };
+    } catch (err) {
+      summary[name] = { error: err.message };
+    }
+  }
+  // Audit
+  if (!dryRun) {
+    try {
+      const session = window.__sgmSession;
+      const uid = session && session.user && session.user.uid;
+      await addDoc(collection(db, 'auditoria'), {
+        accion: 'migrate_contrato_id',
+        contrato_id: contratoId,
+        summary,
+        duracion_ms: Date.now() - t0,
+        uid: uid || null,
+        at: serverTimestamp(),
+        at_iso: new Date().toISOString()
+      });
+    } catch (err) { console.warn('audit:', err); }
+  }
+  const fmt = Object.entries(summary).map(([k, v]) =>
+    v.error ? `${k}: ✗ ${v.error}` : `${k}: ${v.modificados}m / ${v.conservados}c`
+  ).join(' · ');
+  setMsg(`✓ ${dryRun ? 'Simulación' : 'Migración'} OK en ${((Date.now()-t0)/1000).toFixed(1)}s · ${fmt}`);
+  setProgress('');
+}
+
+$('btnDryRun').addEventListener('click', () => ejecutar(true));
+$('btnRun').addEventListener('click',    () => ejecutar(false));
+</script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js" defer></script>
+<script src="../assets/js/aqua.js" defer></script>
+<script src="../assets/js/aqua-shell.js" defer></script>
+</body>
+</html>
