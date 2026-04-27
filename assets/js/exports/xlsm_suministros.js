@@ -231,6 +231,65 @@ export function parchearSheet2(xmlStr, suministros) {
   return out.replace(sheetDataRe, `${headerPart}${newRows}${closing}`);
 }
 
+// ── Marcas (Sheet3) ──────────────────────────────────────────────
+// Estilos por columna inferidos del template (fila 4 placeholder):
+//   B = ID_Suministro     s=11 (text)
+//   C = Nombre_Suministro s=12 (text)
+//   D = Marca             s=11 (text)
+const SHEET3_STYLES = { B: 11, C: 12, D: 11 };
+
+/**
+ * Genera la fila XML de un par (suministro, marca) para sheet3.
+ * Cada par sale como una fila independiente — si un suministro
+ * tiene N marcas, son N filas con el mismo B y C.
+ */
+export function generarFilaMarca(m, rowIdx) {
+  const r = rowIdx;
+  return [
+    `<row r="${r}" spans="2:4">`,
+      celda('B', r, m.suministro_id || '',     SHEET3_STYLES.B),
+      celda('C', r, m.suministro_nombre || '', SHEET3_STYLES.C),
+      celda('D', r, m.marca || '(edite)',      SHEET3_STYLES.D),
+    `</row>`
+  ].join('');
+}
+
+/**
+ * Reemplaza los rows 4+ de Marcas (sheet3) con un row por marca.
+ * Conserva título (row 2), header (row 3) y resto del worksheet.
+ *
+ * Si un suministro no tiene marca persistible (caso "(edite)"), el
+ * caller decide: o pasa una entry con marca='(edite)' para mantener
+ * el slot, o lo omite. Recomendado: pasar el catálogo COMPLETO con
+ * "(edite)" como fallback para preservar paralelismo 1:1 con sheet2.
+ */
+export function parchearSheet3(xmlStr, marcas) {
+  const arr = Array.isArray(marcas) ? marcas : [];
+  const n = Math.max(1, arr.length);
+  const lastRow = 3 + n;
+
+  let out = xmlStr.replace(
+    /<dimension\s+ref="[^"]+"/,
+    `<dimension ref="B2:D${lastRow}"`
+  );
+
+  const sheetDataRe = /(<sheetData>[\s\S]*?<row r="3"[\s\S]*?<\/row>)([\s\S]*?)(<\/sheetData>)/;
+  const m = out.match(sheetDataRe);
+  if (!m) throw new Error('parchearSheet3: estructura de sheetData no reconocida');
+  const headerPart = m[1];
+  const closing    = m[3];
+
+  let newRows;
+  if (arr.length === 0) {
+    newRows = `<row r="4" spans="2:4">${
+      ['B','C','D'].map((c) => celda(c, 4, '', SHEET3_STYLES[c])).join('')
+    }</row>`;
+  } else {
+    newRows = arr.map((m, i) => generarFilaMarca(m, 4 + i)).join('');
+  }
+  return out.replace(sheetDataRe, `${headerPart}${newRows}${closing}`);
+}
+
 /**
  * Actualiza el ref de tblMovimientos en table4.xml.
  * Antes: ref="B4:Q5" autoFilter ref="B4:Q5"

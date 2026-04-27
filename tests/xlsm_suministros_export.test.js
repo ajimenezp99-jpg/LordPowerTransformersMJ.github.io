@@ -6,7 +6,8 @@ import assert from 'node:assert/strict';
 
 import {
   generarFilaMovimiento, parchearSheet6, parchearTable4,
-  generarFilaCatalogoSuministro, parchearSheet2
+  generarFilaCatalogoSuministro, parchearSheet2,
+  generarFilaMarca, parchearSheet3
 } from '../assets/js/exports/xlsm_suministros.js';
 
 describe('generarFilaMovimiento', () => {
@@ -184,6 +185,72 @@ describe('parchearSheet2', () => {
 
   test('lanza si la estructura de sheetData es desconocida', () => {
     assert.throws(() => parchearSheet2('<worksheet/>', []), /estructura de sheetData/);
+  });
+});
+
+describe('generarFilaMarca', () => {
+  test('mapea las 3 columnas B C D con estilos correctos', () => {
+    const xml = generarFilaMarca({
+      suministro_id: 'S25',
+      suministro_nombre: 'Buje 66/110 KV',
+      marca: 'RHM INTERNACIONAL USA'
+    }, 28);
+    assert.match(xml, /^<row r="28" spans="2:4">/);
+    assert.match(xml, /<c r="B28" s="11"[\s\S]*S25/);
+    assert.match(xml, /<c r="C28" s="12"[\s\S]*Buje 66\/110 KV/);
+    assert.match(xml, /<c r="D28" s="11"[\s\S]*RHM INTERNACIONAL USA/);
+  });
+
+  test('marca vacía → "(edite)"', () => {
+    const xml = generarFilaMarca({ suministro_id: 'S08', suministro_nombre: 'Membrana' }, 11);
+    assert.match(xml, /<c r="D11"[\s\S]*\(edite\)/);
+  });
+
+  test('escapa XML en suministro_nombre', () => {
+    const xml = generarFilaMarca({
+      suministro_id: 'S01', suministro_nombre: 'A & B', marca: 'X'
+    }, 4);
+    assert.match(xml, /A &amp; B/);
+  });
+});
+
+describe('parchearSheet3', () => {
+  const SHEET3_XML = `<?xml version="1.0"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="B2:D25"/><sheetViews/><sheetFormatPr defaultRowHeight="15"/><cols/><sheetData><row r="2" spans="2:4"><c r="B2" s="80" t="s"><v>0</v></c></row><row r="3" spans="2:4"><c r="B3" s="10" t="s"><v>1</v></c></row><row r="4" spans="2:4"><c r="B4" s="11" t="s"><v>X</v></c></row></sheetData></worksheet>`;
+
+  test('inyecta una fila por marca y actualiza dimension', () => {
+    const out = parchearSheet3(SHEET3_XML, [
+      { suministro_id: 'S01', suministro_nombre: 'Coraza', marca: '(edite)' },
+      { suministro_id: 'S02', suministro_nombre: 'Radiadores', marca: 'TDM RADIATORS' }
+    ]);
+    assert.match(out, /<dimension ref="B2:D5"/);
+    assert.match(out, /<row r="3"/);
+    assert.match(out, /<row r="4"[\s\S]*S01/);
+    assert.match(out, /<row r="5"[\s\S]*TDM RADIATORS/);
+    // La fila placeholder original (row 4 viejo con <v>X</v>) no queda.
+    assert.doesNotMatch(out, /<v>X<\/v>/);
+  });
+
+  test('25 marcas → dimension B2:D28', () => {
+    const arr = Array.from({ length: 25 }, (_, i) => ({
+      suministro_id: `S${String(i+1).padStart(2,'0')}`,
+      suministro_nombre: `Item ${i+1}`,
+      marca: `MARCA${i+1}`
+    }));
+    const out = parchearSheet3(SHEET3_XML, arr);
+    assert.match(out, /<dimension ref="B2:D28"/);
+    assert.match(out, /<row r="4"[\s\S]*S01/);
+    assert.match(out, /<row r="28"[\s\S]*MARCA25/);
+  });
+
+  test('marcas vacío → fila placeholder en row 4, dimension B2:D4', () => {
+    const out = parchearSheet3(SHEET3_XML, []);
+    assert.match(out, /<dimension ref="B2:D4"/);
+    assert.match(out, /<row r="4"/);
+  });
+
+  test('lanza si la estructura de sheetData es desconocida', () => {
+    assert.throws(() => parchearSheet3('<worksheet/>', []), /estructura de sheetData/);
   });
 });
 
