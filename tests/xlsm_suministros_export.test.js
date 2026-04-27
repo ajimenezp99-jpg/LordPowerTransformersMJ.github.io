@@ -5,7 +5,8 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
-  generarFilaMovimiento, parchearSheet6, parchearTable4
+  generarFilaMovimiento, parchearSheet6, parchearTable4,
+  generarFilaCatalogoSuministro, parchearSheet2
 } from '../assets/js/exports/xlsm_suministros.js';
 
 describe('generarFilaMovimiento', () => {
@@ -88,6 +89,101 @@ describe('parchearSheet6', () => {
 
   test('lanza si la estructura no se reconoce', () => {
     assert.throws(() => parchearSheet6('<worksheet/>', []), /estructura de sheetData no reconocida/);
+  });
+});
+
+describe('generarFilaCatalogoSuministro', () => {
+  test('mapea las 9 columnas B–J con fórmulas SUMIFS / stock / alerta', () => {
+    const xml = generarFilaCatalogoSuministro({
+      codigo: 'S23',
+      nombre: 'Buje 13,8 kV',
+      unidad: 'Und',
+      stock_inicial: 3,
+      marcas_disponibles: ['CEDASPE']
+    }, 25);
+    assert.match(xml, /^<row r="25" spans="2:10">/);
+    assert.match(xml, /<\/row>$/);
+    // B = código, inlineStr.
+    assert.match(xml, /<c r="B25"[^>]*t="inlineStr"><is><t[^>]*>S23<\/t><\/is><\/c>/);
+    // E = stock_inicial como número.
+    assert.match(xml, /<c r="E25" s="9"><v>3<\/v><\/c>/);
+    // F y G tienen fórmula SUMIFS sobre tblMovimientos del row 25.
+    assert.match(xml, /<c r="F25" s="9"><f>SUMIFS\(tblMovimientos\[Cantidad\],tblMovimientos\[Suministro_ID\],\$B25,tblMovimientos\[Tipo\],"INGRESO"\)<\/f>/);
+    assert.match(xml, /<c r="G25" s="9"><f>SUMIFS\(tblMovimientos\[Cantidad\],tblMovimientos\[Suministro_ID\],\$B25,tblMovimientos\[Tipo\],"EGRESO"\)<\/f>/);
+    // H = E+F-G del row 25.
+    assert.match(xml, /<c r="H25" s="9"><f>\$E25\+\$F25-\$G25<\/f><v>3<\/v><\/c>/);
+    // I = alerta — stock=3 cae en "🟡 BAJO".
+    assert.match(xml, /<c r="I25" s="7" t="str"><f>IF/);
+    assert.match(xml, /BAJO/);
+    // J = marca formateada.
+    assert.match(xml, /<c r="J25"[^>]*>[\s\S]*CEDASPE/);
+  });
+
+  test('marcas_disponibles vacío → "(edite)"', () => {
+    const xml = generarFilaCatalogoSuministro({
+      codigo: 'S01', nombre: 'Coraza', unidad: 'Mt', stock_inicial: 0
+    }, 4);
+    assert.match(xml, /<c r="J4"[^>]*>[\s\S]*\(edite\)/);
+    // I con stock=0 → "🔴 SIN STOCK"
+    assert.match(xml, /SIN STOCK/);
+  });
+
+  test('stock alto (>3) → "🟢 OK"', () => {
+    const xml = generarFilaCatalogoSuministro({
+      codigo: 'S11', nombre: 'Silica', unidad: 'Kg', stock_inicial: 425
+    }, 14);
+    assert.match(xml, /<c r="I14"[^>]*>[\s\S]*OK/);
+  });
+});
+
+describe('parchearSheet2', () => {
+  // Mínimo viable: dimension + sheetData con title (row 2) + header (row 3).
+  const SHEET2_XML = `<?xml version="1.0" encoding="UTF-8"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><dimension ref="B2:J25"/><sheetViews/><sheetFormatPr defaultRowHeight="15"/><cols/><sheetData><row r="2" spans="2:10"><c r="B2" s="79" t="s"><v>0</v></c></row><row r="3" spans="2:10"><c r="B3" s="6" t="s"><v>1</v></c><c r="C3" s="6" t="s"><v>2</v></c></row><row r="4" spans="2:10"><c r="B4" s="7" t="s"><v>46</v></c></row><row r="25" spans="2:10"><c r="B25" s="7" t="s"><v>X</v></c></row></sheetData></worksheet>`;
+
+  test('inyecta una fila por suministro y actualiza dimension', () => {
+    const out = parchearSheet2(SHEET2_XML, [
+      { codigo: 'S01', nombre: 'Coraza', unidad: 'Mt', stock_inicial: 0 },
+      { codigo: 'S02', nombre: 'Radiadores', unidad: 'Und', stock_inicial: 6, marcas_disponibles: ['TDM RADIATORS'] }
+    ]);
+    // Dimension actualizado: 2 sumins → lastRow 5.
+    assert.match(out, /<dimension ref="B2:J5"/);
+    // Header (row 3) preservado.
+    assert.match(out, /<row r="3"[\s\S]*<c r="B3"/);
+    // Las dos filas nuevas presentes.
+    assert.match(out, /<row r="4"[\s\S]*S01/);
+    assert.match(out, /<row r="5"[\s\S]*S02/);
+    // Las filas placeholder originales (row 4/25 viejas) no quedan.
+    assert.doesNotMatch(out, /<v>X<\/v>/);
+  });
+
+  test('25 suministros → dimension B2:J28', () => {
+    const arr = Array.from({ length: 25 }, (_, i) => ({
+      codigo: `S${String(i+1).padStart(2,'0')}`, nombre: `Item ${i+1}`,
+      unidad: 'Und', stock_inicial: i
+    }));
+    const out = parchearSheet2(SHEET2_XML, arr);
+    assert.match(out, /<dimension ref="B2:J28"/);
+    // Primera y última.
+    assert.match(out, /<row r="4"[\s\S]*S01/);
+    assert.match(out, /<row r="28"[\s\S]*S25/);
+  });
+
+  test('suministros vacío → fila placeholder en row 4, dimension B2:J4', () => {
+    const out = parchearSheet2(SHEET2_XML, []);
+    assert.match(out, /<dimension ref="B2:J4"/);
+    assert.match(out, /<row r="4"/);
+  });
+
+  test('escapa XML en nombre del suministro', () => {
+    const out = parchearSheet2(SHEET2_XML, [
+      { codigo: 'S01', nombre: 'A & B <special>', unidad: 'Und', stock_inicial: 0 }
+    ]);
+    assert.match(out, /A &amp; B &lt;special&gt;/);
+  });
+
+  test('lanza si la estructura de sheetData es desconocida', () => {
+    assert.throws(() => parchearSheet2('<worksheet/>', []), /estructura de sheetData/);
   });
 });
 

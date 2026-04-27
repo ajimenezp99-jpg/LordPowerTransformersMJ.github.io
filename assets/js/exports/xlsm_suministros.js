@@ -143,6 +143,94 @@ export function parchearSheet6(xmlStr, movimientos) {
   return out;
 }
 
+// ── Catálogo de Suministros (Sheet2) ─────────────────────────────
+// Estilos por columna inferidos del template (fila 4 placeholder):
+//   B = ID         s=7  (sharedString → reemplazamos por inlineStr)
+//   C = Nombre     s=8  (idem)
+//   D = Unidad     s=7
+//   E = Stock_Ini  s=9  (número)
+//   F = SUMIFS Ingresos        s=9 (fórmula)
+//   G = SUMIFS Egresos         s=9 (fórmula)
+//   H = E+F-G                  s=9 (fórmula)
+//   I = IF(H<=0,...)           s=7 (fórmula text)
+//   J = Marcas                 s=7 (texto)
+const SHEET2_STYLES = { B:7, C:8, D:7, E:9, F:9, G:9, H:9, I:7, J:7 };
+
+/**
+ * Genera la fila XML de un suministro del catálogo (sheet2).
+ * Las fórmulas SUMIFS, stock_actual y alerta se escriben de forma
+ * INDIVIDUAL por fila (no shared) — más verboso pero robusto frente
+ * a cambios de número de filas. Excel las acepta sin problema.
+ */
+export function generarFilaCatalogoSuministro(s, rowIdx) {
+  const r = rowIdx;
+  const codigo = String(s.codigo || '');
+  const nombre = String(s.nombre || '');
+  const unidad = String(s.unidad || '');
+  const stock  = (typeof s.stock_inicial === 'number') ? s.stock_inicial : (parseInt(s.stock_inicial, 10) || 0);
+  const marcas = Array.isArray(s.marcas_disponibles) && s.marcas_disponibles.length > 0
+                  ? s.marcas_disponibles.join(', ')
+                  : '(edite)';
+  // Fórmulas — referencian tblMovimientos (table4) con la misma sintaxis
+  // del template original. Las funciones quedan vivas: cuando se añadan
+  // movimientos en sheet6, los SUMIFS recalculan.
+  const fIng = `SUMIFS(tblMovimientos[Cantidad],tblMovimientos[Suministro_ID],$B${r},tblMovimientos[Tipo],"INGRESO")`;
+  const fEgr = `SUMIFS(tblMovimientos[Cantidad],tblMovimientos[Suministro_ID],$B${r},tblMovimientos[Tipo],"EGRESO")`;
+  const fStk = `$E${r}+$F${r}-$G${r}`;
+  const fAlt = `IF($H${r}<=0,"&#128308; SIN STOCK",IF($H${r}<=3,"&#128993; BAJO","&#128994; OK"))`;
+  return [
+    `<row r="${r}" spans="2:10">`,
+      celda('B', r, codigo, SHEET2_STYLES.B),
+      celda('C', r, nombre, SHEET2_STYLES.C),
+      celda('D', r, unidad, SHEET2_STYLES.D),
+      `<c r="E${r}" s="${SHEET2_STYLES.E}"><v>${stock}</v></c>`,
+      `<c r="F${r}" s="${SHEET2_STYLES.F}"><f>${fIng}</f><v>0</v></c>`,
+      `<c r="G${r}" s="${SHEET2_STYLES.G}"><f>${fEgr}</f><v>0</v></c>`,
+      `<c r="H${r}" s="${SHEET2_STYLES.H}"><f>${fStk}</f><v>${stock}</v></c>`,
+      // I se escribe como string + fórmula. El valor cacheado se calcula
+      // localmente para que la fila se vea bien antes del recálculo.
+      (() => {
+        const txt = stock <= 0 ? '🔴 SIN STOCK' : (stock <= 3 ? '🟡 BAJO' : '🟢 OK');
+        return `<c r="I${r}" s="${SHEET2_STYLES.I}" t="str"><f>${fAlt}</f><v>${escXml(txt)}</v></c>`;
+      })(),
+      celda('J', r, marcas, SHEET2_STYLES.J),
+    `</row>`
+  ].join('');
+}
+
+/**
+ * Reemplaza los rows 4+ de Catalogo_Suministros (sheet2) con un
+ * row por suministro. Conserva título (row 2), header (row 3),
+ * cols, sheetViews, sheetFormatPr y todo lo demás.
+ */
+export function parchearSheet2(xmlStr, suministros) {
+  const arr = Array.isArray(suministros) ? suministros : [];
+  const n = Math.max(1, arr.length);
+  const lastRow = 3 + n;
+
+  let out = xmlStr.replace(
+    /<dimension\s+ref="[^"]+"/,
+    `<dimension ref="B2:J${lastRow}"`
+  );
+
+  const sheetDataRe = /(<sheetData>[\s\S]*?<row r="3"[\s\S]*?<\/row>)([\s\S]*?)(<\/sheetData>)/;
+  const m = out.match(sheetDataRe);
+  if (!m) throw new Error('parchearSheet2: estructura de sheetData no reconocida');
+  const headerPart = m[1];
+  const closing    = m[3];
+
+  let newRows;
+  if (arr.length === 0) {
+    // Mantén una fila placeholder vacía para que la tabla siga viva.
+    newRows = `<row r="4" spans="2:10">${
+      ['B','C','D','E','F','G','H','I','J'].map((c) => celda(c, 4, '', SHEET2_STYLES[c])).join('')
+    }</row>`;
+  } else {
+    newRows = arr.map((s, i) => generarFilaCatalogoSuministro(s, 4 + i)).join('');
+  }
+  return out.replace(sheetDataRe, `${headerPart}${newRows}${closing}`);
+}
+
 /**
  * Actualiza el ref de tblMovimientos en table4.xml.
  * Antes: ref="B4:Q5" autoFilter ref="B4:Q5"
