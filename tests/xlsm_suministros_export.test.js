@@ -8,7 +8,8 @@ import {
   generarFilaMovimiento, parchearSheet6, parchearTable4,
   generarFilaCatalogoSuministro, parchearSheet2,
   generarFilaMarca, parchearSheet3,
-  parchearSheet4, colLetter
+  parchearSheet4, colLetter,
+  parchearTable1, parchearTable2
 } from '../assets/js/exports/xlsm_suministros.js';
 
 describe('generarFilaMovimiento', () => {
@@ -321,6 +322,44 @@ describe('parchearSheet4', () => {
     assert.match(out, /A&amp;B/);
     assert.match(out, /&lt;x&gt;/);
     assert.match(out, /&quot;M&quot;/);
+  });
+});
+
+describe('parchearTable1 (tblSuministros)', () => {
+  const TABLE1_XML = `<?xml version="1.0"?>
+<table xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" id="1" name="tblSuministros" displayName="tblSuministros" ref="B3:J25"><autoFilter ref="B3:J25"/></table>`;
+
+  test('actualiza ref del table y autoFilter para 25 suministros', () => {
+    const out = parchearTable1(TABLE1_XML, 25);
+    // 25 sumins → lastRow 28 (3 + 25).
+    assert.match(out, / ref="B3:J28"/);
+    assert.doesNotMatch(out, / ref="B3:J25"/);
+  });
+
+  test('actualiza ref para 22 suministros (template clásico)', () => {
+    const out = parchearTable1(TABLE1_XML, 22);
+    assert.match(out, / ref="B3:J25"/);  // 3+22=25, coincide con template
+  });
+
+  test('suministros=0 deja el ref mínimo (B3:J4)', () => {
+    const out = parchearTable1(TABLE1_XML, 0);
+    assert.match(out, / ref="B3:J4"/);
+  });
+});
+
+describe('parchearTable2 (tblMarcas)', () => {
+  const TABLE2_XML = `<?xml version="1.0"?>
+<table xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" id="2" name="tblMarcas" displayName="tblMarcas" ref="B3:D25"><autoFilter ref="B3:D25"/></table>`;
+
+  test('actualiza ref del table y autoFilter para 25 marcas', () => {
+    const out = parchearTable2(TABLE2_XML, 25);
+    assert.match(out, / ref="B3:D28"/);
+    assert.doesNotMatch(out, / ref="B3:D25"/);
+  });
+
+  test('marcas=0 deja el ref mínimo (B3:D4)', () => {
+    const out = parchearTable2(TABLE2_XML, 0);
+    assert.match(out, / ref="B3:D4"/);
   });
 });
 

@@ -369,6 +369,32 @@ export function parchearSheet4(xmlStr, suministros) {
 }
 
 /**
+ * Actualiza el ref de tblSuministros (table1) cuando cambia el
+ * número de filas del catálogo en sheet2.
+ * Antes: ref="B3:J25" autoFilter ref="B3:J25"
+ * Después: ref="B3:J{3+max(n,1)}" en ambos.
+ */
+export function parchearTable1(xmlStr, nSuministros) {
+  const n = Math.max(1, nSuministros);
+  const lastRow = 3 + n;
+  const newRef = `B3:J${lastRow}`;
+  return xmlStr.replace(/(\sref=")B3:J\d+(")/g, `$1${newRef}$2`);
+}
+
+/**
+ * Actualiza el ref de tblMarcas (table2) cuando cambia el
+ * número de filas en sheet3.
+ * Antes: ref="B3:D25" autoFilter ref="B3:D25"
+ * Después: ref="B3:D{3+max(n,1)}".
+ */
+export function parchearTable2(xmlStr, nMarcas) {
+  const n = Math.max(1, nMarcas);
+  const lastRow = 3 + n;
+  const newRef = `B3:D${lastRow}`;
+  return xmlStr.replace(/(\sref=")B3:D\d+(")/g, `$1${newRef}$2`);
+}
+
+/**
  * Actualiza el ref de tblMovimientos en table4.xml.
  * Antes: ref="B4:Q5" autoFilter ref="B4:Q5"
  * Después: ref="B4:Q{4+max(n,1)}" en ambos.
