@@ -85,6 +85,16 @@ service cloud.firestore {
     function isCodigoMovimientoValido(v) {
       return v is string && v.matches('^MOV-[0-9]{4}-[0-9]{4}$');
     }
+    function isContratoIdValido(v) {
+      return v is string && v.matches('^[0-9]{8,14}$');
+    }
+    // Acepta docId legacy (id == codigo) y docId multi-contrato
+    // ({contrato_id}_{codigo}) introducido en N3-N5. La parte
+    // tras el "_" debe ser exactamente el codigo del payload.
+    function isSuministroDocId(id, codigo) {
+      return id == codigo
+          || (id.matches('^[0-9]{8,14}_S[0-9]{2}$') && id.split('_')[1] == codigo);
+    }
 
     // ── /admins/{uid} — legacy bootstrap (F5) ──
     match /admins/{uid} {
@@ -488,12 +498,18 @@ service cloud.firestore {
     // ══════════════════════════════════════════════════════════
 
     // ── /suministros/{id} ──
-    // docId == codigo (PK humana, decisión del plan).
+    // docId acepta dos formas (decisión N3-N5):
+    //   · legacy:        id == codigo                  (1 contrato)
+    //   · multi-contrato: id == "{contrato_id}_{codigo}" (N contratos)
+    // En ambos casos la parte humana (codigo) es Sxx.
     match /suministros/{id} {
       allow read: if isTeamMember();
       allow create: if isAdmin()
                     && isCodigoSuministroValido(request.resource.data.codigo)
-                    && request.resource.data.codigo == id
+                    && isSuministroDocId(id, request.resource.data.codigo)
+                    && (!('contrato_id' in request.resource.data)
+                        || request.resource.data.contrato_id == ''
+                        || isContratoIdValido(request.resource.data.contrato_id))
                     && request.resource.data.nombre is string
                     && request.resource.data.nombre.size() > 0
                     && isUnidadValida(request.resource.data.unidad)
@@ -514,10 +530,15 @@ service cloud.firestore {
     }
 
     // ── /marcas/{id} ──
+    // docId auto-generado (collection().doc()). contrato_id opcional
+    // (legacy) o presente (N3-N5 multi-contrato).
     match /marcas/{id} {
       allow read: if isTeamMember();
       allow create: if isAdmin()
                     && isCodigoSuministroValido(request.resource.data.suministro_id)
+                    && (!('contrato_id' in request.resource.data)
+                        || request.resource.data.contrato_id == ''
+                        || isContratoIdValido(request.resource.data.contrato_id))
                     && request.resource.data.marca is string
                     && request.resource.data.marca.size() > 0;
       allow update: if isAdmin()
@@ -539,6 +560,9 @@ service cloud.firestore {
                     && isCodigoMovimientoValido(request.resource.data.codigo)
                     && isTipoMovimientoValido(request.resource.data.tipo)
                     && isCodigoSuministroValido(request.resource.data.suministro_id)
+                    && (!('contrato_id' in request.resource.data)
+                        || request.resource.data.contrato_id == ''
+                        || isContratoIdValido(request.resource.data.contrato_id))
                     && request.resource.data.cantidad is int
                     && request.resource.data.cantidad >= 1
                     && request.resource.data.transformador_id is string
@@ -572,6 +596,9 @@ service cloud.firestore {
                     && request.resource.data.numero is int
                     && request.resource.data.numero >= 1
                     && isTipoCorreccionValido(request.resource.data.tipo)
+                    && (!('contrato_id' in request.resource.data)
+                        || request.resource.data.contrato_id == ''
+                        || isContratoIdValido(request.resource.data.contrato_id))
                     && request.resource.data.ubicacion is string
                     && request.resource.data.ubicacion.size() > 0
                     && request.resource.data.justificacion is string
