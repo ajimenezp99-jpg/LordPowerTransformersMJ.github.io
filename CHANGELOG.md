@@ -7,6 +7,122 @@ Formato inspirado en [Keep a Changelog](https://keepachangelog.com/).
 Semver por tag. Pulido post-v2.0 incrementa el patch (v2.0.1,
 v2.0.2, …) sin promesas de incompatibilidad.
 
+## v2.4.1 — Deploy contrato 4125000143 · export espejo + rules multi-contrato (2026-04-27)
+
+Integración del nuevo dataset del contrato **4125000143**
+(`Gestion_Suministros_Transformadores_4125000143.xlsm`) sobre la
+arquitectura multi-contrato N1–N5. 9 micro-fases atómicas (A, B,
+pre-E, D, E.1–E.6, F).
+
+### Resumen ejecutivo
+
+- 25 SKUs nuevos (S01–S25, +3 bujes 13.8/34.5/66-110 kV) detectados
+  en el archivo del contrato y validados contra el parser puro.
+- Exportador `.xlsm` reescrito como **espejo completo** del template
+  canónico: además de Movimientos (sheet6/table4), ahora cubre
+  Catálogo (sheet2/table1), Marcas (sheet3/table2), ListasMarcas
+  oculta (sheet4) y `definedName Sxx` extendidos en workbook.xml.
+- `vbaProject.bin` del template se preserva idéntico (md5
+  `5ab76c9f…`); macros operativos al abrir el archivo exportado.
+- Seeder Node CLI `scripts/import-contrato.js` para importar el
+  catálogo de cualquier contrato server-side desde la Mac del
+  director, vía service-account JSON.
+- 3 bugs pre-existentes de N3-N5 corregidos: rules multi-contrato,
+  estado de `/contratos` al auto-registrar, y replace-with-`$`
+  patterns en exporter (que generaba 179 definedName duplicados).
+
+### Micro-fases
+
+- **FASE A** — Análisis estructural de los dos `.xlsm`. Reporte
+  completo en `docs/CONTRATO_4125000143_ANALISIS.md`. Inventario
+  ZIP idéntico (35 partes), workbook con 8 hojas mismo `r:id`,
+  vbaProject.bin distinto entre archivos (decisión: usar el del
+  template como canónico), `definedName` para S23-S25 ausente,
+  ListasMarcas reestructurada en el archivo del contrato.
+- **FASE B** — Test dryrun del parser puro contra el archivo real
+  (`tests/import_4125000143_dryrun.test.js`, 12 tests verde):
+  estructura del .xlsm, parseo de 25 sumins, S23/S24/S25 con
+  stock_inicial 3/3/6, marcas filtradas por placeholders,
+  prepararPlanImportacion con Firestore vacío vs catálogo previo.
+  `xlsx@0.18.5` añadido como devDependency.
+- **FASE C** — No-op confirmado. Regex y enums actuales aceptan
+  el archivo nuevo sin cambios al parser/dominio.
+- **FASE pre-E** — `firestore.rules`: bug pre-existente en línea
+  496 (`data.codigo == id`) bloqueaba writes con docId composite
+  introducido por N5. Helpers nuevos `isContratoIdValido` y
+  `isSuministroDocId`. Validación opcional de `contrato_id` añadida
+  a `/suministros`, `/marcas`, `/movimientos`, `/correcciones`.
+  Inmutabilidad de `codigo` en updates conservada. **Requiere
+  deploy manual** (`firebase deploy --only firestore:rules`).
+- **FASE D** — `scripts/import-contrato.js` CLI seeder con
+  `firebase-admin@^13.8.0`. Reusa el parser puro del dominio,
+  acepta `--xlsm`, `--contrato-id`, `--service-account`, `--dry-run`,
+  `--uid`, `--nombre`. Idempotente. Audita en /audit. Bug paralelo
+  fixed: importer web escribía `estado: 'activo'` a /contratos/{cid}
+  (N5 commit aac5994), valor que las rules rechazaban con try/catch
+  silenciado → ambos paths (UI + CLI) ahora escriben
+  `estado: 'vigente'` con payload completo del contrato_schema F21.
+- **FASE E.1** — `parchearSheet2` + `generarFilaCatalogoSuministro`:
+  reescribe Catálogo con fórmulas individuales (no shared) para
+  SUMIFS/Stock_Actual/Alerta. 8 tests nuevos.
+- **FASE E.2** — `parchearSheet3` + `generarFilaMarca`: reescribe
+  Marcas. 7 tests nuevos.
+- **FASE E.3** — `parchearSheet4` + `colLetter`: reescribe
+  ListasMarcas oculta con layout estable 3 filas × N cols. Cierra
+  el gap detectado en FASE A. 8 tests nuevos.
+- **FASE E.4** — `parchearTable1` (`tblSuministros`) y
+  `parchearTable2` (`tblMarcas`): refs `B3:J{3+n}` y `B3:D{3+n}`.
+  5 tests nuevos.
+- **FASE E.5** — `parchearWorkbookXml`: extiende `definedName Sxx`
+  para todos los suministros del catálogo (idx → colLetter).
+  Preserva `ent_*`, `flt_*` intactos. 5 tests nuevos.
+- **FASE E.6** — Wire-up de `generarXlsmExport(payload, opts)` con
+  firma extendida backwards-compat. **Bug crítico corregido en
+  TODOS los helpers**: `String.replace(regex, "templateLiteral")`
+  interpreta `$1`/`$&`/`$'`/`$\`` en el reemplazo. Las fórmulas
+  Excel y los `definedName` con `$F$6`/`$E25` corrompían el
+  output. Fix: cada `replace` con template literal pasó a callback
+  function. Test de integración `tests/xlsm_export_integracion.test.js`
+  con archivo real (2 tests). devDeps: `jszip@^3.10.1`.
+
+### Estado al cierre
+
+- Suite **468/468 tests verde**, lint HTML limpio.
+- Branch `claude/deploy-contract-dataset-Fx8eG`, listo para PR a
+  `main`.
+- Archivo `.xlsm` exportado real verificado: 82212 bytes, 25 SKUs,
+  vbaProject.bin md5 = `5ab76c9f…` (igual al template), tablas
+  con refs correctas, dropdowns operativos para los 25 SKUs, abre
+  en Excel/SheetJS sin errores.
+
+### ⚠ Requiere deploy manual tras merge
+
+```bash
+firebase deploy --only firestore:rules
+```
+
+Sin esto, el seeder server-side (FASE D) y el importer web (con
+contrato_id) fallan con `permission-denied` por la regla pre-N3.
+
+### Cómo cargar el contrato 4125000143 a producción
+
+1. Mergear esta rama a `main`.
+2. Deployar rules: `firebase deploy --only firestore:rules`.
+3. Generar service-account JSON: Firebase Console → Project
+   Settings → Service accounts → Generate new private key. Guardar
+   FUERA del repo.
+4. Ejecutar el seeder en dry-run para revisar el plan:
+   ```bash
+   node scripts/import-contrato.js \
+     --xlsm Gestion_Suministros_Transformadores_4125000143.xlsm \
+     --contrato-id 4125000143 \
+     --service-account ~/.firebase/sa-transpower.json \
+     --dry-run
+   ```
+5. Si el plan se ve bien, ejecutar sin `--dry-run`. Idempotente.
+6. Verificar en `pages/contratos.html` que aparece el contrato
+   4125000143; entrar y ver Catálogo con S01-S25.
+
 ## v2.4.0 — Refactor Contratos · arquitectura escalable multi-contrato (2026-04-25)
 
 Reorganización de la navegación para soportar de forma escalable múltiples
