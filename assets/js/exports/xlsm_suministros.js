@@ -20,8 +20,26 @@
 // generarFilaMovimiento) sean testeables en Node sin la dependencia
 // HTTPS del CDN.
 async function loadJSZip() {
+  // Escape hatch para tests Node: si globalThis.__sgmJSZip está
+  // configurado, lo usamos en lugar del CDN. Producción (browser)
+  // sigue cargando desde jsdelivr.
+  if (typeof globalThis !== 'undefined' && globalThis.__sgmJSZip) {
+    return globalThis.__sgmJSZip;
+  }
   const mod = await import('https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm');
   return mod.default || mod;
+}
+
+/**
+ * Lee una part del zip, la pasa por una función transformer y
+ * sobrescribe la part con el resultado. Lanza si la part no existe
+ * (template inválido).
+ */
+async function patchPart(zip, partPath, transformerFn) {
+  const file = zip.file(partPath);
+  if (!file) throw new Error(`Template inválido: falta ${partPath}`);
+  const xml = await file.async('string');
+  zip.file(partPath, transformerFn(xml));
 }
 
 // Resuelve el path al template relativo a esta página.
@@ -139,7 +157,10 @@ export function parchearSheet6(xmlStr, movimientos) {
     newRows = movimientos.map((m, i) => generarFilaMovimiento(m, 5 + i)).join('');
   }
 
-  out = out.replace(sheetDataRe, `${headerPart}${newRows}${closing}`);
+  // Función-replace: el contenido de newRows incluye cell refs y
+  // fórmulas con `$` que JS interpretaría como backreferences si
+  // pasamos un string. Una callback evita esa expansión.
+  out = out.replace(sheetDataRe, () => `${headerPart}${newRows}${closing}`);
   return out;
 }
 
@@ -228,7 +249,8 @@ export function parchearSheet2(xmlStr, suministros) {
   } else {
     newRows = arr.map((s, i) => generarFilaCatalogoSuministro(s, 4 + i)).join('');
   }
-  return out.replace(sheetDataRe, `${headerPart}${newRows}${closing}`);
+  // Función-replace: ver nota en parchearSheet6 sobre `$` patterns.
+  return out.replace(sheetDataRe, () => `${headerPart}${newRows}${closing}`);
 }
 
 // ── Marcas (Sheet3) ──────────────────────────────────────────────
@@ -287,7 +309,8 @@ export function parchearSheet3(xmlStr, marcas) {
   } else {
     newRows = arr.map((m, i) => generarFilaMarca(m, 4 + i)).join('');
   }
-  return out.replace(sheetDataRe, `${headerPart}${newRows}${closing}`);
+  // Función-replace: ver nota en parchearSheet6 sobre `$` patterns.
+  return out.replace(sheetDataRe, () => `${headerPart}${newRows}${closing}`);
 }
 
 // ── ListasMarcas (Sheet4, hidden) ────────────────────────────────
@@ -364,7 +387,7 @@ export function parchearSheet4(xmlStr, suministros) {
       `<row r="3" spans="1:${arr.length}">${r3Cells}</row>` +
     `</sheetData>`;
 
-  out = out.replace(/<sheetData>[\s\S]*?<\/sheetData>/, newSheetData);
+  out = out.replace(/<sheetData>[\s\S]*?<\/sheetData>/, () => newSheetData);
   return out;
 }
 
@@ -399,21 +422,27 @@ export function parchearWorkbookXml(xmlStr, suministros) {
     // Workbook sin <definedNames>: añadirlo después de <sheets>.
     const sxxs = arr.map((s, i) => buildDefinedNameSxx(s.codigo, i)).join('');
     const block = `<definedNames>${sxxs}</definedNames>`;
-    return xmlStr.replace(/<\/sheets>/, `</sheets>${block}`);
+    // Replacement por función: evita la interpretación $1/$&/$' de
+    // String.replace cuando el contenido inyectado tiene caracteres $.
+    return xmlStr.replace(/<\/sheets>/, () => `</sheets>${block}`);
   }
   const inner = m[1];
 
   // 2. Filtra los Sxx existentes (los reescribiremos en bloque); deja
-  //    todos los demás definedName intactos.
-  const otros = inner.replace(/<definedName\s+name="S\d{2}">[^<]*<\/definedName>/g, '');
+  //    todos los demás definedName intactos. La función-replace evita
+  //    expansión de $ patterns en el inner (los definedName del template
+  //    contienen cell refs tipo $F$6, $C$22 que JS interpreta como
+  //    backreferences si pasas un string en vez de función).
+  const otros = inner.replace(/<definedName\s+name="S\d{2}">[^<]*<\/definedName>/g, () => '');
 
   // 3. Construye los Sxx nuevos según el catálogo provisto.
   const sxxs = arr.map((s, i) => buildDefinedNameSxx(s.codigo, i)).join('');
 
   // 4. Reensambla — Sxx al final para mantener el orden visual del
-  //    template (ent_* + flt_* + Sxx).
+  //    template (ent_* + flt_* + Sxx). Usa función-replace por la
+  //    misma razón.
   const newInner = otros + sxxs;
-  return xmlStr.replace(dnRe, `<definedNames>${newInner}</definedNames>`);
+  return xmlStr.replace(dnRe, () => `<definedNames>${newInner}</definedNames>`);
 }
 
 function buildDefinedNameSxx(codigo, idx) {
@@ -463,13 +492,38 @@ export function parchearTable4(xmlStr, nMovimientos) {
 }
 
 /**
- * Genera el .xlsm con los movimientos inyectados.
+ * Genera el .xlsm "espejo" con todos los datos vivos inyectados.
  *
- * @param {Array} movimientos — array de docs /movimientos.
+ * Acepta DOS firmas para retrocompat:
+ *
+ *   1) Legacy (Array de movimientos):
+ *        generarXlsmExport([mov1, mov2, ...])
+ *      → solo parchea sheet6 + table4 (comportamiento F49 original).
+ *
+ *   2) Espejo completo (Object con secciones):
+ *        generarXlsmExport({
+ *          suministros: [...catálogo...],
+ *          marcas:      [...pares (sumId, marca)...],
+ *          movimientos: [...]
+ *        })
+ *      → parchea sheet2/3/4/6 + table1/2/4 + workbook.xml definedNames
+ *        para que el .xlsm exportado sea estructuralmente idéntico al
+ *        template (refs de tablas correctas, definedName Sxx por
+ *        cada SKU, dropdowns de Marca operativos para todos los SKUs).
+ *
+ * @param {Array|Object} payload
  * @param {{templateBuffer?: ArrayBuffer}} [opts]
  * @returns {Promise<Uint8Array>}
  */
-export async function generarXlsmExport(movimientos, opts = {}) {
+export async function generarXlsmExport(payload, opts = {}) {
+  // Normaliza payload a la forma de objeto.
+  const data = Array.isArray(payload)
+    ? { movimientos: payload, suministros: null, marcas: null }
+    : (payload || {});
+  const movimientos = Array.isArray(data.movimientos) ? data.movimientos : [];
+  const suministros = Array.isArray(data.suministros) ? data.suministros : null;
+  const marcas      = Array.isArray(data.marcas)      ? data.marcas      : null;
+
   // 1. Cargar template (caller puede pasar buffer pre-cargado para tests).
   let buf = opts.templateBuffer;
   if (!buf) {
@@ -482,25 +536,36 @@ export async function generarXlsmExport(movimientos, opts = {}) {
   const JSZip = await loadJSZip();
   const zip = await JSZip.loadAsync(buf);
 
-  // 3. Parchear sheet6 (Movimientos).
-  const sheet6File = zip.file('xl/worksheets/sheet6.xml');
-  if (!sheet6File) throw new Error('Template inválido: falta xl/worksheets/sheet6.xml');
-  const sheet6Xml = await sheet6File.async('string');
-  const sheet6New = parchearSheet6(sheet6Xml, movimientos || []);
-  zip.file('xl/worksheets/sheet6.xml', sheet6New);
+  // 3. Sheet6 + table4 (Movimientos) — siempre se parchean.
+  await patchPart(zip, 'xl/worksheets/sheet6.xml', (xml) => parchearSheet6(xml, movimientos));
+  await patchPart(zip, 'xl/tables/table4.xml',     (xml) => parchearTable4(xml, movimientos.length));
 
-  // 4. Parchear table4 (tblMovimientos ref).
-  const table4File = zip.file('xl/tables/table4.xml');
-  if (!table4File) throw new Error('Template inválido: falta xl/tables/table4.xml');
-  const table4Xml = await table4File.async('string');
-  const table4New = parchearTable4(table4Xml, (movimientos || []).length);
-  zip.file('xl/tables/table4.xml', table4New);
+  // 4. Sheet2 + table1 (Catálogo) — solo si caller pasó suministros.
+  if (suministros) {
+    await patchPart(zip, 'xl/worksheets/sheet2.xml', (xml) => parchearSheet2(xml, suministros));
+    await patchPart(zip, 'xl/tables/table1.xml',     (xml) => parchearTable1(xml, suministros.length));
+  }
 
-  // 5. NO tocamos: vbaProject.bin, webextensions/*, charts/*, theme/*,
-  //    sharedStrings, styles, las otras 7 hojas, drawings, calcChain.
+  // 5. Sheet3 + table2 (Marcas) — solo si caller pasó marcas.
+  if (marcas) {
+    await patchPart(zip, 'xl/worksheets/sheet3.xml', (xml) => parchearSheet3(xml, marcas));
+    await patchPart(zip, 'xl/tables/table2.xml',     (xml) => parchearTable2(xml, marcas.length));
+  }
+
+  // 6. Sheet4 (ListasMarcas) + workbook.xml definedNames — requieren
+  //    el catálogo de suministros (un definedName Sxx por SKU).
+  if (suministros) {
+    await patchPart(zip, 'xl/worksheets/sheet4.xml', (xml) => parchearSheet4(xml, suministros));
+    await patchPart(zip, 'xl/workbook.xml',          (xml) => parchearWorkbookXml(xml, suministros));
+  }
+
+  // 7. NO tocamos: vbaProject.bin (canónico del template),
+  //    webextensions/*, charts/*, theme/*, sharedStrings, styles,
+  //    sheet1 (README), sheet5 (Equipos), sheet7 (Entrega), sheet8
+  //    (Dashboard), table3 (tblEquipos), drawings, calcChain.
   //    Excel los conserva intactos al abrir.
 
-  // 6. Generar blob.
+  // 8. Generar blob.
   return await zip.generateAsync({
     type: 'uint8array',
     compression: 'DEFLATE',
