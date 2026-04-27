@@ -9,7 +9,8 @@ import {
   generarFilaCatalogoSuministro, parchearSheet2,
   generarFilaMarca, parchearSheet3,
   parchearSheet4, colLetter,
-  parchearTable1, parchearTable2
+  parchearTable1, parchearTable2,
+  parchearWorkbookXml
 } from '../assets/js/exports/xlsm_suministros.js';
 
 describe('generarFilaMovimiento', () => {
@@ -360,6 +361,59 @@ describe('parchearTable2 (tblMarcas)', () => {
   test('marcas=0 deja el ref mínimo (B3:D4)', () => {
     const out = parchearTable2(TABLE2_XML, 0);
     assert.match(out, / ref="B3:D4"/);
+  });
+});
+
+describe('parchearWorkbookXml (definedName Sxx)', () => {
+  // Workbook reducido al subárbol que importa: <sheets/> + <definedNames/>.
+  const WB_22 = `<?xml version="1.0"?><workbook><sheets><sheet name="x" sheetId="1" r:id="rId1"/></sheets><definedNames><definedName name="ent_anio">Entrega!$F$6</definedName><definedName name="flt_zona">Dashboard!$C$50</definedName><definedName name="S01">ListasMarcas!$A$3:$A$3</definedName><definedName name="S22">ListasMarcas!$V$3:$V$3</definedName></definedNames></workbook>`;
+
+  test('preserva definedName ent_* y flt_*; reescribe Sxx según catálogo', () => {
+    const out = parchearWorkbookXml(WB_22, [
+      { codigo: 'S01' }, { codigo: 'S02' }, { codigo: 'S22' }, { codigo: 'S23' }, { codigo: 'S24' }, { codigo: 'S25' }
+    ]);
+    // ent_anio y flt_zona intactos.
+    assert.match(out, /<definedName name="ent_anio">Entrega!\$F\$6<\/definedName>/);
+    assert.match(out, /<definedName name="flt_zona">Dashboard!\$C\$50<\/definedName>/);
+    // Sxx según orden provisto: idx 0 → A, 5 → F.
+    assert.match(out, /<definedName name="S01">ListasMarcas!\$A\$3:\$A\$3<\/definedName>/);
+    assert.match(out, /<definedName name="S02">ListasMarcas!\$B\$3:\$B\$3<\/definedName>/);
+    assert.match(out, /<definedName name="S22">ListasMarcas!\$C\$3:\$C\$3<\/definedName>/);
+    assert.match(out, /<definedName name="S23">ListasMarcas!\$D\$3:\$D\$3<\/definedName>/);
+    assert.match(out, /<definedName name="S25">ListasMarcas!\$F\$3:\$F\$3<\/definedName>/);
+  });
+
+  test('25 SKUs (S01..S25) → 25 definedName Sxx en columnas A..Y', () => {
+    const arr = Array.from({ length: 25 }, (_, i) => ({
+      codigo: `S${String(i+1).padStart(2,'0')}`
+    }));
+    const out = parchearWorkbookXml(WB_22, arr);
+    assert.match(out, /<definedName name="S25">ListasMarcas!\$Y\$3:\$Y\$3<\/definedName>/);
+    // No quedan definedName Sxx residuales — el filtro elimina los del
+    // template original antes de reescribir.
+    const matches = out.match(/<definedName name="S\d{2}"/g) || [];
+    assert.equal(matches.length, 25);
+  });
+
+  test('catálogo vacío → workbook sin cambios', () => {
+    const out = parchearWorkbookXml(WB_22, []);
+    assert.equal(out, WB_22);
+  });
+
+  test('workbook sin <definedNames> → añade el bloque tras </sheets>', () => {
+    const wbSinDN = `<?xml version="1.0"?><workbook><sheets><sheet name="x" sheetId="1" r:id="rId1"/></sheets></workbook>`;
+    const out = parchearWorkbookXml(wbSinDN, [{ codigo: 'S01' }]);
+    assert.match(out, /<\/sheets><definedNames><definedName name="S01"[\s\S]*<\/definedNames>/);
+  });
+
+  test('códigos no-Sxx se omiten silenciosamente', () => {
+    const out = parchearWorkbookXml(WB_22, [
+      { codigo: 'INVALID' }, { codigo: 'S01' }, { codigo: '' }
+    ]);
+    // S01 está en idx 1 (porque INVALID en idx 0 reservó la posición A).
+    assert.match(out, /<definedName name="S01">ListasMarcas!\$B\$3:\$B\$3<\/definedName>/);
+    // INVALID no genera definedName.
+    assert.doesNotMatch(out, /name="INVALID"/);
   });
 });
 

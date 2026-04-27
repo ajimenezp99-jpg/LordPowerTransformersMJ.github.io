@@ -368,6 +368,61 @@ export function parchearSheet4(xmlStr, suministros) {
   return out;
 }
 
+// ── workbook.xml · definedName Sxx ───────────────────────────────
+// Cada Sxx en sheet3 tiene un dropdown alimentado por
+// definedName "Sxx" → ListasMarcas!${col}$3:${col}$3. El template
+// trae 22 (S01..S22). Si el catálogo crece a S23+, hay que añadir
+// los nuevos definedName apuntando a las columnas extendidas de
+// sheet4 (W$3, X$3, Y$3, …).
+
+/**
+ * Reescribe el bloque <definedNames>…</definedNames> de workbook.xml
+ * para que existan definedName Sxx para CADA suministro del catálogo
+ * provisto. Conserva todos los demás definedName (ent_*, flt_*, etc.)
+ * exactamente como vienen.
+ *
+ * Estrategia: parser regex acotado; modifica solo el subárbol de
+ * definedNames sin tocar fileVersion, sheets, calcPr, extLst, etc.
+ *
+ * @param {string} xmlStr — contenido de xl/workbook.xml.
+ * @param {Array<{codigo:string}>} suministros — orden establece la
+ *        columna de ListasMarcas (idx 0 → A, 24 → Y, …).
+ */
+export function parchearWorkbookXml(xmlStr, suministros) {
+  const arr = Array.isArray(suministros) ? suministros : [];
+  if (arr.length === 0) return xmlStr;
+
+  // 1. Parse del bloque definedNames existente.
+  const dnRe = /<definedNames>([\s\S]*?)<\/definedNames>/;
+  const m = xmlStr.match(dnRe);
+  if (!m) {
+    // Workbook sin <definedNames>: añadirlo después de <sheets>.
+    const sxxs = arr.map((s, i) => buildDefinedNameSxx(s.codigo, i)).join('');
+    const block = `<definedNames>${sxxs}</definedNames>`;
+    return xmlStr.replace(/<\/sheets>/, `</sheets>${block}`);
+  }
+  const inner = m[1];
+
+  // 2. Filtra los Sxx existentes (los reescribiremos en bloque); deja
+  //    todos los demás definedName intactos.
+  const otros = inner.replace(/<definedName\s+name="S\d{2}">[^<]*<\/definedName>/g, '');
+
+  // 3. Construye los Sxx nuevos según el catálogo provisto.
+  const sxxs = arr.map((s, i) => buildDefinedNameSxx(s.codigo, i)).join('');
+
+  // 4. Reensambla — Sxx al final para mantener el orden visual del
+  //    template (ent_* + flt_* + Sxx).
+  const newInner = otros + sxxs;
+  return xmlStr.replace(dnRe, `<definedNames>${newInner}</definedNames>`);
+}
+
+function buildDefinedNameSxx(codigo, idx) {
+  const c = String(codigo || '');
+  if (!/^S\d{2}$/.test(c)) return '';
+  const col = colLetter(idx);
+  return `<definedName name="${c}">ListasMarcas!$${col}$3:$${col}$3</definedName>`;
+}
+
 /**
  * Actualiza el ref de tblSuministros (table1) cuando cambia el
  * número de filas del catálogo en sheet2.
