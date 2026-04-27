@@ -334,13 +334,28 @@ export async function ejecutarImportacion({
   // automáticamente sin depender del semilla hardcoded.
   if (!dryRun && cid) {
     try {
+      // Payload alineado con contrato_schema (F21) + rules (estado in
+      // ['vigente','suspendido','finalizado','en_liquidacion']). El
+      // 'activo' anterior era rechazado server-side y silenciado por
+      // el try/catch — bug detectado durante el deploy del 4125000143.
       await setDoc(
         doc(d, 'contratos', cid),
         {
-          numero: cid,
-          tipo: 'suministros',
-          nombre: (parsed && parsed.contrato_nombre) || 'Suministro de Elementos y Accesorios para Transformadores de Potencia',
-          estado: 'activo',
+          schema_version: 1,
+          codigo: cid,
+          alcance: (parsed && parsed.contrato_nombre) || 'Suministro de Elementos y Accesorios para Transformadores de Potencia',
+          aliado: 'OTRO',
+          aliado_otro: '',
+          fecha_inicio: new Date().toISOString().slice(0, 10),
+          monto_total: 0,
+          presupuesto_comprometido: 0,
+          presupuesto_ejecutado: 0,
+          presupuesto_disponible: 0,
+          moneda: 'COP',
+          zonas_aplica: [],
+          tipo_activo_elegible: ['POTENCIA'],
+          estado: 'vigente',
+          observaciones: '',
           ultima_importacion: serverTimestamp(),
           ultima_importacion_uid: uid || null,
           ultima_importacion_summary: {
@@ -350,7 +365,8 @@ export async function ejecutarImportacion({
             transformadores_creados: idsCreados.transformadores.length,
             transformadores_actualizados: idsActualizados.transformadores.length,
             correcciones_creadas:    idsCreados.correcciones.length
-          }
+          },
+          updatedAt: serverTimestamp()
         },
         { merge: true }
       );

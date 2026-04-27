@@ -18,6 +18,7 @@
     "test": "npm run lint && npm run test:unit"
   },
   "devDependencies": {
+    "firebase-admin": "^13.8.0",
     "html-validate": "^8.24.0",
     "xlsx": "^0.18.5"
   },
