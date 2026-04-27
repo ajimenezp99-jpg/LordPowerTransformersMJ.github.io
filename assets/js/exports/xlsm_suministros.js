@@ -290,6 +290,84 @@ export function parchearSheet3(xmlStr, marcas) {
   return out.replace(sheetDataRe, `${headerPart}${newRows}${closing}`);
 }
 
+// ── ListasMarcas (Sheet4, hidden) ────────────────────────────────
+// Hoja oculta que sirve de fuente para el data validation
+// (dropdowns) de la columna Marca en sheet3. Layout estable:
+//   Row 1 = ID  (Sxx)         — bold (s=13)
+//   Row 2 = Nombre largo
+//   Row 3 = Marca actual      — los definedName Sxx apuntan a $row3
+// Una columna por suministro (A=S01, B=S02, …, Y=S25 si 25 SKUs).
+//
+// Importante: los definedName en workbook.xml apuntan SIEMPRE a la
+// fila 3, así que esa fila debe poblarse con la marca "principal"
+// del suministro (cuando hay marcas_disponibles, se toma la primera;
+// cuando no hay, "(edite)" como placeholder).
+const SHEET4_LETTERS = ['A','B','C','D','E','F','G','H','I','J','K','L','M',
+                        'N','O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+
+/** Helper: índice 0-based → letra de columna A..Z (luego AA..). */
+export function colLetter(idx) {
+  if (idx < 0) throw new Error('colLetter: índice negativo');
+  if (idx < 26) return SHEET4_LETTERS[idx];
+  // 26+ → AA, AB, … (no esperado para ListasMarcas pero ok defensivo)
+  const hi = Math.floor(idx / 26) - 1;
+  const lo = idx % 26;
+  return SHEET4_LETTERS[hi] + SHEET4_LETTERS[lo];
+}
+
+/**
+ * Reemplaza completamente sheetData de ListasMarcas con el layout
+ * canónico de 3 filas × n cols. Conserva sheetPr, sheetViews,
+ * sheetFormatPr, pageMargins (todo lo que no es sheetData).
+ *
+ * @param {string}   xmlStr
+ * @param {Array<{codigo,nombre,marcas_disponibles?}>} suministros
+ *        Lista ordenada como el catálogo (S01, S02, …).
+ */
+export function parchearSheet4(xmlStr, suministros) {
+  const arr = Array.isArray(suministros) ? suministros : [];
+  if (arr.length === 0) {
+    // Caso defensivo: si no hay suministros, deja sheetData vacío
+    // pero válido (Excel acepta). dimension = A1:A1.
+    let out = xmlStr.replace(/<dimension\s+ref="[^"]+"/, `<dimension ref="A1:A1"/>`);
+    out = out.replace(/<sheetData>[\s\S]*?<\/sheetData>/, '<sheetData/>');
+    return out;
+  }
+  const lastCol = colLetter(arr.length - 1);
+
+  let out = xmlStr.replace(
+    /<dimension\s+ref="[^"]+"/,
+    `<dimension ref="A1:${lastCol}3"`
+  );
+
+  // Construye 3 filas × n cells.
+  const r1Cells = arr.map((s, i) => {
+    const c = colLetter(i);
+    return `<c r="${c}1" s="13" t="inlineStr"><is><t xml:space="preserve">${escXml(s.codigo || '')}</t></is></c>`;
+  }).join('');
+  const r2Cells = arr.map((s, i) => {
+    const c = colLetter(i);
+    return `<c r="${c}2" t="inlineStr"><is><t xml:space="preserve">${escXml(s.nombre || '')}</t></is></c>`;
+  }).join('');
+  const r3Cells = arr.map((s, i) => {
+    const c = colLetter(i);
+    const marca = (Array.isArray(s.marcas_disponibles) && s.marcas_disponibles.length > 0)
+                  ? s.marcas_disponibles[0]
+                  : '(edite)';
+    return `<c r="${c}3" t="inlineStr"><is><t xml:space="preserve">${escXml(marca)}</t></is></c>`;
+  }).join('');
+
+  const newSheetData =
+    `<sheetData>` +
+      `<row r="1" spans="1:${arr.length}">${r1Cells}</row>` +
+      `<row r="2" spans="1:${arr.length}">${r2Cells}</row>` +
+      `<row r="3" spans="1:${arr.length}">${r3Cells}</row>` +
+    `</sheetData>`;
+
+  out = out.replace(/<sheetData>[\s\S]*?<\/sheetData>/, newSheetData);
+  return out;
+}
+
 /**
  * Actualiza el ref de tblMovimientos en table4.xml.
  * Antes: ref="B4:Q5" autoFilter ref="B4:Q5"

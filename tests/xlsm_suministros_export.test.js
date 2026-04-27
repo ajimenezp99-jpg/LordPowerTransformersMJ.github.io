@@ -7,7 +7,8 @@ import assert from 'node:assert/strict';
 import {
   generarFilaMovimiento, parchearSheet6, parchearTable4,
   generarFilaCatalogoSuministro, parchearSheet2,
-  generarFilaMarca, parchearSheet3
+  generarFilaMarca, parchearSheet3,
+  parchearSheet4, colLetter
 } from '../assets/js/exports/xlsm_suministros.js';
 
 describe('generarFilaMovimiento', () => {
@@ -251,6 +252,75 @@ describe('parchearSheet3', () => {
 
   test('lanza si la estructura de sheetData es desconocida', () => {
     assert.throws(() => parchearSheet3('<worksheet/>', []), /estructura de sheetData/);
+  });
+});
+
+describe('colLetter', () => {
+  test('mapea 0-25 a A-Z', () => {
+    assert.equal(colLetter(0),  'A');
+    assert.equal(colLetter(25), 'Z');
+    assert.equal(colLetter(21), 'V');
+    assert.equal(colLetter(24), 'Y');
+  });
+  test('mapea 26+ a AA, AB, etc.', () => {
+    assert.equal(colLetter(26), 'AA');
+    assert.equal(colLetter(27), 'AB');
+  });
+  test('lanza con índice negativo', () => {
+    assert.throws(() => colLetter(-1));
+  });
+});
+
+describe('parchearSheet4', () => {
+  const SHEET4_XML = `<?xml version="1.0"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetPr codeName="Hoja4"/><dimension ref="A1:V3"/><sheetViews><sheetView workbookViewId="0"/></sheetViews><sheetFormatPr defaultRowHeight="15"/><sheetData><row r="1"><c r="A1" s="13" t="s"><v>0</v></c></row><row r="2"><c r="A2" t="s"><v>X</v></c></row><row r="3"><c r="A3" t="s"><v>Y</v></c></row></sheetData><pageMargins left="0.75" right="0.75" top="1" bottom="1" header="0.5" footer="0.5"/></worksheet>`;
+
+  test('reescribe 3 filas × n columnas con codigo, nombre, primera marca', () => {
+    const out = parchearSheet4(SHEET4_XML, [
+      { codigo: 'S01', nombre: 'Coraza',     marcas_disponibles: [] },
+      { codigo: 'S02', nombre: 'Radiadores', marcas_disponibles: ['TDM RADIATORS', 'OTRA'] }
+    ]);
+    // Dimension: A1:B3 (2 cols).
+    assert.match(out, /<dimension ref="A1:B3"/);
+    // Row 1: códigos.
+    assert.match(out, /<row r="1" spans="1:2"[\s\S]*<c r="A1"[\s\S]*S01[\s\S]*<c r="B1"[\s\S]*S02/);
+    // Row 2: nombres largos.
+    assert.match(out, /<row r="2"[\s\S]*<c r="A2"[\s\S]*Coraza[\s\S]*<c r="B2"[\s\S]*Radiadores/);
+    // Row 3: marca actual (primera de marcas_disponibles, o "(edite)").
+    assert.match(out, /<row r="3"[\s\S]*<c r="A3"[\s\S]*\(edite\)[\s\S]*<c r="B3"[\s\S]*TDM RADIATORS/);
+    // Las celdas placeholder originales (X, Y) no quedan.
+    assert.doesNotMatch(out, /<v>X<\/v>/);
+    assert.doesNotMatch(out, /<v>Y<\/v>/);
+    // sheetPr y pageMargins se preservan.
+    assert.match(out, /<sheetPr codeName="Hoja4"/);
+    assert.match(out, /<pageMargins/);
+  });
+
+  test('25 suministros → dimension A1:Y3 (cierra el gap S23-S25)', () => {
+    const arr = Array.from({ length: 25 }, (_, i) => ({
+      codigo: `S${String(i+1).padStart(2,'0')}`,
+      nombre: `Item ${i+1}`,
+      marcas_disponibles: []
+    }));
+    const out = parchearSheet4(SHEET4_XML, arr);
+    assert.match(out, /<dimension ref="A1:Y3"/);
+    // S25 está en columna Y.
+    assert.match(out, /<c r="Y1"[\s\S]*S25/);
+  });
+
+  test('arr vacío → sheetData vacío, dimension A1:A1', () => {
+    const out = parchearSheet4(SHEET4_XML, []);
+    assert.match(out, /<dimension ref="A1:A1"\/>/);
+    assert.match(out, /<sheetData\/>/);
+  });
+
+  test('escapa XML en codigo / nombre / marca', () => {
+    const out = parchearSheet4(SHEET4_XML, [
+      { codigo: 'A&B', nombre: '<x>', marcas_disponibles: ['"M"'] }
+    ]);
+    assert.match(out, /A&amp;B/);
+    assert.match(out, /&lt;x&gt;/);
+    assert.match(out, /&quot;M&quot;/);
   });
 });
 
